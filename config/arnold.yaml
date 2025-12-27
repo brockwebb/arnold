@@ -1,0 +1,48 @@
+user:
+  profile_path: data/user/profile.yaml
+  workout_logs_path: data/user/workouts/
+
+data_sources:
+  uberon:
+    url: http://purl.obolibrary.org/obo/uberon/basic.obo
+    local_path: data/ontologies/uberon.obo
+  trak:
+    url: http://www.cs.cf.ac.uk/trak/trak.obo
+    local_path: data/ontologies/trak.obo
+  exercises:
+    repo: https://github.com/yuhonas/free-exercise-db
+    local_path: data/exercises/
+
+planning:
+  default_periodization_weeks: 4
+  deload_week: 4
+  min_rest_between_muscle_groups_hours: 48
+
+# ========================================
+# Cyberdyne Systems Internal Codenames
+# ========================================
+# MCP Server: skycoach
+# Email Agent: t-800
+# Graph Database: cyberdyne-core
+# Planning Engine: judgment-day
+
+skycoach:
+  enabled: true
+  model: claude-sonnet-4-20250514
+  temperature: 0.7
+
+t-800:
+  enabled: false  # Phase 5
+  email_schedule: "0 6 * * *"  # Daily at 6am
+  response_check_interval: 3600  # Check for replies every hour
+
+cyberdyne_core:
+  name: arnold
+  backup_enabled: true
+  backup_schedule: "0 2 * * 0"  # Weekly backup Sunday 2am
+
+judgment_day:
+  lookahead_days: 7
+  consider_previous_days: 14
+  auto_deload_trigger: true
+  volume_threshold: 0.85

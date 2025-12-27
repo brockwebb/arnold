@@ -1,0 +1,61 @@
+# Environment
+.env
+*.env
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Data
+data/ontologies/*.obo
+data/ontologies/*.owl
+data/exercises/
+data/user/
+data/cache/
+
+# Large ontology source files (use kernel/ for imports)
+ontologies/anatomy/fma.owl
+ontologies/uberon/*.obo
+ontologies/uberon/*.json
+ontologies/exercises/free-exercise-db/
+ontologies/exercises/*.xlsx
+ontologies/exercises/*.csv
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# MacOS
+.DS_Store
