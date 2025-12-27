@@ -37,12 +37,20 @@ wheels/
 *.swo
 *~
 
-# Data
+# Data - Reference/Public
 data/ontologies/*.obo
 data/ontologies/*.owl
 data/exercises/
-data/user/
 data/cache/
+
+# PERSONAL DATA - NEVER COMMIT (PII/PHI)
+data/profile.json
+data/observations.json
+data/workouts/
+data/backups/
+data/user/
+data/*.json
+data/normalization/
 
 # Large ontology source files (use kernel/ for imports)
 ontologies/anatomy/fma.owl

@@ -1,0 +1,20 @@
+[project]
+name = "arnold-profile-mcp"
+version = "0.1.0"
+description = "Arnold Profile Management MCP Server"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp>=0.1.0",
+    "neo4j>=5.0.0",
+    "python-dotenv>=1.0.0"
+]
+
+[project.scripts]
+arnold-profile-mcp = "arnold_profile_mcp.server:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]

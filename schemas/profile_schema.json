@@ -1,0 +1,61 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Arnold Profile Schema",
+  "type": "object",
+  "required": ["person_id", "created_at", "demographics"],
+  "properties": {
+    "person_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "demographics": {
+      "type": "object",
+      "required": ["name", "age", "sex"],
+      "properties": {
+        "name": {"type": "string"},
+        "age": {"type": "integer", "minimum": 0},
+        "sex": {"type": "string", "enum": ["male", "female", "other"]},
+        "height_inches": {"type": ["number", "null"]},
+        "birth_date": {"type": ["string", "null"], "format": "date"}
+      }
+    },
+    "check_in": {
+      "type": "object",
+      "properties": {
+        "last_check_in": {"type": ["string", "null"], "format": "date-time"},
+        "frequency_days": {"type": "integer", "default": 14},
+        "next_reminder": {"type": ["string", "null"], "format": "date-time"}
+      }
+    },
+    "exercise_aliases": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "canonical_exercise": {"type": "string"},
+          "default_distance_miles": {"type": ["number", "null"]},
+          "default_purpose": {"type": "string"},
+          "context": {"type": "string"}
+        }
+      }
+    },
+    "preferences": {
+      "type": "object",
+      "properties": {
+        "default_units": {"type": "string", "enum": ["imperial", "metric"]},
+        "communication_style": {"type": "string"},
+        "time_zone": {"type": "string"}
+      }
+    },
+    "neo4j_refs": {
+      "type": "object",
+      "properties": {
+        "current_primary_equipment_inventory": {"type": ["string", "null"]}
+      }
+    }
+  }
+}
