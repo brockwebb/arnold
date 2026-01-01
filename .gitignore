@@ -51,6 +51,12 @@ data/backups/
 data/user/
 data/*.json
 data/normalization/
+data/raw/
+data/staging/
+data/exports/
+
+# Claude conversation transcripts (private)
+docs/transcripts/
 
 # Large ontology source files (use kernel/ for imports)
 ontologies/anatomy/fma.owl

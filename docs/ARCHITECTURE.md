@@ -2,7 +2,7 @@
 
 > **Purpose**: This document is the authoritative reference for Arnold's architecture. It serves as context handoff between conversation threads and the north star for development decisions.
 
-> **Last Updated**: December 31, 2025 (Phase 2 - Semantic Search)
+> **Last Updated**: January 1, 2026 (Phase 2 Complete - Analytics Foundation)
 
 ---
 
@@ -500,6 +500,17 @@ This enables natural language queries over coaching memory without exact keyword
 
 ## Analytics Architecture ("The Analyst")
 
+### Design Philosophy: Data Lake, Not Data Warehouse
+
+Key insight: **Solve problems you can observe, not problems you imagine.**
+
+Rather than prematurely optimizing with star schemas and dimensional models, Arnold uses a data lake approach:
+
+1. **Raw stays raw** — Never destroy source fidelity
+2. **Staging is dumb** — Just flattened Parquet, easy to rebuild
+3. **Intelligence is external** — Catalog describes, doesn't prescribe
+4. **Transform at runtime OR pre-build** — Your choice per use case
+
 ### The OLTP/OLAP Split
 
 Neo4j excels at relationships and graph traversal (coaching workflows). Analytics wants denormalized tables with SQL. Arnold uses both:
@@ -507,14 +518,21 @@ Neo4j excels at relationships and graph traversal (coaching workflows). Analytic
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                     DATA SOURCES                                │
-│  Apple Health │ Garmin │ Labs │ Nutrition │ Manual Entry        │
+│  Apple Health │ Suunto │ Ultrahuman │ Labs │ Manual Entry        │
+└─────────────────────────────────┬───────────────────────────────┘
+                                            │
+                                            ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    RAW (Native Format)                          │
+│  /arnold/data/raw/{source}/ — Untouched source files           │
+│  .fit, .json, .xml, .csv — never lose fidelity                 │
 └─────────────────────────────────┬───────────────────────────────┘
                                             │
                                             ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                    STAGING (Parquet)                            │
-│  Raw imports land here first. Columnar, portable, versioned.   │
-│  /arnold/data/staging/{source}/*.parquet                       │
+│  /arnold/data/staging/*.parquet — Flattened, minimal transform │
+│  Just columnar conversion, no joins, no aggregation             │
 └─────────────────────────────────┬───────────────────────────────┘
                                             │
               ┌─────────────────────────┼─────────────────────────┐
@@ -678,13 +696,19 @@ Interactive charts for exploration:
 
 ```
 /arnold/data/
-├── staging/                    # Raw imports (Parquet)
-│   ├── neo4j_export/
-│   ├── apple_health/
-│   ├── garmin/
-│   └── labs/
-├── arnold_analytics.duckdb     # Analytics database
-├── catalog.json                # Data registry
+├── raw/                        # Native format, untouched
+│   ├── neo4j_snapshots/        # JSON exports from graph
+│   ├── suunto/                 # .fit files
+│   ├── ultrahuman/             # JSON exports
+│   ├── apple_health/           # XML exports
+│   └── labs/                   # PDF/CSV lab results
+├── staging/                    # Parquet, minimal transform
+│   ├── workouts.parquet
+│   ├── sets.parquet
+│   ├── exercises.parquet
+│   └── movement_patterns.parquet
+├── catalog.json                # ✅ Data intelligence (CREATED)
+├── arnold_analytics.duckdb     # Analytics database (pending)
 └── exports/                    # Generated reports, charts
 ```
 
@@ -934,9 +958,12 @@ Block 3: DELOAD (Feb 17)
 
 | Task | Status | Notes |
 |------|--------|-------|
-| Export Neo4j to Parquet | 📋 | Workouts, sets, exercises to staging |
+| Data Lake Architecture | ✅ | Raw → Staging → Analytics design complete |
+| Data catalog/registry | ✅ | `/data/catalog.json` with schema, fitness for use |
+| Directory structure | ✅ | `/data/raw/`, `/data/staging/`, `/data/exports/` |
+| Export script | ✅ | `/scripts/export_to_analytics.py` ready to run |
+| Export Neo4j to Parquet | ⏳ | Run script on local machine |
 | Create DuckDB database | 📋 | `arnold_analytics.duckdb` |
-| Data catalog/registry | 📋 | `catalog.json` - schema, freshness, fitness |
 | arnold-analytics-mcp | 📋 | Query interface, report generation |
 | Core views | 📋 | daily_volume, weekly_summary, exercise_progression |
 | Goal progress tracking | 📋 | Deadlift trajectory, distance to target |
