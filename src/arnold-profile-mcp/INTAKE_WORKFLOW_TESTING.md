@@ -55,17 +55,19 @@ Please provide the following information to create your digital twin profile:
 **Required Information:**
 1. Name: [Your name]
 2. Age: [Your age in years]
-3. Biological Sex: [male/female/other]
+3. Sex: [male/female/intersex]
+4. Weight: [Current weight in lbs]
 
 **Optional Information:**
-4. Height: [Height in inches, or skip]
-5. Birth Date: [YYYY-MM-DD format, or skip]
-6. Time Zone: [e.g., America/New_York, or skip for default]
+5. Height: [Height in inches, or skip]
+6. Birth Date: [YYYY-MM-DD format, or skip]
+7. Time Zone: [e.g., America/New_York, or skip for default]
 
 **Example Response:**
 Name: John Smith
 Age: 32
 Sex: male
+Weight: 185
 Height: 72
 Birth Date: 1992-06-15
 Time Zone: America/Los_Angeles
@@ -80,6 +82,7 @@ Once you provide this information, I'll create your profile with these details.
 Name: Brock
 Age: 34
 Sex: male
+Weight: 158
 Height: 73
 Time Zone: America/New_York
 ```
@@ -87,9 +90,10 @@ Time Zone: America/New_York
 **Expected behavior:**
 - Claude calls `complete_intake(user_response)`
 - Parses the response
+- Extracts weight for baseline observation
 - Creates profile.json
 - Creates Neo4j Person + Athlete nodes
-- Returns success confirmation
+- Returns success confirmation with weight noted
 
 **Expected output:**
 ```
@@ -99,6 +103,7 @@ Time Zone: America/New_York
 **Name:** Brock
 **Age:** 34
 **Sex:** male
+**Weight:** 158 lbs (baseline recorded)
 
 Your Arnold digital twin is now initialized!
 
@@ -163,7 +168,8 @@ Age: 30
 Please provide all required fields:
 - Name
 - Age
-- Biological Sex
+- Sex (male/female/intersex)
+- Weight (lbs)
 ```
 
 ## Success Criteria

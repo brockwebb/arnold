@@ -19,8 +19,7 @@ class ProfileManager:
         age: int,
         sex: str,
         height_inches: Optional[float] = None,
-        birth_date: Optional[str] = None,
-        time_zone: str = "America/New_York"
+        birth_date: Optional[str] = None
     ) -> dict:
         """
         Create new profile and save to JSON.
@@ -28,10 +27,9 @@ class ProfileManager:
         Args:
             name: User's name
             age: User's age
-            sex: Biological sex (male/female/other)
+            sex: Biological sex (male/female/intersex)
             height_inches: Height in inches (optional)
             birth_date: Birth date YYYY-MM-DD (optional)
-            time_zone: User's time zone
 
         Returns:
             Created profile dictionary
@@ -65,8 +63,7 @@ class ProfileManager:
             "exercise_aliases": {},
             "preferences": {
                 "default_units": "imperial",
-                "communication_style": "direct",
-                "time_zone": time_zone
+                "communication_style": "direct"
             },
             "neo4j_refs": {
                 "current_primary_equipment_inventory": None
@@ -155,6 +152,7 @@ class ProfileManager:
             ValueError: If required fields are missing
         """
         import re
+        from datetime import date as date_class
 
         result = {}
 
@@ -169,9 +167,28 @@ class ProfileManager:
             result['age'] = int(age_match.group(1))
 
         # Extract sex (required)
-        sex_match = re.search(r'(?:Sex|Biological Sex):\s*(male|female|other)', response_text, re.IGNORECASE)
+        sex_match = re.search(r'(?:Sex|Biological Sex):\s*(male|female|intersex)', response_text, re.IGNORECASE)
         if sex_match:
             result['sex'] = sex_match.group(1).lower()
+
+        # Extract weight (required)
+        weight_match = re.search(r'Weight:\s*(\d+(?:\.\d+)?)', response_text, re.IGNORECASE)
+        if weight_match:
+            result['weight_lbs'] = float(weight_match.group(1))
+
+        # Extract date weighed (required)
+        date_match = re.search(r'Date weighed:\s*(.+?)(?:\n|$)', response_text, re.IGNORECASE)
+        if date_match:
+            date_str = date_match.group(1).strip()
+            if date_str.lower() == 'today':
+                result['weight_date'] = date_class.today().isoformat()
+            else:
+                # Validate date format
+                try:
+                    datetime.strptime(date_str, '%Y-%m-%d')
+                    result['weight_date'] = date_str
+                except ValueError:
+                    raise ValueError(f"Invalid date format: {date_str}. Use YYYY-MM-DD or 'today'")
 
         # Extract height (optional)
         height_match = re.search(r'Height:\s*(\d+(?:\.\d+)?)', response_text, re.IGNORECASE)
@@ -183,13 +200,8 @@ class ProfileManager:
         if birthdate_match:
             result['birth_date'] = birthdate_match.group(1)
 
-        # Extract time zone (optional)
-        tz_match = re.search(r'Time Zone:\s*(.+?)(?:\n|$)', response_text, re.IGNORECASE)
-        if tz_match:
-            result['time_zone'] = tz_match.group(1).strip()
-
         # Validate required fields
-        required = ['name', 'age', 'sex']
+        required = ['name', 'age', 'sex', 'weight_lbs', 'weight_date']
         missing = [f for f in required if f not in result]
 
         if missing:

@@ -1,0 +1,22 @@
+[project]
+name = "arnold-memory-mcp"
+version = "0.1.0"
+description = "Arnold Memory MCP - Context management and coaching continuity"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp>=1.0.0",
+    "neo4j>=5.0.0",
+    "python-dotenv>=1.0.0",
+    "openai>=1.0.0",
+]
+
+[project.scripts]
+arnold-memory-mcp = "arnold_memory_mcp.server:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]

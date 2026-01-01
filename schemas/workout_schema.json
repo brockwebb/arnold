@@ -1,0 +1,68 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Arnold Workout Schema",
+  "type": "object",
+  "required": ["workout_id", "person_id", "date", "exercises"],
+  "properties": {
+    "workout_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "person_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["strength", "endurance", "mobility", "sport", "mixed"]
+    },
+    "duration_minutes": {
+      "type": ["integer", "null"]
+    },
+    "notes": {
+      "type": ["string", "null"]
+    },
+    "exercises": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["exercise_name", "sets"],
+        "properties": {
+          "exercise_id": {
+            "type": ["string", "null"],
+            "description": "Canonical exercise UUID if mapped"
+          },
+          "exercise_name": {
+            "type": "string"
+          },
+          "purpose": {
+            "type": "string",
+            "enum": ["warm-up", "main-work", "accessory", "cool-down", "active-recovery"]
+          },
+          "sets": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "set_number": {"type": "integer"},
+                "reps": {"type": ["integer", "null"]},
+                "load_lbs": {"type": ["number", "null"]},
+                "duration_seconds": {"type": ["integer", "null"]},
+                "distance_miles": {"type": ["number", "null"]},
+                "rpe": {"type": ["number", "null"], "minimum": 1, "maximum": 10},
+                "notes": {"type": ["string", "null"]}
+              }
+            }
+          },
+          "notes": {
+            "type": ["string", "null"]
+          }
+        }
+      }
+    }
+  }
+}

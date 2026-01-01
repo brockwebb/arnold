@@ -1,359 +1,585 @@
 # Arnold Neo4j Schema Reference
 
+> **Last Updated:** December 31, 2025
+
 This document describes the complete graph schema for the Arnold knowledge graph.
 
-## Node Types
+---
 
-### Anatomy Layer
+## Core Architecture (Dec 2025)
 
-#### Muscle
-```cypher
-(:Muscle {
-  id: string,           // UBERON:... or CUSTOM:...
-  name: string,
-  synonyms: [string],
-  muscle_group: string, // e.g., "posterior_chain", "quadriceps"
-  location: string,     // e.g., "upper_leg", "back"
-  action: string,       // e.g., "hip_extension", "knee_flexion"
-  source: string        // "UBERON" or "free-exercise-db"
-})
+### The Central Insight: Modality as Hub
+
+Modality is the central organizing concept. Everything connects through modality:
+
+```
+Goal -[:REQUIRES]-> Modality <-[:FOR_MODALITY]- TrainingLevel
+                       |
+              [:EXPRESSED_BY]
+                       |
+                       v
+              MovementPattern <-[:INVOLVES]- Exercise
 ```
 
-#### Joint
-```cypher
-(:Joint {
-  id: string,
-  name: string,
-  joint_type: string,         // e.g., "hinge", "ball_and_socket"
-  primary_movements: [string], // e.g., ["flexion", "extension"]
-  source: string
-})
-```
+### Modality
 
-#### Bone
-```cypher
-(:Bone {
-  id: string,
-  name: string,
-  source: string
-})
-```
+Answers "What are we training?"
 
-#### ConnectiveTissue
 ```cypher
-(:ConnectiveTissue {
-  id: string,
-  name: string,
-  tissue_type: string   // "tendon", "ligament", "fascia"
-})
-```
-
-### Exercise Layer
-
-#### Exercise
-```cypher
-(:Exercise {
-  id: string,               // EXERCISE:...
-  name: string,
-  aliases: [string],
-  category: string,         // "strength", "conditioning", "mobility"
-  movement_pattern: string, // "hinge", "squat", "push", "pull", "carry"
-  force_type: string,       // "push", "pull"
-  mechanic: string,         // "compound", "isolation"
-  difficulty: string,       // "beginner", "intermediate", "advanced"
-  instructions: string,
-  contraindications: [string],
-  source: string            // "free-exercise-db"
-})
-```
-
-#### Equipment
-```cypher
-(:Equipment {
-  id: string,              // EQUIPMENT:...
-  name: string,
-  category: string,        // "barbell", "kettlebell", "machine", "bodyweight"
-  user_has: boolean,       // Whether user owns this equipment
-  weights_available: [int] // For adjustable equipment (KB, DB, etc.)
-})
-```
-
-#### MovementPattern
-```cypher
-(:MovementPattern {
-  id: string,
-  name: string,           // "hip_hinge", "knee_dominant_squat", "horizontal_push"
+(:Modality {
+  id: string,              // "MOD:hip-hinge-strength"
+  name: string,            // "Hip Hinge Strength"
+  adaptation_type: string, // strength | power | endurance | conditioning | mobility | stability
+  context_type: string,    // movement_pattern | activity
   description: string
 })
 ```
 
-### Injury/Rehab Layer
+**Current Modalities (13):**
+- Hip Hinge Strength, Squat Strength, Vertical Pull/Push Strength, Horizontal Pull/Push Strength
+- Loaded Carry, Core Stability, Power/Explosive, Mobility
+- Ultra Endurance, Aerobic Base, Anaerobic Capacity
 
-#### Injury
+**Relationships:**
 ```cypher
-(:Injury {
-  id: string,            // INJURY:...
-  name: string,
-  status: string,        // "active", "recovering", "resolved"
-  onset_date: date,
-  surgery_date: date,    // optional
-  notes: string
-})
+(:Modality)-[:EXPRESSED_BY]->(:MovementPattern)  // For strength modalities
+(:Modality)-[:EXPRESSED_BY]->(:Activity)         // For endurance modalities
 ```
 
-#### Constraint
-```cypher
-(:Constraint {
-  id: string,              // CONSTRAINT:...
-  description: string,
-  constraint_type: string  // "avoid", "limit", "modify", "monitor"
-})
-```
+### Goal
 
-#### RehabPhase
-```cypher
-(:RehabPhase {
-  id: string,
-  name: string,
-  week_range: string,      // e.g., "0-2", "2-6", "6-12"
-  goals: [string],
-  allowed_activities: [string],
-  restrictions: [string]
-})
-```
+First-class entity representing training objectives.
 
-### Personal Training Layer
-
-#### Workout
-```cypher
-(:Workout {
-  id: string,              // e.g., "2025-11-10_strength"
-  date: date,
-  type: string,            // "strength", "conditioning", "mobility"
-  sport: string,
-  periodization_phase: string,
-  planned_intensity: int,
-  perceived_intensity: int,
-  duration_minutes: int,
-  notes: string,
-  deviations: [string]
-})
-```
-
-#### ExerciseInstance
-```cypher
-(:ExerciseInstance {
-  id: string,
-  workout_id: string,
-  exercise_id: string,
-  sets: int,
-  reps: string,           // Can be "5,5,5" or "8-10"
-  weight: string,         // Can be "135,185,225" or "bodyweight"
-  notes: string
-})
-```
-
-#### Goal
 ```cypher
 (:Goal {
-  id: string,            // GOAL:...
+  id: string,              // "GOAL:deadlift-405x5-2026"
+  name: string,            // "Deadlift 405x5"
+  type: string,            // performance | body_comp | health | skill | rehabilitation
+  target_value: number,    // 405
+  target_unit: string,     // "lbs"
+  target_reps: number,     // 5
+  target_date: date,       // date("2026-12-31")
+  priority: string,        // high | medium | low | meta
+  status: string           // active | achieved | abandoned | paused
+})
+```
+
+**Relationships:**
+```cypher
+(:Person)-[:HAS_GOAL]->(:Goal)
+(:Goal)-[:REQUIRES {priority: "primary"|"supporting"}]->(:Modality)
+(:Goal)-[:CONFLICTS_WITH {reason: string}]->(:Goal)
+(:Goal)-[:SYNERGIZES_WITH {reason: string}]->(:Goal)
+(:Block)-[:SERVES]->(:Goal)
+```
+
+### TrainingLevel
+
+Per-person, per-modality training experience and progression model.
+
+```cypher
+(:TrainingLevel {
+  id: string,                    // "TL:brock:hip-hinge-strength"
+  current_level: string,         // novice | intermediate | advanced
+  training_age_years: float,     // 0.5
+  training_age_assessed: date,
+  historical_foundation: boolean, // true if had prior experience
+  foundation_period: string,      // "1990-1997"
+  foundation_notes: string,
+  evidence_notes: string,
+  known_gaps: [string],          // ["anti-lateral flexion"]
+  strong_planes: [string]        // ["sagittal", "transverse"]
+})
+```
+
+**Relationships:**
+```cypher
+(:Person)-[:HAS_LEVEL]->(:TrainingLevel)
+(:TrainingLevel)-[:FOR_MODALITY]->(:Modality)
+(:TrainingLevel)-[:USES_MODEL]->(:PeriodizationModel)
+```
+
+### PeriodizationModel
+
+Library of progression models with scientific grounding.
+
+```cypher
+(:PeriodizationModel {
+  id: string,                          // "PMODEL:linear"
+  name: string,                        // "Linear Periodization"
   description: string,
-  goal_type: string,     // "strength", "endurance", "body_composition", "skill"
-  target_metric: string,
-  target_value: string,
-  deadline: date,
-  status: string         // "active", "achieved", "abandoned"
+  recommended_for: [string],           // ["novice", "returning"]
+  contraindicated_for: [string],       // ["advanced_concurrent"]
+  typical_block_duration_weeks_min: int,
+  typical_block_duration_weeks_max: int,
+  volume_trend: string,                // decreasing | increasing | variable | block_dependent
+  intensity_trend: string,
+  deload_frequency: string,            // "every_4_weeks"
+  loading_paradigm: string,            // "3:1"
+  citations: [string],                 // ["Matveyev 1981", "Stone 2007"]
+  evidence_level: string               // strong | moderate | emerging
 })
 ```
 
-#### PeriodizationPhase
+**Current Models (3):**
+- Linear Periodization (novices)
+- Non-Linear/Undulating Periodization (intermediate, lifestyle athletes)
+- Block Periodization (advanced, masters, concurrent goals)
+
+### Block
+
+The fundamental time unit for training organization. Replaces TrainingPlan.
+
 ```cypher
-(:PeriodizationPhase {
-  id: string,
-  name: string,          // "build_week_1", "deload", "peak"
-  phase_type: string,    // "accumulation", "intensification", "realization", "deload"
+(:Block {
+  id: string,              // "BLOCK:2025-Q1-1-accumulation"
+  name: string,            // "Accumulation"
+  block_type: string,      // accumulation | transmutation | realization | deload | recovery
   start_date: date,
-  end_date: date
+  end_date: date,
+  week_count: int,
+  status: string,          // planned | active | completed | skipped
+  intent: string,          // Plain language coaching intent
+  volume_target: string,   // "moderate-high"
+  intensity_target: string,
+  loading_pattern: string, // "3:1"
+  focus: [string]          // ["hypertrophy", "work_capacity"]
 })
 ```
 
-#### SubjectiveSignal
+**Relationships:**
 ```cypher
-(:SubjectiveSignal {
+(:Person)-[:HAS_BLOCK]->(:Block)
+(:Block)-[:SERVES]->(:Goal)
+(:Block)-[:HAS_SESSION]->(:PlannedWorkout)
+```
+
+### Activity
+
+Sports and activities (for endurance modalities).
+
+```cypher
+(:Activity {
+  id: string,           // "ACT:trail-running"
+  name: string,         // "Trail Running"
+  type: string,         // endurance | combat | skill
+  description: string,
+  uses_for: [string]    // ["primary sport", "conditioning"]
+})
+```
+
+**Relationships:**
+```cypher
+(:Modality)-[:EXPRESSED_BY]->(:Activity)
+(:Person)-[:PRACTICES {years, current_role, frequency}]->(:Activity)
+```
+
+---
+
+## Person & Training Data
+
+### Person
+
+```cypher
+(:Person {
+  id: string,
+  name: string,
+  birth_date: date,
+  sex: string,
+  
+  // Athletic profile
+  athlete_phenotype: string,       // "lifelong"
+  athlete_phenotype_notes: string,
+  training_age_total_years: int,
+  
+  // Background
+  martial_arts_years: int,
+  martial_arts_notes: string,
+  triathlon_history: string,
+  cycling_history: string,
+  running_preference: string
+})
+```
+
+**Key Relationships:**
+```cypher
+(:Person)-[:HAS_GOAL]->(:Goal)
+(:Person)-[:HAS_LEVEL]->(:TrainingLevel)
+(:Person)-[:HAS_BLOCK]->(:Block)
+(:Person)-[:PERFORMED]->(:Workout)           // Direct, no Athlete intermediary
+(:Person)-[:HAS_PLANNED_WORKOUT]->(:PlannedWorkout)
+(:Person)-[:HAS_INJURY]->(:Injury)           // Direct, no Athlete intermediary
+(:Person)-[:HAS_ACCESS_TO]->(:EquipmentInventory)
+(:Person)-[:PRACTICES]->(:Activity)
+```
+
+### Workout (Executed)
+
+```cypher
+(:Workout {
   id: string,
   date: date,
-  signal_type: string,   // "soreness", "energy", "pain", "sleep", "stress"
-  body_part: string,     // optional, for localized signals
-  value: string,         // "high", "low", "3/10", etc.
+  type: string,              // strength | conditioning | mobility
+  duration_minutes: int,
+  notes: string,
+  source: string,            // "obsidian" | "adhoc" | "planned"
+  imported_at: datetime
+})
+```
+
+**Relationships:**
+```cypher
+(:Person)-[:PERFORMED]->(:Workout)
+(:Workout)-[:HAS_BLOCK]->(:WorkoutBlock)
+(:Workout)-[:EXECUTED_FROM]->(:PlannedWorkout)  // If from plan
+```
+
+### WorkoutBlock
+
+```cypher
+(:WorkoutBlock {
+  id: string,
+  name: string,      // "Warm-Up", "Main Work", "Finisher"
+  phase: string,     // warmup | main | accessory | finisher | cooldown
+  order: int
+})
+```
+
+### Set
+
+```cypher
+(:Set {
+  id: string,
+  order: int,
+  set_number: int,
+  reps: int,
+  load_lbs: float,
+  duration_seconds: int,
+  distance_miles: float,
+  rpe: float,
   notes: string
 })
 ```
 
-## Relationships
-
-### Anatomy Relationships
-
+**Relationships:**
 ```cypher
-(:Muscle)-[:ORIGIN]->(:Bone)
-(:Muscle)-[:INSERTION]->(:Bone)
-(:Muscle)-[:CROSSES]->(:Joint)
-(:Muscle)-[:ACTION {movement: string}]->(:Joint)
-(:Muscle)-[:PART_OF]->(:MuscleGroup)
-(:Muscle)-[:SYNERGIST_TO]->(:Muscle)
-(:Muscle)-[:ANTAGONIST_TO]->(:Muscle)
-
-(:Joint)-[:ARTICULATES]->(:Bone)
-(:Joint)-[:STABILIZED_BY]->(:ConnectiveTissue)
-
-(:ConnectiveTissue)-[:CONNECTS]->(:Bone)
-(:ConnectiveTissue)-[:ATTACHES]->(:Muscle)
+(:WorkoutBlock)-[:CONTAINS {order}]->(:Set)
+(:Set)-[:OF_EXERCISE]->(:Exercise)
+(:Set)-[:DEVIATED_FROM]->(:PlannedSet)  // If deviated from plan
 ```
 
-### Exercise Relationships
+---
+
+## Planning Layer
+
+### PlannedWorkout
 
 ```cypher
-(:Exercise)-[:TARGETS {role: "primary"}]->(:Muscle)
-(:Exercise)-[:TARGETS {role: "synergist"}]->(:Muscle)
-(:Exercise)-[:TARGETS {role: "stabilizer"}]->(:Muscle)
-
-(:Exercise)-[:LOADS]->(:Joint)
-(:Exercise)-[:LOAD_PATTERN {type: string}]->(:Joint)
-
-(:Exercise)-[:REQUIRES]->(:Equipment)
-(:Exercise)-[:MOVEMENT_TYPE]->(:MovementPattern)
-(:Exercise)-[:VARIATION_OF]->(:Exercise)
-(:Exercise)-[:PROGRESSES_TO]->(:Exercise)
-(:Exercise)-[:REGRESSES_TO]->(:Exercise)
+(:PlannedWorkout {
+  id: string,
+  date: date,
+  status: string,              // draft | confirmed | completed | skipped
+  goal: string,
+  focus: [string],
+  estimated_duration_minutes: int,
+  notes: string,
+  created_at: datetime,
+  confirmed_at: datetime,
+  completed_at: datetime,
+  skipped_at: datetime,
+  skip_reason: string
+})
 ```
 
-### Injury Relationships
+### PlannedBlock
 
 ```cypher
-(:Injury)-[:AFFECTS]->(:Joint)
-(:Injury)-[:AFFECTS]->(:Muscle)
-(:Injury)-[:AFFECTS]->(:ConnectiveTissue)
-
-(:Injury)-[:CREATES]->(:Constraint)
-(:Constraint)-[:RESTRICTS]->(:Exercise)
-(:Constraint)-[:RESTRICTS]->(:MovementPattern)
-
-(:Injury)-[:FOLLOWS_PROTOCOL]->(:RehabPhase)
-(:RehabPhase)-[:NEXT]->(:RehabPhase)
+(:PlannedBlock {
+  id: string,
+  name: string,
+  block_type: string,
+  order: int,
+  protocol_notes: string,
+  notes: string
+})
 ```
 
-### Personal Training Relationships
+### PlannedSet
 
 ```cypher
-(:Workout)-[:CONTAINS]->(:ExerciseInstance)
-(:ExerciseInstance)-[:INSTANCE_OF]->(:Exercise)
-(:ExerciseInstance)-[:USED]->(:Equipment)
-
-(:Workout)-[:IN_PHASE]->(:PeriodizationPhase)
-(:Workout)-[:TOWARD_GOAL]->(:Goal)
-(:Workout)-[:HAD_SIGNAL]->(:SubjectiveSignal)
-
-(:Goal)-[:REQUIRES_PROGRESSION]->(:Exercise)
-
-// Temporal
-(:Workout)-[:PREVIOUS]->(:Workout)
-(:PeriodizationPhase)-[:NEXT]->(:PeriodizationPhase)
+(:PlannedSet {
+  id: string,
+  order: int,
+  round: int,
+  prescribed_reps: int,
+  prescribed_load_lbs: float,
+  prescribed_rpe: float,
+  prescribed_duration_seconds: int,
+  prescribed_distance_miles: float,
+  intensity_zone: string,       // light | moderate | heavy | max
+  notes: string
+})
 ```
+
+**Relationships:**
+```cypher
+(:Person)-[:HAS_PLANNED_WORKOUT]->(:PlannedWorkout)
+(:PlannedWorkout)-[:HAS_PLANNED_BLOCK {order}]->(:PlannedBlock)
+(:PlannedBlock)-[:CONTAINS_PLANNED {order, round}]->(:PlannedSet)
+(:PlannedSet)-[:PRESCRIBES]->(:Exercise)
+```
+
+---
 
 ## Example Queries
 
-### What exercises should I avoid given my meniscus injury?
+### Modality-Based Queries
 
 ```cypher
-MATCH (i:Injury {name: "right_knee_meniscus"})-[:CREATES]->(c:Constraint)
-WHERE c.constraint_type = 'avoid'
-RETURN c.description
+// What's my training level for hip hinge?
+MATCH (p:Person {name: "Brock Webb"})-[:HAS_LEVEL]->(tl:TrainingLevel)-[:FOR_MODALITY]->(m:Modality {name: "Hip Hinge Strength"})
+OPTIONAL MATCH (tl)-[:USES_MODEL]->(pm:PeriodizationModel)
+RETURN tl.current_level, tl.training_age_years, pm.name
+
+// What modalities does a goal require?
+MATCH (g:Goal {name: "Deadlift 405x5"})-[:REQUIRES]->(m:Modality)
+RETURN g.name, collect(m.name) as required_modalities
+
+// Traverse Goal → Modality → MovementPattern → Exercise
+MATCH (g:Goal)-[:REQUIRES]->(m:Modality)-[:EXPRESSED_BY]->(mp:MovementPattern)<-[:INVOLVES]-(e:Exercise)
+RETURN g.name, m.name, mp.name, e.name LIMIT 20
+
+// What goals does the current block serve?
+MATCH (b:Block {status: 'active'})-[:SERVES]->(g:Goal)
+RETURN b.name, collect(g.name) as serves
 ```
 
-### What muscles does deadlift target?
+### Exercise Selection
 
 ```cypher
-MATCH (e:Exercise)-[r:TARGETS]->(m:Muscle)
-WHERE toLower(e.name) CONTAINS 'deadlift'
-RETURN e.name, r.role, m.name
-ORDER BY r.role
-```
-
-### What exercises target the gluteus maximus?
-
-```cypher
+// What exercises target the gluteus maximus?
 MATCH (e:Exercise)-[:TARGETS]->(m:Muscle)
 WHERE toLower(m.name) CONTAINS 'glute'
 RETURN DISTINCT e.name
+
+// What hip hinge exercises exist?
+MATCH (e:Exercise)-[:INVOLVES]->(mp:MovementPattern {name: "Hip Hinge"})
+RETURN e.name, e.source
 ```
 
-### What equipment do I have for pull exercises?
+### Injury & Constraints
 
 ```cypher
-MATCH (e:Exercise)-[:REQUIRES]->(eq:Equipment)
-WHERE eq.user_has = true
-  AND e.force_type = 'pull'
-RETURN DISTINCT e.name, eq.name
+// What active injuries exist?
+MATCH (p:Person)-[:HAS_INJURY]->(i:Injury)
+WHERE i.status IN ['active', 'recovering']
+RETURN i.name, i.status, i.body_part, i.diagnosis
+
+// What constraints come from injuries?
+MATCH (p:Person)-[:HAS_INJURY]->(i:Injury)-[:CREATES]->(c:Constraint)
+WHERE i.status IN ['active', 'recovering']
+RETURN i.name, c.description, c.constraint_type
 ```
 
-### What muscles have I trained this week?
+### Training History
 
 ```cypher
-MATCH (w:Workout)-[:CONTAINS]->(ei:ExerciseInstance)-[:INSTANCE_OF]->(e:Exercise)
+// Recent workouts (Person direct)
+MATCH (p:Person)-[:PERFORMED]->(w:Workout)
+WHERE w.date >= date() - duration('P7D')
+RETURN w.date, w.type ORDER BY w.date DESC
+
+// What muscles have I trained this week?
+MATCH (p:Person)-[:PERFORMED]->(w:Workout)-[:HAS_BLOCK]->(:WorkoutBlock)-[:CONTAINS]->(s:Set)-[:OF_EXERCISE]->(e:Exercise)
 WHERE w.date >= date() - duration('P7D')
 MATCH (e)-[:TARGETS]->(m:Muscle)
-RETURN m.name, count(ei) as sets_this_week
+RETURN m.name, count(s) as sets_this_week
 ORDER BY sets_this_week DESC
-```
 
-### What posterior chain exercises haven't I done in 3+ weeks?
-
-```cypher
-MATCH (m:Muscle {muscle_group: "posterior_chain"})<-[:TARGETS]-(e:Exercise)
+// What movement patterns haven't I trained in 2+ weeks?
+MATCH (mp:MovementPattern)<-[:INVOLVES]-(e:Exercise)
 WHERE NOT EXISTS {
-  MATCH (w:Workout)-[:CONTAINS]->(ei:ExerciseInstance)-[:INSTANCE_OF]->(e)
-  WHERE w.date >= date() - duration('P21D')
+  MATCH (p:Person)-[:PERFORMED]->(w:Workout)-[:HAS_BLOCK]->(:WorkoutBlock)-[:CONTAINS]->(s:Set)-[:OF_EXERCISE]->(e)
+  WHERE w.date >= date() - duration('P14D')
 }
-RETURN e.name
+RETURN DISTINCT mp.name
 ```
 
-### Am I due for a deload? (volume trend)
+---
+
+## Exercise Knowledge Graph
+
+### Exercise
 
 ```cypher
-MATCH (w:Workout)-[:CONTAINS]->(ei:ExerciseInstance)
-WHERE w.date >= date() - duration('P28D')
-WITH w.date as workout_date, count(ei) as volume
-RETURN workout_date, volume
-ORDER BY workout_date
+(:Exercise {
+  id: string,               // "EXERCISE:deadlift" or source-specific
+  name: string,
+  aliases: [string],
+  category: string,         // strength | conditioning | mobility
+  force_type: string,       // push | pull
+  mechanic: string,         // compound | isolation
+  difficulty: string,       // beginner | intermediate | advanced
+  instructions: string,
+  source: string            // free-exercise-db | functional-fitness-db
+})
 ```
+
+**Relationships:**
+```cypher
+(:Exercise)-[:INVOLVES]->(:MovementPattern)
+(:Exercise)-[:TARGETS {role: "primary"|"synergist"|"stabilizer"}]->(:Muscle)
+(:Exercise)-[:REQUIRES]->(:Equipment)
+(:Exercise)-[:VARIATION_OF]->(:Exercise)
+(:Exercise)-[:SIMILAR_TO]->(:Exercise)
+(:Exercise)-[:SUBSTITUTES_FOR]->(:Exercise)
+```
+
+### MovementPattern
+
+```cypher
+(:MovementPattern {
+  id: string,
+  name: string,     // "Hip Hinge", "Squat", "Vertical Pull", etc.
+  description: string
+})
+```
+
+**Current Patterns (28):** Hip Hinge, Squat, Vertical Pull, Vertical Push, Horizontal Pull, Horizontal Push, Loaded Carry, Anti-Extension, Anti-Rotation, Anti-Lateral Flexion, Knee Extension, Hip Adduction, Hip Abduction, etc.
+
+### Muscle & MuscleGroup
+
+```cypher
+(:Muscle {
+  id: string,           // UBERON:... or CUSTOM:...
+  name: string,
+  wikipedia_url: string,  // Citation requirement
+  synonyms: [string]
+})
+
+(:MuscleGroup {
+  id: string,
+  name: string          // "Quadriceps", "Posterior Chain"
+})
+```
+
+**Relationships:**
+```cypher
+(:Muscle)-[:PART_OF]->(:MuscleGroup)
+(:Muscle)-[:SYNERGIST_TO]->(:Muscle)
+(:Muscle)-[:ANTAGONIST_TO]->(:Muscle)
+```
+
+---
+
+## Injury Layer
+
+### Injury
+
+```cypher
+(:Injury {
+  id: string,              // "INJ:knee-surgery-2025"
+  name: string,
+  body_part: string,
+  side: string,            // left | right | bilateral
+  injury_date: date,
+  surgery_date: date,
+  surgery_type: string,
+  diagnosis: string,
+  status: string,          // active | recovering | resolved
+  recovery_notes: string,
+  rehab_insights: string,
+  weeks_post_surgery: int,
+  outcome: string          // For resolved injuries
+})
+```
+
+**Relationships:**
+```cypher
+(:Person)-[:HAS_INJURY]->(:Injury)
+(:Injury)-[:CREATES]->(:Constraint)
+(:Injury)-[:AFFECTS]->(:Joint)
+(:Injury)-[:AFFECTS]->(:Muscle)
+```
+
+### Constraint
+
+```cypher
+(:Constraint {
+  id: string,
+  description: string,
+  constraint_type: string  // avoid | limit | modify | monitor
+})
+```
+
+**Relationships:**
+```cypher
+(:Constraint)-[:RESTRICTS]->(:Exercise)
+(:Constraint)-[:RESTRICTS]->(:MovementPattern)
+```
+
+---
+
+## Equipment Layer
+
+### EquipmentInventory
+
+```cypher
+(:EquipmentInventory {
+  id: string,
+  name: string,       // "Home Gym"
+  location: string
+})
+```
+
+### EquipmentCategory
+
+```cypher
+(:EquipmentCategory {
+  id: string,
+  name: string,       // "Kettlebell", "Barbell"
+  type: string
+})
+```
+
+**Relationships:**
+```cypher
+(:Person)-[:HAS_ACCESS_TO]->(:EquipmentInventory)
+(:EquipmentInventory)-[:CONTAINS {weight_lbs, adjustable}]->(:EquipmentCategory)
+(:Exercise)-[:REQUIRES]->(:EquipmentCategory)
+```
+
+---
 
 ## Indexes and Constraints
 
-### Uniqueness Constraints
-
 ```cypher
-// Anatomy
-CREATE CONSTRAINT muscle_id FOR (m:Muscle) REQUIRE m.id IS UNIQUE;
-CREATE CONSTRAINT joint_id FOR (j:Joint) REQUIRE j.id IS UNIQUE;
-CREATE CONSTRAINT bone_id FOR (b:Bone) REQUIRE b.id IS UNIQUE;
-
-// Exercise
+// Uniqueness Constraints
 CREATE CONSTRAINT exercise_id FOR (e:Exercise) REQUIRE e.id IS UNIQUE;
-CREATE CONSTRAINT equipment_id FOR (eq:Equipment) REQUIRE eq.id IS UNIQUE;
-
-// Injury
-CREATE CONSTRAINT injury_id FOR (i:Injury) REQUIRE i.id IS UNIQUE;
-CREATE CONSTRAINT constraint_id FOR (c:Constraint) REQUIRE c.id IS UNIQUE;
-
-// Training
-CREATE CONSTRAINT workout_id FOR (w:Workout) REQUIRE w.id IS UNIQUE;
-CREATE CONSTRAINT instance_id FOR (ei:ExerciseInstance) REQUIRE ei.id IS UNIQUE;
+CREATE CONSTRAINT person_id FOR (p:Person) REQUIRE p.id IS UNIQUE;
 CREATE CONSTRAINT goal_id FOR (g:Goal) REQUIRE g.id IS UNIQUE;
-```
+CREATE CONSTRAINT modality_id FOR (m:Modality) REQUIRE m.id IS UNIQUE;
+CREATE CONSTRAINT training_level_id FOR (tl:TrainingLevel) REQUIRE tl.id IS UNIQUE;
+CREATE CONSTRAINT block_id FOR (b:Block) REQUIRE b.id IS UNIQUE;
+CREATE CONSTRAINT workout_id FOR (w:Workout) REQUIRE w.id IS UNIQUE;
+CREATE CONSTRAINT injury_id FOR (i:Injury) REQUIRE i.id IS UNIQUE;
 
-### Indexes
-
-```cypher
-CREATE INDEX muscle_name FOR (m:Muscle) ON (m.name);
+// Indexes
 CREATE INDEX exercise_name FOR (e:Exercise) ON (e.name);
 CREATE INDEX workout_date FOR (w:Workout) ON (w.date);
+CREATE INDEX block_status FOR (b:Block) ON (b.status);
+CREATE INDEX goal_status FOR (g:Goal) ON (g.status);
 ```
+
+---
+
+## Deprecated (Removed Dec 2025)
+
+| Node/Relationship | Replaced By |
+|-------------------|-------------|
+| Athlete | Person (direct relationships) |
+| Person-[:HAS_ROLE]->Athlete | Removed |
+| TrainingPlan | Block + Goal |
+| Person-[:HAS_TRAINING_PLAN]->TrainingPlan | Person-[:HAS_BLOCK]->Block |
+| Athlete-[:PERFORMED]->Workout | Person-[:PERFORMED]->Workout |
+| Athlete-[:HAS_INJURY]->Injury | Person-[:HAS_INJURY]->Injury |
