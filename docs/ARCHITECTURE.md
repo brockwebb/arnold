@@ -12,6 +12,67 @@ Arnold is an AI-native fitness coaching system built on Neo4j. The architecture 
 
 Arnold is designed as a **proto-human system**: it learns and grows with the user, adapting to their goals, experience level, and life context. It is not a bespoke solution for one athlete, but a foundation for any human pursuing fitness.
 
+---
+
+## North Star: The Digital Twin
+
+Arnold is the first implementation of a broader vision: **personal health sovereignty through data ownership and AI-augmented analysis.**
+
+### The Problem
+
+Everyday people get 15 minutes with a doctor, twice a year. Doctors are specialists with discipline-specific training, knowledge gaps, and anchoring bias from what they learned in school and residency. No single human can see the complete picture of another human's health across all domains and time.
+
+Meanwhile, individuals generate vast amounts of health data—workouts, sleep, heart rate, nutrition, lab work, symptoms, medications—scattered across apps, devices, and medical records they don't control.
+
+### The Vision
+
+A **Digital Twin** is a comprehensive, longitudinal model of a person that:
+
+1. **Aggregates all personal health data** — training, biometrics, medical records, lab work, nutrition, sleep, symptoms, even thoughts and reflections
+2. **Owns the data** — privacy-first, user-controlled, portable
+3. **Enables pattern detection** — AI agents find correlations humans miss across time and domains
+4. **Stays current with research** — deep research agents crawl latest literature, not anchored to outdated training
+5. **Augments (not replaces) professionals** — better informed conversations with doctors, coaches, therapists
+
+### The Team Model
+
+Claude orchestrates specialist agents, each with domain expertise:
+
+| Agent | Domain | Role |
+|-------|--------|------|
+| **Coach** | Fitness/Training | Programming, periodization, exercise selection |
+| **Doc** | Medical/Health | Symptom tracking, medication interactions, lab interpretation, rehab protocols |
+| **Analyst** | Data Science | Trends, correlations, reports, visualizations |
+| **Researcher** | Literature | Latest evidence, protocol recommendations, myth-busting |
+| **Scribe** | Documentation | Logging, journaling, reflection capture |
+
+Arnold (Coach) is the first specialist. Others follow the same pattern: MCP tools + Neo4j storage + Claude reasoning.
+
+### Data Sources (Future)
+
+| Source | Data Type | Priority |
+|--------|-----------|----------|
+| Apple Health | Sleep, HRV, resting HR, steps, activity | High |
+| Garmin/Strava | Runs, rides, GPS, training load | High |
+| Blood work | Biomarkers, panels, trends | High |
+| Medical records | Diagnoses, procedures, medications | Medium |
+| Nutrition | Macros, micros, meal timing | Medium |
+| Body composition | Weight, body fat, measurements | Medium |
+| Subjective | Energy, mood, stress, notes | Medium |
+| Genome | 23andMe, ancestry, health risks | Low |
+| Wearables | Continuous glucose, Oura, Whoop | Low |
+
+### Why This Matters
+
+This isn't about replacing doctors. It's about:
+- **Better conversations** — arrive informed, ask better questions
+- **Pattern detection** — "Your HRV drops 3 days before you get sick"
+- **Longitudinal insight** — trends over years, not snapshots
+- **Privacy** — your data, your control, your choice who sees it
+- **Democratization** — elite-level analysis for everyone
+
+Arnold proves the model works. The Digital Twin is where it's going.
+
 ### Core Architectural Principles
 
 1. **Modality as Hub** — Training domains (Hip Hinge Strength, Ultra Endurance, etc.) are the central organizing concept. Everything connects through modality.
@@ -437,6 +498,198 @@ This enables natural language queries over coaching memory without exact keyword
 
 ---
 
+## Analytics Architecture ("The Analyst")
+
+### The OLTP/OLAP Split
+
+Neo4j excels at relationships and graph traversal (coaching workflows). Analytics wants denormalized tables with SQL. Arnold uses both:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     DATA SOURCES                                │
+│  Apple Health │ Garmin │ Labs │ Nutrition │ Manual Entry        │
+└─────────────────────────────────┬───────────────────────────────┘
+                                            │
+                                            ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    STAGING (Parquet)                            │
+│  Raw imports land here first. Columnar, portable, versioned.   │
+│  /arnold/data/staging/{source}/*.parquet                       │
+└─────────────────────────────────┬───────────────────────────────┘
+                                            │
+              ┌─────────────────────────┼─────────────────────────┐
+              │                           │                         │
+              ▼                           ▼                         ▼
+┌───────────────────────┐   ┌───────────────────────┐   ┌───────────────┐
+│       Neo4j           │   │       DuckDB          │   │  Data Catalog │
+│   (Relationships)     │   │    (Analytics)        │   │   (Registry)  │
+│                       │   │                       │   │               │
+│ • Coaching workflow   │   │ • Time-series queries │   │ • What exists │
+│ • Graph traversal     │   │ • Aggregations        │   │ • Freshness   │
+│ • Exercise selection  │   │ • Pre-computed views  │   │ • Schema info │
+│ • Plan → Execute flow │   │ • Dashboard feeds     │   │ • Fitness for │
+│ • Semantic search     │   │ • Custom SQL          │   │   use         │
+└───────────────────────┘   └───────────────────────┘   └───────────────┘
+```
+
+### Why DuckDB
+
+| Feature | Benefit |
+|---------|---------|  
+| Embedded | No server, just a file (`arnold_analytics.duckdb`) |
+| Columnar | Blazing fast aggregations and time-series |
+| Parquet-native | Reads staging files directly |
+| Full SQL | Claude generates queries naturally |
+| Python/pandas | Easy integration with notebooks, exports |
+
+### Data Flow: Scalable Ingestion
+
+New data sources follow the same pattern:
+
+```
+1. IMPORT    →  Raw data lands in /staging/{source}/
+2. CATALOG   →  Register in data catalog (schema, grain, freshness)
+3. TRANSFORM →  Clean, normalize, load to DuckDB
+4. SYNC      →  If graph relationships needed, sync to Neo4j
+5. VIEW      →  Create/update pre-computed views
+```
+
+**Example: Adding Apple Health**
+
+```
+/data/staging/apple_health/
+  ├── sleep_2024.parquet
+  ├── sleep_2025.parquet
+  ├── hrv_2024.parquet
+  ├── resting_hr_2025.parquet
+  └── _manifest.json          # Schema, last_import, row_counts
+```
+
+### Data Catalog (Registry)
+
+The catalog lets Claude (and tools) answer: "What data do we have? Is this query answerable?"
+
+```python
+# /data/catalog.json
+{
+  "tables": {
+    "workouts": {
+      "source": "neo4j_export",
+      "location": "duckdb:workouts",
+      "grain": "workout_id",
+      "freshness": "daily",
+      "row_count": 163,
+      "date_range": ["2024-04-01", "2025-12-31"],
+      "columns": {
+        "date": {"type": "date", "nullable": false},
+        "type": {"type": "string", "values": ["strength", "conditioning", "mobility"]},
+        "duration_min": {"type": "int", "nullable": true},
+        "total_sets": {"type": "int"},
+        "total_reps": {"type": "int"}
+      }
+    },
+    "sets": {
+      "source": "neo4j_export",
+      "grain": "set_id",
+      "row_count": 2445,
+      "columns": {...}
+    },
+    "apple_health_sleep": {
+      "source": "apple_health_export",
+      "grain": "date",
+      "freshness": "weekly",
+      "columns": {...}
+    }
+  }
+}
+```
+
+### Pre-Computed Views
+
+| View | Grain | Refresh | Use Case |
+|------|-------|---------|----------|
+| `daily_training_volume` | date | Daily | Training load dashboard |
+| `weekly_summary` | year-week | Weekly | Week-over-week trends |
+| `exercise_progression` | date × exercise | Daily | Track lifts over time |
+| `goal_progress` | date × goal | Daily | Distance to target |
+| `body_metrics` | date | Daily | Weight, HRV, resting HR |
+| `movement_pattern_freq` | week × pattern | Weekly | Balance across patterns |
+| `block_summary` | block_id | On block close | Block retrospectives |
+
+### Output Modes
+
+**1. Dashboard (Pre-Computed)**
+
+Standardized views refreshed on schedule. Always ready, no query latency.
+
+```sql
+-- Weekly training volume (pre-computed)
+SELECT week, total_sets, total_reps, session_count
+FROM weekly_summary
+ORDER BY week DESC
+LIMIT 12;
+```
+
+**2. Hot Reports (On-Demand Intelligence)**
+
+Ad-hoc analysis that surfaces patterns and anomalies. Claude generates these in response to questions or proactively.
+
+```
+🔥 HOT REPORT: Week 52 Analysis
+
+Volume: 47 sets (+12% vs 4-week avg)
+Intensity: 72% of sets @RPE 7+ (normal)
+Pattern Gap: No horizontal pull in 10 days ⚠️
+
+Notable:
+• Deadlift trending up: 275→295→315 over 3 sessions
+• Sleep avg 6.2 hrs (down from 7.1 last month)
+• HRV elevated post-surgery, stabilizing
+
+Suggestion: Add rowing or face pulls to Thursday
+```
+
+**3. Exploratory (Custom SQL)**
+
+When the data intelligence layer knows what exists, Claude can write custom queries:
+
+```sql
+-- "How does my deadlift correlate with sleep?"
+SELECT 
+  s.date,
+  s.load_lbs,
+  b.sleep_hours,
+  b.hrv_ms
+FROM sets s
+JOIN body_metrics b ON s.date = b.date
+WHERE s.exercise_name ILIKE '%deadlift%'
+ORDER BY s.date;
+```
+
+**4. Visual Artifacts (React)**
+
+Interactive charts for exploration:
+- Progress toward goals (line chart)
+- Volume distribution by pattern (stacked bar)
+- Training calendar heatmap
+- Correlation matrices
+
+### File Structure
+
+```
+/arnold/data/
+├── staging/                    # Raw imports (Parquet)
+│   ├── neo4j_export/
+│   ├── apple_health/
+│   ├── garmin/
+│   └── labs/
+├── arnold_analytics.duckdb     # Analytics database
+├── catalog.json                # Data registry
+└── exports/                    # Generated reports, charts
+```
+
+---
+
 ## Coach Workflow
 
 ### Before Any Planning
@@ -500,12 +753,15 @@ The coach must answer:
 | **arnold-memory-mcp** | Context management, briefings, observations | ✅ **Operational** |
 | **neo4j-mcp** | Direct graph queries | ✅ External |
 
-### To Build
+### To Build (The Team)
 
-| MCP | Role | Priority |
-|-----|------|----------|
-| **arnold-checkin-mcp** | Structured check-ins, progress reviews | 🟡 Medium |
-| **arnold-analytics-mcp** | Metrics, trends, visualizations | 🟢 Low |
+| MCP | Persona | Role | Priority |
+|-----|---------|------|----------|
+| **arnold-analytics-mcp** | Analyst | Metrics, trends, reports, visualizations | 🔴 High |
+| **arnold-medical-mcp** | Doc | Health tracking, symptoms, labs, rehab | 🟡 Medium |
+| **arnold-checkin-mcp** | Coach | Structured check-ins, progress reviews | 🟡 Medium |
+| **arnold-research-mcp** | Researcher | Literature search, protocol recommendations | 🟢 Low |
+| **arnold-scribe-mcp** | Scribe | Journaling, reflection, thought capture | 🟢 Low |
 
 ### Tool Distribution
 
@@ -650,7 +906,7 @@ Block 3: DELOAD (Feb 17)
 
 ---
 
-## Development Priorities
+## Development Roadmap
 
 ### Completed (Dec 30-31, 2025)
 1. ✅ Create Modality nodes (14 modalities)
@@ -666,20 +922,67 @@ Block 3: DELOAD (Feb 17)
 11. ✅ MobilityLimitation tracking for shoulder
 12. ✅ **arnold-memory-mcp Phase 2: Semantic Search** - Neo4j vector index + OpenAI embeddings
 
-### Immediate
-1. ⏳ Weekly planning workflow - plan Week 1 sessions
-2. ⏳ Live fire test: plan → execute → reconcile
+### Phase 1: Core Coaching Loop (Current)
 
-### Next
-4. arnold-checkin-mcp - structured check-ins
-5. arnold-analytics-mcp - metrics, visualization
+| Task | Status | Notes |
+|------|--------|-------|
+| Weekly planning workflow | ⏳ | Plan Week 1 sessions |
+| Live fire test | ⏳ | Plan → Execute → Reconcile end-to-end |
+| Start logging observations | ⏳ | Build coaching memory over time |
 
-### Future
-- arnold-checkin-mcp
-- arnold-medical-mcp (injuries, constraints)
-- arnold-analytics-mcp (metrics, visualization)
-- Email/calendar integration for plan delivery
-- Wearable data integration
+### Phase 2: Analytics ("The Analyst")
+
+| Task | Status | Notes |
+|------|--------|-------|
+| Export Neo4j to Parquet | 📋 | Workouts, sets, exercises to staging |
+| Create DuckDB database | 📋 | `arnold_analytics.duckdb` |
+| Data catalog/registry | 📋 | `catalog.json` - schema, freshness, fitness |
+| arnold-analytics-mcp | 📋 | Query interface, report generation |
+| Core views | 📋 | daily_volume, weekly_summary, exercise_progression |
+| Goal progress tracking | 📋 | Deadlift trajectory, distance to target |
+| Hot reports | 📋 | On-demand pattern detection, anomalies |
+| Visual artifacts | 📋 | React charts for exploration |
+
+### Phase 3: Medical Support ("Doc")
+
+| Task | Status | Notes |
+|------|--------|-------|
+| arnold-medical-mcp | 📋 | Health tracking, constraints |
+| Symptom logging | 📋 | Pain, fatigue, illness tracking |
+| Medication tracking | 📋 | What you're taking, interactions |
+| Lab work import | 📋 | Blood panels, trends over time |
+| Rehab protocol management | 📋 | Post-injury/surgery progression |
+| Clearance logic | 📋 | "Safe to return to X" decisions |
+| Research agent integration | 📋 | Latest literature on conditions |
+
+### Phase 4: Data Integration
+
+| Task | Status | Notes |
+|------|--------|-------|
+| Apple Health import | 📋 | Sleep, HRV, resting HR, steps |
+| Garmin/Strava sync | 📋 | Run/ride data, GPS, training load |
+| Body composition logging | 📋 | Weight, measurements, photos |
+| Nutrition tracking | 📋 | Macros, meal timing |
+| Subjective logging | 📋 | Energy, mood, stress, sleep quality |
+
+### Phase 5: Digital Twin Foundation
+
+| Task | Status | Notes |
+|------|--------|-------|
+| Unified Person schema | 📋 | All data sources → one graph |
+| Cross-domain correlation | 📋 | Sleep ↔ performance, HRV ↔ readiness |
+| Longitudinal views | 📋 | Years of data, trend analysis |
+| Research agent ("Researcher") | 📋 | Literature search, protocol recommendations |
+| Journaling/reflection ("Scribe") | 📋 | Thought capture, semantic search over notes |
+
+### Phase 6: Delivery & Interface
+
+| Task | Status | Notes |
+|------|--------|-------|
+| Email delivery | 📋 | Daily/weekly plans to inbox |
+| Calendar integration | 📋 | Workouts as calendar events |
+| Mobile-friendly output | 📋 | Phone-readable formats |
+| Check-in system | 📋 | Structured conversations at cadence |
 
 ---
 
@@ -693,12 +996,14 @@ Block 3: DELOAD (Feb 17)
 | TrainingBlock | Block | Rename, re-link to Person |
 | Goal (string on plan) | Goal (node) | Create nodes with [:REQUIRES]->Modality |
 | Implicit training level | TrainingLevel | Create per person-modality |
+| Obsidian workout files | Deprecated | Historical data imported, no longer maintained |
 
 ### Data Preservation
 
 - Historical workouts (163) remain unchanged
 - Exercise graph (4,242) remains unchanged
 - MovementPattern (28) now links to Modality via [:EXPRESSED_BY]
+- Obsidian markdown files no longer needed — Arnold is the system of record
 
 ---
 
@@ -715,6 +1020,9 @@ Use Claude's reasoning for decisions, not rigid rule engines. MCPs provide data;
 
 ### Science-Grounded
 Periodization models, progression schemes, and coaching logic are grounded in peer-reviewed exercise science. Evidence level is tracked. Citations required.
+
+### Data Sovereignty
+Your data, your control. All personal health data lives in your own Neo4j instance. Portable, queryable, private. No vendor lock-in.
 
 ### Minimal State
 MCPs query fresh data, don't cache. Context is managed explicitly through memory layer.
@@ -736,6 +1044,9 @@ The system advises; the human decides. Coach makes recommendations, athlete has 
 | JUDGMENT-DAY | Workout planning logic |
 | T-800 | Exercise knowledge graph |
 | SARAH-CONNOR | User profile/digital twin |
+| T-1000 | Analyst (analytics-mcp) |
+| MILES-DYSON | Doc (medical-mcp) |
+| JOHN-CONNOR | Researcher (research-mcp) |
 
 ---
 
@@ -751,8 +1062,18 @@ The system advises; the human decides. Coach makes recommendations, athlete has 
 ├── src/
 │   ├── arnold-profile-mcp/      # Profile management
 │   ├── arnold-training-mcp/     # Training/coaching
-│   └── arnold-memory-mcp/       # Context management + semantic search
+│   ├── arnold-memory-mcp/       # Context management + semantic search
+│   └── arnold-analytics-mcp/    # (Future) Analytics + reporting
 ├── data/                        # .gitignored, PII
+│   ├── staging/                 # Raw imports (Parquet)
+│   │   ├── neo4j_export/
+│   │   ├── apple_health/
+│   │   ├── garmin/
+│   │   └── labs/
+│   ├── arnold_analytics.duckdb  # Analytics database
+│   ├── catalog.json             # Data registry
+│   ├── profile.json             # Person profile
+│   └── exports/                 # Generated reports
 └── kernel/                      # Shareable ontology
 ```
 
