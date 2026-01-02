@@ -1,62 +1,89 @@
 # Arnold Project - Thread Handoff
 
-> **Last Updated**: January 1, 2026 (New Year's Day)
-> **Previous Thread**: NYE Analytics Architecture Session
+> **Last Updated**: January 2, 2026 (Training Metrics Specification Complete)
+> **Previous Thread**: Training Metrics Research & Documentation Session
+> **Compactions in Previous Thread**: 2
 
 ## For New Claude Instance
 
-You're picking up development of **Arnold**, an AI-native fitness coaching system built on Neo4j. Read the architecture document first, then proceed.
+You're picking up development of **Arnold**, an AI-native fitness coaching system built on Neo4j. This thread completed major data infrastructure work.
 
 ---
 
-## Step 1: Read the Architecture
+## Step 1: Read the Core Documents
 
 ```
-Read /Users/brock/Documents/GitHub/arnold/docs/ARCHITECTURE.md
+1. /Users/brock/Documents/GitHub/arnold/docs/ARCHITECTURE.md  (Master reference)
+2. /Users/brock/Documents/GitHub/arnold/docs/DATA_DICTIONARY.md  (Data lake reference)
+3. /Users/brock/Documents/GitHub/arnold/docs/TRAINING_METRICS.md  (NEW - Evidence-based metrics w/ citations)
+4. /Users/brock/Documents/GitHub/arnold/docs/ROADMAP.md  (Vision document)
 ```
-
-This is the authoritative reference covering system architecture, modality-based training model, memory architecture, and MCP roster.
 
 ---
 
-## Step 2: Current State (January 1, 2026)
+## Step 2: What Was Accomplished This Session
 
-### What's New Since Last Handoff
+### Major Deliverables
 
-1. **Analytics Foundation Complete** - Data lake architecture designed and partially implemented
-2. **Data Catalog Created** - `/data/catalog.json` with schema intelligence
-3. **Export Script Ready** - `/scripts/export_to_analytics.py` awaiting local execution
-4. **10-Day Training Plan** - Birthday workout planned for Jan 2
-5. **Knee Surgery Clearance** - Doctors cleared return to normal activity
+1. **TRAINING_METRICS.md Created** - Comprehensive evidence-based metrics specification
+   - Tier 1: Metrics from logged workouts (ACWR, Volume Load, Monotony, Strain)
+   - Tier 2: Metrics requiring biometrics (hrTSS, Readiness, ATL/CTL/TSB)
+   - Tier 3: External platform metrics (Suunto TSS - NOT available via Apple Health)
+   - 17 peer-reviewed citations with full bibliographic details
+   - Coaching decision matrix with thresholds
 
-### MCP Roster
+2. **Data Availability Clarified**
+   - Suunto TSS does NOT sync to Apple Health (confirmed via research)
+   - hrTSS can be calculated from HR data during workouts
+   - Polar arm band HR can provide workout HR when worn during strength sessions
+   - Max HR calculated from age (220 - 50 = 170 bpm for Brock)
 
-| MCP | Status | Purpose |
-|-----|--------|---------|
-| arnold-memory-mcp | ✅ Operational | Context management, `load_briefing`, semantic search |
-| arnold-training-mcp | ✅ Operational | Planning, exercise selection, workout logging |
-| arnold-profile-mcp | ✅ Operational | Person, equipment, activities |
-| neo4j-mcp | ✅ External | Direct graph queries |
+3. **Documentation Updated**
+   - ARCHITECTURE.md: Added Training Metrics section, updated roadmap
+   - DATA_DICTIONARY.md: Added reference to TRAINING_METRICS.md
+   - HANDOFF.md: This file, updated for new session
 
-### Graph Node Counts
+### Previous Session Accomplishments (Preserved)
 
-| Node Type | Count |
-|-----------|-------|
-| Exercise | 4,242 |
-| Workout | 163 |
-| Set | 2,453 |
-| MovementPattern | 28 |
-| Modality | 14 |
-| Goal | 4 |
-| TrainingLevel | 6 |
-| Block | 4 |
+- Apple Health Import: 292K records, 12 Parquet tables
+- Race History: 95 races (2005-2023) consolidated
+- Clinical FHIR: 494 labs with LOINC codes
+- Ultrahuman: 234 days daily metrics
+
+### Data Lake Current State
+
+```
+/data/staging/                          ROWS
+├── apple_health_hr.parquet            3,892   (hourly aggregated)
+├── apple_health_hrv.parquet           9,912   (raw measurements)
+├── apple_health_sleep.parquet         4,281   (sleep segments)
+├── apple_health_workouts.parquet        197   (from Suunto/Polar/Ultrahuman)
+├── apple_health_steps.parquet         1,672   (daily by source)
+├── apple_health_resting_hr.parquet      168
+├── apple_health_weight.parquet            3   (sparse - manual only)
+├── apple_health_bp.parquet                2   (sparse)
+├── clinical_labs.parquet                494   (179 unique tests, LOINC coded)
+├── clinical_conditions.parquet           12   (ICD/SNOMED coded)
+├── clinical_medications.parquet          58   (RxNorm coded)
+├── clinical_immunizations.parquet        20   (CVX coded)
+├── ultrahuman_daily.parquet             234   (May 2025 → Jan 2026)
+├── race_history.parquet                  95   (2005 → 2023)
+├── workouts.parquet                     163   (Neo4j export)
+├── sets.parquet                       2,453   (Neo4j export)
+├── exercises.parquet                  4,242   (Neo4j export)
+└── movement_patterns.parquet             28   (Neo4j export)
+```
+
+---
+
+## Step 3: Current Context
 
 ### Active Goals
 
 | Goal | Target Date | Priority | Key Modalities |
 |------|-------------|----------|----------------|
-| Deadlift 405x5 | Dec 2026 | High | Hip Hinge (novice/linear), Core Stability (advanced) |
-| Hellgate 100k | Dec 2026 | High | Ultra Endurance (advanced/block), Aerobic Base (advanced/block) |
+| Deadlift 405x5 | Dec 2026 | High | Hip Hinge (novice/linear) |
+| Hellgate 100k | Dec 2026 | High | Ultra Endurance (advanced/block) |
 | 10 Pain-Free Ring Dips | Jun 2026 | Medium | Shoulder Mobility (novice/linear) |
 | Stay healthy | — | Meta | — |
 
@@ -65,31 +92,25 @@ This is the authoritative reference covering system architecture, modality-based
 **Accumulation** - Week 1 of 4 (Dec 30 → Jan 26)
 - Intent: Build work capacity, establish movement patterns
 - Volume: moderate-high | Intensity: moderate
-- Serves: Deadlift, Ring Dips, Stay Healthy
 
 ### Medical Status
 
-- **Knee Surgery** (Nov 12, 2025): **CLEARED** - Doctors cleared return to normal activity, 7 weeks post-op. No more "babying" the knee.
-- **Shoulder Mobility Limitation** (Dec 30, 2025): Not injury — movement gap from desk posture. Ring dips contraindicated until addressed.
+- **Knee Surgery** (Nov 12, 2025): **CLEARED** for normal activity
+- **Shoulder Mobility Limitation**: Movement gap, ring dips contraindicated until addressed
 
----
+### 10-Day Training Plan (Active)
 
-## Step 3: 10-Day Training Plan (Active)
-
-**Context**: Brock turning 50 on Jan 2, 1976. Birthday workout planned.
-
-| Date | Day | Focus | Key Notes |
-|------|-----|-------|-----------|
-| Tue 12/31 | REST | NYE recovery | |
-| Wed 1/1 | EASY MOVE | 30 min kickboxing/jump rope | Light movement, blood flow |
-| **Thu 1/2** | 🎂 **THE FIFTY** | 5mi run + 50s | Birthday workout! |
-| Fri 1/3 | REST | Recovery | Earn it |
-| Sat 1/4 | HINGE | Deadlift 4×5, RDL 3×8, KB swings | Hip hinge strength focus |
-| Sun 1/5 | LONG RUN | 7-8 miles easy | First long run post-surgery |
-| Mon 1/6 | REST | | |
-| Tue 1/7 | UPPER PULL | Chin-up 4×6, Row 4×8, Face pulls | |
-| Wed 1/8 | CONDITIONING | 30 min KB/burpee/rope intervals | |
-| Thu 1/9 | SQUAT/PUSH | Back squat 4×6, KB press, dips | |
+| Date | Focus | Status |
+|------|-------|--------|
+| Wed 1/1 | Easy Move - kickboxing/jump rope | Today |
+| **Thu 1/2** | 🎂 **THE FIFTY** - Birthday workout | Tomorrow |
+| Fri 1/3 | REST | |
+| Sat 1/4 | HINGE - Deadlift focus | |
+| Sun 1/5 | LONG RUN - 7-8 miles | |
+| Mon 1/6 | REST | |
+| Tue 1/7 | UPPER PULL | |
+| Wed 1/8 | CONDITIONING | |
+| Thu 1/9 | SQUAT/PUSH | |
 
 ### Birthday Workout (Jan 2) - "The Fifty"
 
@@ -104,144 +125,143 @@ This is the authoritative reference covering system architecture, modality-based
 
 ---
 
-## Step 4: Analytics Foundation (NEW)
+## Step 4: Key Discoveries This Session
 
-### Architecture Decision
+### Training Load Data Availability
 
-**Data Lake, Not Data Warehouse** — Solve problems you can observe, not problems you imagine.
+**What's Available:**
+- Suunto calculates TSS, ATL, CTL, TSB internally
+- Polar arm band HR monitor provides quality HR data
+- Apple Health contains granular HR samples (~5 min intervals)
+- Ultrahuman provides daily HRV, sleep scores, recovery scores
 
-```
-/data/
-├── raw/                    # NATIVE FORMAT, UNTOUCHED
-│   ├── neo4j_snapshots/
-│   ├── suunto/
-│   ├── ultrahuman/
-│   └── apple_health/
-├── staging/                # PARQUET, MINIMAL TRANSFORM
-├── catalog.json            # ✅ THE INTELLIGENCE (CREATED)
-└── arnold_analytics.duckdb # Query layer (pending)
-```
+**What's NOT Available:**
+- Suunto TSS does NOT sync to Apple Health (proprietary)
+- FIT file manual export would have TSS, but not worth the effort
+- rTSS (pace-based) only available in Suunto/Garmin apps
 
-### What Exists
+**Workaround:**
+- Calculate hrTSS from HR data during workouts
+- Wear Polar arm band during strength sessions (currently only paired with Suunto for cardio)
+- HR during workout is better than RPE for load quantification
 
-1. **`/data/catalog.json`** - Data intelligence layer describing:
-   - What data exists (sources, row counts, date ranges)
-   - Schema and column types
-   - Fitness for use (completeness, consistency)
-   - Link strategies (how to join sources)
-   - Known questions and how to answer them
-   - Future sources (Ultrahuman, Suunto, Apple Health)
+### Biometric Parameters for Brock
 
-2. **`/scripts/export_to_analytics.py`** - Ready to run on local machine:
-   - Exports workouts, sets, exercises, patterns from Neo4j
-   - Writes raw JSON + staging Parquet
-   - Run with: `cd ~/Documents/GitHub/arnold && python scripts/export_to_analytics.py`
+| Parameter | Value | Source |
+|-----------|-------|--------|
+| Max HR (estimated) | 170 bpm | 220 - age (50) |
+| LTHR (estimated) | 144.5 bpm | 0.85 × Max HR |
+| Resting HR | ~50 bpm | Ultrahuman data |
 
-### Key Design Decisions
+### Ultrahuman Granular Data in Apple Health
 
-1. **Date is universal join key** - Most health data is day-grain
-2. **UTC storage + attribution date** - Handles midnight-crossing events (ultras, sleep)
-3. **Raw stays raw** - Never destroy source fidelity
-4. **Transform at query time OR pre-build** - Flexibility over prescription
+Ultrahuman writes HR samples every ~5 minutes to Apple Health (not just daily aggregates).
+- **Aggregated** (Ultrahuman CSV): Sleep scores, recovery scores → `/data/staging/ultrahuman_daily.parquet`
+- **Granular** (Apple Health XML): HR every ~5min → `/data/staging/apple_health_hr.parquet`
 
-### Edge Cases Documented but Unsolved
+### Clinical Data is Gold
 
-- **Ultrahuman time handling**: Unknown — need sample data
-- **Midnight-crossing activities**: Store UTC, compute attribution
-- **Duplicate sources**: Time overlap matching for deduplication
+494 lab results with LOINC codes from MyChart/Epic. This enables longitudinal biomarker tracking — exactly the kind of analysis specialists charge thousands for.
 
----
+### Race History Complete
 
-## Step 5: Protocols to Remember
+18 years of endurance racing (2005-2023):
+- 7 × 100-milers (including Old Dominion, Massanutten, Grindstone)
+- 14 × 100Ks (Hellgate 12 times!)
+- 2 × Half Ironman (Eagleman, Black Bear)
+- Multiple marathons, 50-milers, shorter races
 
-### Shoulder Mobility - Daily 5min
+### Data Gaps Identified
 
-```
-Band Pull-Apart: 2x15
-Wall Slide: 2x10
-Shoulder CAR: 5 each direction
-Pec Doorway Stretch: 30s each side
-Thread the Needle: 5 each side
-```
-
-### Dip Progression (Ring Dips Goal)
-
-- Phase 1 (Jan-Feb): Push-ups + mobility
-- Phase 2 (Mar): Bench dips
-- Phase 3 (Apr): Parallel bar dips
-- Phase 4 (May): Ring support → partial ROM
-- Phase 5 (Jun): Full ROM ring dips
+- **Weight**: Only 3 manual entries — needs regular weigh-ins
+- **Blood Pressure**: Only 2 entries — sparse
+- **Workout Overlap**: 197 Apple Health workouts vs 163 Neo4j workouts — some dedupe needed
 
 ---
 
-## Step 6: Coaching Observations Stored
+## Step 5: What's Next
 
-Key observations from recent sessions (stored in Neo4j with embeddings):
+### Immediate Priority
 
-1. **Warmup preference**: General movement first (kickboxing, jump rope), not specific movement prep
-2. **KB push press**: Start at 35lb, technique breaks down after 3 reps when overloaded
-3. **Ring dips**: Contraindicated until shoulder mobility improves
-4. **Knee surgery clearance**: Doctors cleared return to normal activity early Jan 2025
+1. **Create DuckDB database** (`arnold_analytics.duckdb`)
+   - Load all Parquet files
+   - Create unified views
 
----
+2. **First Analytics Queries**
+   - Training volume trends
+   - HRV ↔ workout performance correlation
+   - Sleep impact analysis
 
-## Step 7: Key Files
-
-| File | Purpose |
-|------|---------|
-| `/arnold/docs/ARCHITECTURE.md` | Master reference (updated Jan 1) |
-| `/arnold/docs/HANDOFF.md` | This file |
-| `/arnold/data/catalog.json` | **NEW** Data intelligence layer |
-| `/arnold/scripts/export_to_analytics.py` | **NEW** Neo4j export script |
-| `/arnold/src/arnold-memory-mcp/` | Context management + semantic search |
-| `/arnold/src/arnold-training-mcp/` | Training/coaching tools |
-| `/arnold/src/arnold-profile-mcp/` | Profile management |
-
----
-
-## Step 8: What's Next
-
-### Immediate (Today/This Week)
-
-1. **Run export script** on local machine to populate Parquet files
-2. **Test birthday workout** - Execute Jan 2, reconcile results
-3. **Continue Week 1** - Execute planned sessions
+3. **Continue Training Plan**
+   - Execute birthday workout (Jan 2)
+   - Log results, reconcile
 
 ### Near-Term
 
-1. **DuckDB setup** - Create database, basic views
-2. **First analytics queries** - Volume trends, pattern balance
-3. **Import first external source** - Ultrahuman or Suunto
+1. **arnold-analytics-mcp** - Query interface for Claude
+2. **Pattern detection** - Bayesian evidence framework implementation
+3. **Visual artifacts** - React charts for data exploration
 
 ### Backlog
 
-- arnold-analytics-mcp (query interface)
-- Hot reports (pattern detection)
-- Visual artifacts (React charts)
+- Workout deduplication (Apple Health vs Neo4j)
+- Garmin historical .FIT import
+- Real-time sync pipeline
 
 ---
 
-## Step 9: How to Start
+## Step 6: Key Files Reference
 
-```
-1. Call load_briefing (arnold-memory-mcp)
-2. Review context (goals, block, injuries, recent workouts)
-3. Ask what Brock wants to work on
-```
-
-The briefing gives you everything. No more cold starts.
+| File | Purpose |
+|------|---------|
+| `/docs/TRAINING_METRICS.md` | **NEW** - Evidence-based metrics with citations |
+| `/docs/ARCHITECTURE.md` | Master technical reference |
+| `/docs/DATA_DICTIONARY.md` | **NEW** - Data lake schema reference |
+| `/docs/ROADMAP.md` | Vision, narrative, design philosophy |
+| `/docs/HANDOFF.md` | This file |
+| `/data/catalog.json` | Data intelligence layer (17 sources) |
+| `/scripts/sync/import_apple_health.py` | **NEW** - Apple Health streaming parser |
+| `/scripts/sync/stage_ultrahuman.py` | CSV → Parquet staging |
+| `/src/arnold-analytics-mcp/DESIGN.md` | Analytics MCP tool interface |
 
 ---
 
-## Brock's Preferences
+## Step 7: Brock's Preferences
 
 - Substance over praise
 - Direct answers, no engagement farming
 - Graph-first thinking
 - Evidence-based (ontologies, citations)
 - Phone-readable output formats
-- Lifelong athlete phenotype (35 years) - program accordingly
+- Lifelong athlete phenotype (35 years martial arts, 18 years ultra) — program accordingly
 - **Solve problems you can observe, not problems you imagine**
+- Census questions: Use Census API, never web search
+
+---
+
+## Step 8: How to Start
+
+```
+1. Call load_briefing (arnold-memory-mcp)
+2. Read DATA_DICTIONARY.md for data lake context
+3. Review what Brock wants to work on
+```
+
+---
+
+## Step 9: Transcript Location
+
+Previous conversation transcripts available at:
+```
+/mnt/transcripts/2026-01-02-00-22-23-training-load-metrics-specification.txt  (Current session)
+/mnt/transcripts/2026-01-01-17-24-56-apple-health-export-discovery.txt  (Previous session)
+```
+
+Use these for detailed context if needed. Current transcript contains:
+- Training load metrics research (ACWR, TSS, hrTSS)
+- Data source investigation (Neo4j, DuckDB, Suunto, Apple Health)
+- Metric tier definitions with citations
+- Data pipeline architecture
 
 ---
 
@@ -253,9 +273,4 @@ The briefing gives you everything. No more cold starts.
 | T-800 | Exercise knowledge graph |
 | SARAH-CONNOR | User profile/digital twin |
 | T-1000 | Analyst (analytics-mcp) |
-
----
-
-## Transcript Location
-
-Conversation transcripts are stored in Claude's container (`/mnt/transcripts/`) and are NOT accessible from your machine. They exist for Claude's continuity across context compactions. The handoff document and `load_briefing` are the primary mechanisms for thread-to-thread context transfer.
+| SKYNET-READER | Data import pipelines |

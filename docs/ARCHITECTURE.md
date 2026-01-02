@@ -2,7 +2,7 @@
 
 > **Purpose**: This document is the authoritative reference for Arnold's architecture. It serves as context handoff between conversation threads and the north star for development decisions.
 
-> **Last Updated**: January 1, 2026 (Phase 2 Complete - Analytics Foundation)
+> **Last Updated**: January 2, 2026 (Phase 2.3 - Training Metrics Specification)
 
 ---
 
@@ -84,6 +84,138 @@ Arnold proves the model works. The Digital Twin is where it's going.
 4. **Science-Grounded** — Periodization models, progression schemes, and coaching logic are grounded in peer-reviewed exercise science.
 
 5. **Graph-First Thinking** — Everything is relationships. Start at any node, traverse to what you need.
+
+---
+
+## Coaching Philosophy
+
+### The Athlete is Here to Be Coached
+
+Arnold is not a Q&A system. The athlete shows up; Arnold assesses, plans, and coaches. The athlete participates but doesn't drive.
+
+**Wrong mental model:**
+- Athlete asks question → Claude queries data → Claude answers
+
+**Correct mental model:**
+- Athlete shows up → Arnold assesses situation → Arnold coaches proactively
+
+The athlete shouldn't need to know what to ask. Arnold should proactively check relevant data based on context. When an athlete says "I'm feeling tired," Arnold doesn't wait for them to ask about their HRV—he checks it himself and synthesizes.
+
+### Coaching Intensity Scales with Athlete Level
+
+Noobs need more guidance. Experts need synthesis.
+
+| Athlete Level | Coaching Behavior |
+|---------------|-------------------|
+| **Novice** | Tell them what to do. Prompt for information they don't know to volunteer. Explain the why in simple terms. High touch. |
+| **Intermediate** | Offer options with recommendations. Explain tradeoffs. Ask better questions. |
+| **Advanced** | Synthesize macro trends. Surface patterns they can't see. Challenge assumptions. Low touch unless requested. |
+
+**Critical insight:** Level is per-modality, not global. Brock is a novice deadlifter but an advanced endurance athlete. He needs hand-holding on hip hinge progression but only macro synthesis on running.
+
+### Transfer Effects and Athletic Background
+
+A "novice" in one modality isn't necessarily a novice athlete. Someone with 35 years of martial arts and 18 years of ultrarunning has:
+
+- **Motor learning capacity** — picks up new movements faster
+- **Body awareness / proprioception** — knows what "right" feels like
+- **Mental training** — understands progressive overload, deload, periodization concepts
+- **Aerobic engine** — work capacity that transfers across domains
+- **Recovery patterns** — lifelong athletes recover differently than gen pop
+
+This means their "novice" progression in deadlift will be atypical. They start higher (better foundation) and may progress differently (transfer effects). The TrainingLevel node captures this with `historical_foundation` and `foundation_period` fields.
+
+### Adaptive Feedback Loops
+
+The system should know what information to request based on what it knows about the athlete:
+
+**Noob context:**
+- "How did that workout feel?" → Simple scale (Easy / Moderate / Hard / Crushed)
+- "Any pain or discomfort?" → Binary with location prompt if yes
+- "Did you complete as written?" → Yes/No with deviation capture if no
+
+**Expert context:**
+- "Anything notable?" → Open-ended, trust them to surface what matters
+- Deviations captured by exception, not interrogation
+
+### RPE Capture (User Experience, Not Logging Problem)
+
+RPE (Rate of Perceived Exertion) is consistently NULL in the data. This isn't a data quality issue—it's a coaching UX gap.
+
+The athlete doesn't know what to report. Arnold should:
+1. **Ask post-workout**: "How did that feel?" with anchored options
+2. **Correlate with objective data**: If HR monitor shows max effort but athlete says "easy," something's off
+3. **Learn their calibration**: Some athletes underreport, some overreport
+
+**Simple scale for capture:**
+| Rating | Description | Technical RPE |
+|--------|-------------|---------------|
+| Easy | Could do much more | 5-6 |
+| Moderate | Challenging but manageable | 7 |
+| Hard | Few reps left in tank | 8-9 |
+| Crushed | Nothing left | 10 |
+
+### Graceful Degradation
+
+Arnold works with what he has. Data gaps are expected (ring left on charger, sensor failed, life happened).
+
+**When data is missing:**
+- Don't pretend to know what you don't
+- Fall back to simpler heuristics
+- Ask the athlete directly
+- Note uncertainty in recommendations
+
+**When data is sparse:**
+- Use population priors
+- Widen confidence intervals
+- Be more conservative in recommendations
+
+**When data is rich:**
+- Use individual patterns
+- Tighten confidence intervals
+- Make bolder, personalized recommendations
+
+The `data_completeness` field in daily_metrics (0-4) signals how much Arnold knows about any given day.
+
+### The Coach Proactively Assesses
+
+Before any planning or response, Arnold should internally:
+
+1. **Load context** — `load_briefing()` for goals, block, recent training
+2. **Check readiness** — HRV, sleep, recovery score, recent load
+3. **Identify constraints** — injuries, equipment, time available
+4. **Surface concerns** — anything trending wrong?
+
+Then synthesize into coaching behavior:
+
+```
+Athlete: "What's today's workout?"
+
+Arnold thinks:
+- Plan says heavy deadlifts
+- But: HRV down 15%, sleep 5.2 hrs, high volume yesterday
+- Adjust: "Plan says deadlifts, but your body says otherwise.
+  Let's go light technique work today, push heavy to Saturday."
+```
+
+The athlete didn't ask about their HRV. Arnold checked anyway. That's coaching.
+
+### What Arnold Explains (And Doesn't)
+
+**Always explain:**
+- The plan (what we're doing)
+- The why (at appropriate level for athlete)
+- The tradeoffs (when relevant)
+
+**Don't over-explain:**
+- The data machinery
+- The statistical methods
+- The confidence intervals (unless asked)
+
+**On request, go deep:**
+- "Why?" → reasoning layer
+- "Show me the data" → full derivation
+- "How confident are you?" → uncertainty quantification
 
 ---
 
@@ -698,19 +830,277 @@ Interactive charts for exploration:
 /arnold/data/
 ├── raw/                        # Native format, untouched
 │   ├── neo4j_snapshots/        # JSON exports from graph
-│   ├── suunto/                 # .fit files
-│   ├── ultrahuman/             # JSON exports
-│   ├── apple_health/           # XML exports
+│   ├── ultrahuman/             # API syncs + manual exports
+│   ├── apple_health/           # XML exports (aggregates all sources)
+│   ├── garmin/                 # Historical .FIT files
+│   ├── race_logs/              # Manual historical data
 │   └── labs/                   # PDF/CSV lab results
 ├── staging/                    # Parquet, minimal transform
 │   ├── workouts.parquet
 │   ├── sets.parquet
-│   ├── exercises.parquet
-│   └── movement_patterns.parquet
+│   ├── ultrahuman_daily.parquet
+│   └── apple_health_*.parquet
 ├── catalog.json                # ✅ Data intelligence (CREATED)
+├── sources.json                # Source registry (APIs, exports, schemas)
 ├── arnold_analytics.duckdb     # Analytics database (pending)
 └── exports/                    # Generated reports, charts
 ```
+
+### Data Sync Scripts
+
+```
+/arnold/scripts/sync/
+├── sync_ultrahuman.py          # API sync (requires .env credentials)
+├── stage_ultrahuman.py         # CSV/JSON → Parquet
+├── import_apple_health.py      # XML → Parquet (streaming parser)
+└── import_garmin_fit.py        # .FIT → Parquet
+```
+
+---
+
+## Analytics Intelligence Framework
+
+Arnold's analytics layer is not a static dashboard—it's a **closed-loop control system** that learns and adapts to the individual.
+
+### Control Systems Model
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    SENSORS (Measurement)                        │
+│  Wearables, labs, manual entry, workouts                        │
+│  Each with known error bounds and confidence                    │
+└───────────────────────────┬─────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    OBSERVER (State Estimation)                  │
+│  What's the current state? What patterns exist?                 │
+│  Bayesian updating, uncertainty quantification                  │
+└───────────────────────────┬─────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    CONTROLLER (Decision Logic)                  │
+│  Given state + goals + constraints → recommendations            │
+│  Risk-neutral, dampened response to noise                       │
+└───────────────────────────┬─────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    ACTUATOR (Interventions)                     │
+│  Training plan, rest day, intensity adjustment                  │
+│  Coach makes recommendation, human decides                      │
+└───────────────────────────┬─────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    PLANT (The Individual)                       │
+│  Biological system with unique response characteristics         │
+│  The thing we're trying to optimize                             │
+└───────────────────────────┬─────────────────────────────────────┘
+                            │
+                            │ (response)
+                            ▼
+                    Back to SENSORS
+```
+
+### System Lifecycle
+
+| Phase | What Happens | Uncertainty |
+|-------|--------------|-------------|
+| **Startup** | Initial data collection, baseline estimation | High — wide credible intervals |
+| **Calibration** | Learning individual response curves, tuning priors | Medium — intervals narrowing |
+| **Loop Tuning** | Adjusting dampening, identifying lag structures | Medium-Low — patterns stabilizing |
+| **Optimization** | Exploiting learned patterns, fine-tuning | Low — confident interventions |
+
+The system **never stops learning**. Even in optimization phase, beliefs update, drift is detected, new patterns emerge.
+
+### Bayesian Evidence Framework
+
+**Why not p-values?** P < 0.05 is a binary gate that:
+- Treats p=0.049 and p=0.051 completely differently
+- Answers the wrong question ("probability of data given null" ≠ "probability effect is real")
+- Ignores prior knowledge
+- Doesn't account for multiple testing
+
+**Instead, we use:**
+
+```python
+class PatternEvidence:
+    """Represents belief about a discovered pattern."""
+    
+    # Effect
+    effect_size: float              # Point estimate
+    credible_interval: tuple        # (low, high) - 95% HDI
+    effect_direction: str           # "positive", "negative", "unclear"
+    
+    # Confidence
+    prior_plausibility: float       # 0-1, based on domain knowledge
+    posterior_probability: float    # 0-1, P(real | data)
+    bayes_factor: float             # Strength of evidence vs null
+    
+    # Stability
+    temporal_consistency: float     # Does it hold across time windows?
+    sample_size: int
+    
+    # Actionability
+    effect_meaningful: bool         # Is effect size large enough to matter?
+    intervention_available: bool    # Can we do anything about it?
+    
+    def evidence_grade(self) -> str:
+        """
+        Returns: 'strong', 'moderate', 'suggestive', 'weak', 'insufficient'
+        
+        NOT a binary gate. A communication tool.
+        Underlying numbers always available.
+        """
+```
+
+### Prior Sources (Confidence-Weighted)
+
+| Source | Confidence | Use |
+|--------|------------|-----|
+| Peer-reviewed literature | High | Population-level priors |
+| Exercise science consensus | High | Physiological plausibility |
+| Your historical data | Very High | Individual response patterns |
+| Single studies | Medium | Hypothesis generation |
+| Expert opinion | Medium | Where data sparse |
+| Pseudoscience measurements | Low | Trend-only, cross-validate |
+
+### Dampening and Noise Handling
+
+**Risk-neutral approach:** Don't chase noise, but don't ignore persistent signals.
+
+```python
+class SignalProcessor:
+    def process_observation(self, new_data, pattern):
+        # 1. Update estimate with dampening (learned per-pattern)
+        alpha = self.get_dampening_factor(pattern)
+        smoothed = alpha * new_data + (1 - alpha) * self.current_estimate
+        
+        # 2. Track persistence
+        if signal_direction_consistent(new_data, window=7):
+            pattern.persistence_count += 1
+        else:
+            pattern.persistence_count = max(0, pattern.persistence_count - 1)
+        
+        # 3. Escalate attention if persistent
+        if pattern.persistence_count > threshold:
+            flag_for_investigation(pattern)
+            # "This keeps showing up. Let's look closer."
+        
+        # 4. Update uncertainty bounds
+        pattern.credible_interval = update_interval(
+            prior=pattern.credible_interval,
+            new_evidence=new_data
+        )
+```
+
+### Transparency Architecture
+
+**Three layers of explanation, available on demand:**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    USER-FACING OUTPUT                           │
+│  "Your HRV is down. Consider a lighter session today."          │
+│  Simple. Actionable. No jargon.                                 │
+└───────────────────────────┬─────────────────────────────────────┘
+                            │ [Why?]
+                            ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    REASONING LAYER                              │
+│  "HRV is 18% below your 7-day average. Based on 180 days of     │
+│  your data, this predicts elevated RPE (+1.2 on average).       │
+│  Confidence: moderate (CI: 0.8-1.6 RPE points)."                │
+└───────────────────────────┬─────────────────────────────────────┘
+                            │ [Show me the math]
+                            ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    FULL DERIVATION                              │
+│  Model: Bayesian linear regression                              │
+│  Prior: N(0.5, 0.3) based on literature + Q1-Q2 data            │
+│  Likelihood: N(1.2, 0.4) from current data                      │
+│  Posterior: N(1.05, 0.25)                                       │
+│  Credible interval: [0.56, 1.54] 95% HDI                        │
+│  Bayes factor vs null: 4.2 (moderate evidence)                  │
+│  Raw data: [attached], Code: [link to computation]              │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Every recommendation is traceable to source data and explicit assumptions.**
+
+### Individualization as First Principle
+
+Population studies tell us: "On average, sleep affects recovery."
+
+Your data tells us: "For YOU, sleep 2 nights ago matters more than last night, the effect is ~0.8 RPE points per SD of sleep score, and this holds except during deload weeks."
+
+```python
+# Population prior (from literature)
+population_effect = Normal(mean=0.5, std=0.3)
+
+# Your data updates the prior
+your_posterior = update(
+    prior=population_effect,
+    likelihood=your_data_likelihood
+)
+
+# With enough data, your posterior dominates
+# With sparse data, fall back toward population
+# Automatic regularization via Bayesian updating
+```
+
+**What's important for you ≠ what's important for everyone.** The system learns YOUR transfer functions, YOUR lag structures, YOUR response curves.
+
+### Value Extraction Pipeline
+
+```
+RAW MEASUREMENTS (Parquet)
+    │
+    ▼
+FEATURE ENGINEERING (DuckDB + Python)
+    Rolling averages, deltas, lag features, z-scores
+    │
+    ▼
+PATTERN DETECTION (Statistical + ML)
+    Correlation, regression, clustering, anomaly detection
+    │
+    ▼
+DISCOVERED KNOWLEDGE (Neo4j)
+    Patterns become graph nodes with relationships
+    │
+    ▼
+COACHING DECISIONS (Claude)
+    Knowledge informs recommendations
+```
+
+**Raw time-series stays tabular. Discovered patterns become graph relationships.**
+
+### Training Metrics Specification
+
+For evidence-based training metrics with full citations, see **[TRAINING_METRICS.md](./TRAINING_METRICS.md)**.
+
+Key metrics by tier:
+
+**Tier 1 (From Logged Workouts)**:
+- Volume Load (tonnage)
+- ACWR (Acute:Chronic Workload Ratio) using EWMA
+- Training Monotony & Strain
+- Sets per muscle group per week
+- Movement pattern frequency
+- Exercise progression (estimated 1RM)
+
+**Tier 2 (Requires Biometric Data)**:
+- Readiness Score (HRV + sleep + RHR)
+- hrTSS (heart rate-based Training Stress Score)
+- ATL/CTL/TSB (Acute/Chronic Training Load, Training Stress Balance)
+
+**Tier 3 (Requires External Platform Export)**:
+- Suunto TSS (not available via Apple Health sync)
+- rTSS (pace-based running TSS)
+
+All formulas and thresholds are cited to peer-reviewed sports science literature.
 
 ---
 
@@ -945,6 +1335,7 @@ Block 3: DELOAD (Feb 17)
 10. ✅ Ring Dips goal + Shoulder Mobility protocol created
 11. ✅ MobilityLimitation tracking for shoulder
 12. ✅ **arnold-memory-mcp Phase 2: Semantic Search** - Neo4j vector index + OpenAI embeddings
+13. ✅ **Training Metrics Specification** - TRAINING_METRICS.md with full citations
 
 ### Phase 1: Core Coaching Loop (Current)
 
@@ -962,8 +1353,10 @@ Block 3: DELOAD (Feb 17)
 | Data catalog/registry | ✅ | `/data/catalog.json` with schema, fitness for use |
 | Directory structure | ✅ | `/data/raw/`, `/data/staging/`, `/data/exports/` |
 | Export script | ✅ | `/scripts/export_to_analytics.py` ready to run |
+| Training Metrics Spec | ✅ | TRAINING_METRICS.md - ACWR, TSS, volume targets w/ citations |
 | Export Neo4j to Parquet | ⏳ | Run script on local machine |
 | Create DuckDB database | 📋 | `arnold_analytics.duckdb` |
+| Tier 1 metrics | 📋 | ACWR, monotony, strain, pattern frequency |
 | arnold-analytics-mcp | 📋 | Query interface, report generation |
 | Core views | 📋 | daily_volume, weekly_summary, exercise_progression |
 | Goal progress tracking | 📋 | Deadlift trajectory, distance to target |
@@ -1119,6 +1512,17 @@ The briefing gives you everything. No more cold starts.
 ---
 
 ## References
+
+### Training Load & Workload Management
+
+For complete training metrics citations, see **[TRAINING_METRICS.md](./TRAINING_METRICS.md)**.
+
+Key sources:
+- Gabbett, T.J. (2016). The training—injury prevention paradox. *BJSM*, 50(5), 273-280.
+- Murray, N.B. et al. (2017). EWMA provides more sensitive injury indicator. *BJSM*, 51(9), 749-754.
+- Schoenfeld, B.J. et al. (2017). Dose-response for training volume and hypertrophy. *J Sports Sci*, 35(11), 1073-1082.
+- Foster, C. (1998). Monitoring training with overtraining syndrome. *MSSE*, 30(7), 1164-1168.
+- Banister, E.W. (1975). Systems model of training for athletic performance. *Aust J Sports Med*, 7, 57-61.
 
 ### Periodization Science
 
