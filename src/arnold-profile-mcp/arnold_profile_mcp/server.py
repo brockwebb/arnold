@@ -104,6 +104,26 @@ async def list_tools_handler() -> list[types.Tool]:
             }
         ),
         types.Tool(
+            name="search_exercises",
+            description="""Search exercises using full-text search with fuzzy matching. Returns multiple candidates for Claude to select from.
+
+Use this when you need to find exercises by name or alias. The tool returns up to 5 candidates with relevance scores.
+Claude should:
+1. Normalize the query first (e.g., 'KB swing' → 'kettlebell swing')
+2. Review the candidates and select the best match
+3. If no good match exists, create a custom exercise
+
+The full-text index searches exercise names AND aliases (common alternative names).""",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "Search query (exercise name or common alias)"},
+                    "limit": {"type": "integer", "description": "Max results to return (default 5)", "default": 5}
+                },
+                "required": ["query"]
+            }
+        ),
+        types.Tool(
             name="log_workout",
             description="""Save a pre-structured workout. Claude Desktop interprets user's natural language and structures it into the workout schema BEFORE calling this tool. This tool is DUMB - it just saves data.
 
@@ -457,6 +477,40 @@ Ready to set up equipment and log workouts!"""
                 return [types.TextContent(
                     type="text",
                     text=f"No canonical exercise found for '{exercise_name}'. Use null for exercise_id."
+                )]
+
+        except Exception as e:
+            logger.error(f"Error searching exercises: {str(e)}", exc_info=True)
+            return [types.TextContent(
+                type="text",
+                text=f"❌ Error searching exercises: {str(e)}"
+            )]
+
+    elif name == "search_exercises":
+        try:
+            query = arguments["query"]
+            limit = arguments.get("limit", 5)
+
+            logger.info(f"Searching exercises with query: {query}")
+
+            results = neo4j_client.search_exercises(query, limit=limit)
+
+            if results:
+                # Format results as a table
+                output = f"Found {len(results)} exercise(s) matching '{query}':\n\n"
+                for i, r in enumerate(results, 1):
+                    output += f"{i}. **{r['name']}**\n"
+                    output += f"   ID: `{r['exercise_id']}`\n"
+                    output += f"   Score: {r['score']:.2f}\n\n"
+                
+                return [types.TextContent(
+                    type="text",
+                    text=output
+                )]
+            else:
+                return [types.TextContent(
+                    type="text",
+                    text=f"No exercises found matching '{query}'. Consider creating a custom exercise."
                 )]
 
         except Exception as e:

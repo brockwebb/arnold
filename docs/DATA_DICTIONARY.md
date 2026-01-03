@@ -1,7 +1,7 @@
 # Arnold Data Dictionary
 
 > **Purpose**: Comprehensive reference for the Arnold analytics data lake. Describes all data sources, schemas, relationships, and fitness for use.
-> **Last Updated**: January 1, 2026
+> **Last Updated**: January 2, 2026
 > **Location**: `/arnold/data/`
 
 ---
@@ -401,8 +401,10 @@ ORDER BY date
 | category | string | push, pull, hinge, squat, carry, etc. |
 
 - **Grain**: Pattern
-- **Rows**: 28
-- **Examples**: Hip Hinge, Squat, Vertical Pull, Horizontal Push, Anti-Extension, Rotation
+- **Rows**: 30
+- **Strength Patterns**: Hip Hinge, Squat, Vertical Pull, Vertical Push, Horizontal Pull, Horizontal Push, Lunge, Loaded Carry, Anti-Extension, Anti-Rotation, Anti-Lateral Flexion, Trunk Rotation, etc.
+- **Special Patterns**: Conditioning (cardio/metabolic work), Mobility (flexibility/ROM work)
+- **Note**: All exercises used in workouts now have at least one pattern mapping
 
 ---
 
@@ -540,7 +542,7 @@ Apple Health workouts may overlap with Neo4j workouts. Match by:
 │   ├── exercises.parquet
 │   └── movement_patterns.parquet
 ├── catalog.json                    # This doc's source of truth
-└── arnold_analytics.duckdb         # Pending creation
+└── arnold_analytics.duckdb         # Analytics database (operational)
 ```
 
 ---
@@ -570,8 +572,9 @@ For evidence-based training metrics (ACWR, TSS, volume targets, etc.), see:
 
 ## Next Steps
 
-1. **Create DuckDB database** - Load all Parquet files
-2. **Build unified views** - Daily/weekly rollups joining all sources
-3. **Implement arnold-analytics-mcp** - Query interface for Claude
-4. **Implement Tier 1 metrics** - ACWR, monotony, strain from workout data
-5. **Pattern detection** - HRV ↔ performance, sleep ↔ recovery correlations
+1. ~~**Create DuckDB database**~~ ✅ Complete - `arnold_analytics.duckdb`
+2. ~~**Build unified views**~~ ✅ Complete - 7 views operational
+3. ~~**Implement arnold-analytics-mcp**~~ ✅ Complete - 5 tools operational
+4. ~~**Implement Tier 1 metrics**~~ ✅ Complete - Volume, pattern tracking, exercise progression
+5. **Pattern detection** - HRV ↔ performance, sleep ↔ recovery correlations (pending biometric data)
+6. **Tier 2 metrics** - Readiness scoring when biometric data resumes

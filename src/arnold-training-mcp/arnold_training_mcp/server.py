@@ -287,6 +287,50 @@ Set structure:
                 "required": ["plan_id"]
             }
         ),
+        types.Tool(
+            name="get_upcoming_plans",
+            description="""Get all planned workouts for the next N days.
+
+Returns list of plans with:
+- plan_id, date, status (draft/confirmed/completed/skipped)
+- goal, focus, estimated duration
+- block and set counts
+
+Use to see what's already scheduled before creating new plans.""",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "days": {
+                        "type": "integer",
+                        "description": "Number of days to look ahead (default 7)",
+                        "default": 7
+                    }
+                }
+            }
+        ),
+        types.Tool(
+            name="get_planning_status",
+            description="""Get planning status overview for the next N days.
+
+Returns:
+- Day-by-day breakdown (planned vs gaps)
+- Planned count vs gap count
+- Coverage percentage based on block's sessions_per_week
+- Current block context (name, type, sessions_per_week, intent)
+- Recent training dates for context
+
+Use at conversation start to identify planning gaps that need filling.""",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "days": {
+                        "type": "integer",
+                        "description": "Number of days to check (default 7)",
+                        "default": 7
+                    }
+                }
+            }
+        ),
         
         # =====================================================================
         # EXECUTION TOOLS
@@ -731,6 +775,90 @@ Use `confirm_plan` when ready to lock it in."""
             
         except Exception as e:
             logger.error(f"Error confirming plan: {str(e)}", exc_info=True)
+            return [types.TextContent(type="text", text=f"❌ Error: {str(e)}")]
+
+    elif name == "get_upcoming_plans":
+        try:
+            days = arguments.get("days", 7)
+            logger.info(f"Getting upcoming plans for next {days} days")
+            
+            plans = neo4j_client.get_upcoming_plans(person_id, days)
+            
+            if not plans:
+                return [types.TextContent(
+                    type="text",
+                    text=f"No plans found for the next {days} days."
+                )]
+            
+            # Format as readable summary
+            lines = [f"**Upcoming Plans (next {days} days):**\n"]
+            for p in plans:
+                status_emoji = {
+                    "draft": "📝",
+                    "confirmed": "✅",
+                    "completed": "☑️",
+                    "skipped": "⏭️"
+                }.get(p["status"], "❓")
+                
+                lines.append(
+                    f"{status_emoji} **{p['date']}** — {p.get('goal', 'No goal')} "
+                    f"({p['status']}) [{p['block_count']} blocks, {p['set_count']} sets]"
+                )
+            
+            return [types.TextContent(
+                type="text",
+                text="\n".join(lines)
+            )]
+            
+        except Exception as e:
+            logger.error(f"Error getting upcoming plans: {str(e)}", exc_info=True)
+            return [types.TextContent(type="text", text=f"❌ Error: {str(e)}")]
+
+    elif name == "get_planning_status":
+        try:
+            days = arguments.get("days", 7)
+            logger.info(f"Getting planning status for next {days} days")
+            
+            status = neo4j_client.get_planning_status(person_id, days)
+            
+            # Format as readable summary
+            lines = [f"**Planning Status (next {days} days):**\n"]
+            
+            # Summary stats
+            lines.append(f"📊 **Coverage:** {status['planned_count']} planned / {status['gap_count']} gaps")
+            if status.get('coverage_percent') is not None:
+                lines.append(f"📈 **Block Coverage:** {status['coverage_percent']}%")
+            
+            # Current block context
+            if status.get('current_block') and status['current_block'].get('name'):
+                block = status['current_block']
+                lines.append(f"\n**Current Block:** {block['name']} ({block['type']})")
+                if block.get('sessions_per_week'):
+                    lines.append(f"**Target:** {block['sessions_per_week']} sessions/week")
+                if block.get('intent'):
+                    lines.append(f"**Intent:** {block['intent']}")
+            
+            # Day-by-day breakdown
+            lines.append("\n**Day-by-Day:**")
+            for day in status['days']:
+                if day['has_plan']:
+                    status_emoji = {
+                        "draft": "📝",
+                        "confirmed": "✅",
+                        "completed": "☑️",
+                        "skipped": "⏭️"
+                    }.get(day['status'], "❓")
+                    lines.append(f"  {status_emoji} {day['day_name'][:3]} {day['date']}: {day.get('goal', 'planned')}")
+                else:
+                    lines.append(f"  ⬜ {day['day_name'][:3]} {day['date']}: **UNPLANNED**")
+            
+            return [types.TextContent(
+                type="text",
+                text="\n".join(lines)
+            )]
+            
+        except Exception as e:
+            logger.error(f"Error getting planning status: {str(e)}", exc_info=True)
             return [types.TextContent(type="text", text=f"❌ Error: {str(e)}")]
 
     # =========================================================================

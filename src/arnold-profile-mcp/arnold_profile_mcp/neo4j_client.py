@@ -220,21 +220,44 @@ class Neo4jClient:
         Returns:
             Exercise ID (UUID) or None if not found
         """
-        with self.driver.session(database=self.database) as session:
-            result = session.run("""
-                MATCH (ex:Exercise)
-                WHERE toLower(ex.name) CONTAINS toLower($name)
-                RETURN ex.id as exercise_id, ex.name as exercise_name
-                ORDER BY
-                    CASE
-                        WHEN toLower(ex.name) = toLower($name) THEN 1
-                        ELSE 2
-                    END
-                LIMIT 1
-            """, name=exercise_name)
+        # Use full-text search first
+        results = self.search_exercises(exercise_name, limit=1)
+        if results:
+            return results[0]['exercise_id']
+        return None
 
-            record = result.single()
-            return record["exercise_id"] if record else None
+    def search_exercises(self, query: str, limit: int = 5) -> list:
+        """
+        Search exercises using full-text index with fuzzy matching.
+        Returns candidates for Claude to select from.
+
+        Args:
+            query: Search query (exercise name or alias)
+            limit: Maximum number of results to return
+
+        Returns:
+            List of dicts with exercise_id, name, score
+        """
+        with self.driver.session(database=self.database) as session:
+            # Use full-text index with fuzzy matching
+            # Note: parameter named 'search_term' to avoid conflict with driver's 'query' arg
+            result = session.run("""
+                CALL db.index.fulltext.queryNodes('exercise_search', $search_term + '~')
+                YIELD node, score
+                RETURN node.id as exercise_id, node.name as name, score
+                ORDER BY score DESC
+                LIMIT $limit
+            """, search_term=query, limit=limit)
+
+            results = []
+            for record in result:
+                results.append({
+                    'exercise_id': record['exercise_id'],
+                    'name': record['name'],
+                    'score': record['score']
+                })
+
+            return results
 
     def create_observation_node(self, observation: dict):
         """

@@ -2,7 +2,7 @@
 
 > **Purpose**: This document is the authoritative reference for Arnold's architecture. It serves as context handoff between conversation threads and the north star for development decisions.
 
-> **Last Updated**: January 2, 2026 (Phase 2.3 - Training Metrics Specification)
+> **Last Updated**: January 2, 2026 (Exercise Matching Architecture Complete)
 
 ---
 
@@ -630,6 +630,126 @@ This enables natural language queries over coaching memory without exact keyword
 
 ---
 
+## Exercise Matching Architecture
+
+### The Problem
+
+Exercise matching was failing because we asked the database to do semantic work:
+
+| User Says | DB Has | Result |
+|-----------|--------|--------|
+| "KB swing" | "Kettlebell Swing" | ❌ Not found |
+| "pull up" | "Pullups" | ❌ Wrong match |
+| "landmine press" | — | ❌ Missing from DB |
+
+### The Solution: Layered Responsibility
+
+**Core insight: Claude IS the semantic layer. The database is the retrieval layer.**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    SEMANTIC LAYER (Claude)                      │
+│  "KB swing" → "Kettlebell Swing"                                │
+│  Normalization, synonym resolution, context understanding       │
+│  Stop outsourcing this to DB — Claude does it naturally         │
+└───────────────────────────┬─────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    RETRIEVAL LAYER (Neo4j)                       │
+│  Full-text index: Fast fuzzy matching on name + aliases         │
+│  Vector index: Semantic similarity for long tail                │
+│  Returns candidates → Claude picks best match                   │
+└───────────────────────────┬─────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                    ENRICHMENT LAYER (Graph)                      │
+│  Exercise nodes with: aliases, common_names, descriptions       │
+│  Embeddings added incrementally as exercises are touched        │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Exercise Node Enrichment
+
+```cypher
+(:Exercise {
+  id: string,
+  name: string,                    // Canonical name
+  aliases: [string],               // ["KB swing", "Russian swing"]
+  common_names: [string],          // ["Kettlebell Swing", "Two-Hand KB Swing"]
+  description: string,             // For vector embedding
+  equipment_required: [string],    // ["kettlebell"]
+  embedding: [float]               // 1536-dim (added incrementally)
+})
+```
+
+### Indexes
+
+**Full-text index** for fast fuzzy matching:
+```cypher
+CREATE FULLTEXT INDEX exercise_search IF NOT EXISTS
+FOR (e:Exercise)
+ON EACH [e.name, e.aliases, e.common_names]
+```
+
+**Vector index** for semantic search:
+```cypher
+CREATE VECTOR INDEX exercise_embedding_index IF NOT EXISTS
+FOR (e:Exercise)
+ON e.embedding
+OPTIONS {indexConfig: {
+  `vector.dimensions`: 1536,
+  `vector.similarity_function`: 'cosine'
+}}
+```
+
+### Incremental Embedding Strategy
+
+**Don't embed 4,242 exercises upfront.** Add embeddings incrementally:
+
+1. **On exercise use** — When logged/planned, if no embedding, generate one
+2. **On alias addition** — Regenerate embedding from enriched text
+3. **Batch backfill** — Low-priority background job
+
+The system gets smarter with use. Ship incrementally, improve continuously.
+
+### Tool Redesign
+
+Replace `find_canonical_exercise` (exact match) with `search_exercises` (returns candidates):
+
+```python
+def search_exercises(query: str, limit: int = 5) -> list:
+    # 1. Full-text first (fast, handles typos)
+    results = fulltext_search(query)
+    
+    # 2. If sparse, fall back to vector search
+    if len(results) < 2:
+        results += vector_search(query)
+    
+    return results  # Claude picks the right one
+```
+
+Claude's role:
+- Normalize input before searching ("KB" → "Kettlebell")
+- Evaluate candidates and select best match
+- Create custom exercise with MAPS_TO if nothing fits
+
+### Implementation Status
+
+See **[exercise_kb_improvement_plan.md](./exercise_kb_improvement_plan.md)** Phase 8 for full details.
+
+| Component | Status |
+|-----------|--------|
+| Full-text index (`exercise_search`) | ✅ Live |
+| Vector index (`exercise_embedding_index`) | ✅ Live |
+| Exercise node enrichment schema | ✅ Designed |
+| Initial aliases (51 exercises) | ✅ Complete |
+| Incremental embedding pipeline | 📝 Add as used |
+| Gap filling (missing exercises) | ✅ Core gaps filled |
+
+---
+
 ## Analytics Architecture ("The Analyst")
 
 ### Design Philosophy: Data Lake, Not Data Warehouse
@@ -1101,6 +1221,29 @@ Key metrics by tier:
 - rTSS (pace-based running TSS)
 
 All formulas and thresholds are cited to peer-reviewed sports science literature.
+
+### Visualization Dashboards (Streamlit)
+
+Standalone Streamlit apps provide interactive visualization without requiring MCP integration:
+
+**Muscle Heatmap Dashboard** (`src/muscle_heatmap.py`)
+
+Visualizes training load distribution across muscle groups.
+
+| Component | Description |
+|-----------|-------------|
+| Stack | Streamlit + DuckDB (reads Parquet directly) |
+| Math | Weber-Fechner logarithmic normalization |
+| Input | `sets.parquet`, `muscle_targeting.csv` |
+| Features | Date range picker, rolling window, role weighting |
+
+**Why log normalization?** Legs handle 300lb squats while biceps work with 25lb curls. Linear scaling would wash out small muscles. Weber-Fechner law: human perception of intensity is logarithmic.
+
+**Per-muscle log_factor:** Each muscle has a sensitivity multiplier stored in `muscle_svg_mapping.json`. Quads get compressed (0.6), rear delts get amplified (1.8). This normalizes "effort" across muscle sizes.
+
+Run: `streamlit run src/muscle_heatmap.py`
+
+Future: SVG body diagram overlay once appropriate licensed assets are sourced.
 
 ---
 

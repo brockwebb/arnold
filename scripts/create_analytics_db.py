@@ -255,7 +255,7 @@ def main():
         WITH unnested AS (
             SELECT 
                 DATE_TRUNC('week', CAST(s.date AS DATE)) as week_start,
-                UNNEST(STRING_SPLIT(s.patterns, ', ')) as pattern,
+                TRIM(UNNEST(STRING_SPLIT(s.patterns, ','))) as pattern,
                 s.reps,
                 s.load_lbs
             FROM sets s
@@ -268,6 +268,7 @@ def main():
             SUM(reps) as reps,
             SUM(load_lbs * reps) as volume_lbs
         FROM unnested
+        WHERE pattern != ''
         GROUP BY week_start, pattern
         ORDER BY week_start DESC, pattern
     """)

@@ -981,6 +981,134 @@ class Neo4jTrainingClient:
             
             return briefing
 
+    # =========================================================================
+    # PLANNING VISIBILITY
+    # =========================================================================
+
+    def get_upcoming_plans(self, person_id: str, days: int = 7) -> List[Dict[str, Any]]:
+        """
+        Get all planned workouts for the next N days.
+        
+        Returns plans with their status (draft, confirmed, completed, skipped).
+        """
+        with self.driver.session(database=self.database) as session:
+            result = session.run("""
+                MATCH (p:Person {id: $person_id})-[:HAS_PLANNED_WORKOUT]->(pw:PlannedWorkout)
+                WHERE pw.date >= date() AND pw.date <= date() + duration('P' + $days + 'D')
+                
+                OPTIONAL MATCH (pw)-[:HAS_PLANNED_BLOCK]->(pb:PlannedBlock)
+                OPTIONAL MATCH (pb)-[:CONTAINS_PLANNED]->(ps:PlannedSet)
+                
+                WITH pw, count(DISTINCT pb) as block_count, count(DISTINCT ps) as set_count
+                
+                RETURN pw.id as plan_id,
+                       toString(pw.date) as date,
+                       pw.status as status,
+                       pw.goal as goal,
+                       pw.focus as focus,
+                       pw.estimated_duration_minutes as duration_minutes,
+                       block_count,
+                       set_count
+                ORDER BY pw.date ASC
+            """, person_id=person_id, days=str(days))
+            
+            return [dict(r) for r in result]
+
+    def get_planning_status(self, person_id: str, days: int = 7) -> Dict[str, Any]:
+        """
+        Get planning status for next N days.
+        
+        Shows:
+        - Days with plans (and their status)
+        - Days without plans (gaps)
+        - Current block context for gap-filling recommendations
+        """
+        with self.driver.session(database=self.database) as session:
+            # Get all plans in date range
+            plans_result = session.run("""
+                MATCH (p:Person {id: $person_id})-[:HAS_PLANNED_WORKOUT]->(pw:PlannedWorkout)
+                WHERE pw.date >= date() AND pw.date <= date() + duration('P' + $days + 'D')
+                RETURN toString(pw.date) as date,
+                       pw.id as plan_id,
+                       pw.status as status,
+                       pw.goal as goal
+                ORDER BY pw.date ASC
+            """, person_id=person_id, days=str(days))
+            plans = {r["date"]: dict(r) for r in plans_result}
+            
+            # Get current block for context
+            block_result = session.run("""
+                MATCH (p:Person {id: $person_id})-[:HAS_BLOCK]->(b:Block {status: 'active'})
+                RETURN b.name as name,
+                       b.block_type as type,
+                       b.sessions_per_week as sessions_per_week,
+                       b.intent as intent
+            """, person_id=person_id).single()
+            
+            # Get recent workout dates to understand training frequency
+            recent_result = session.run("""
+                MATCH (p:Person {id: $person_id})-[:PERFORMED]->(w:Workout)
+                WHERE w.date >= date() - duration('P14D')
+                RETURN toString(w.date) as date
+            """, person_id=person_id)
+            recent_dates = [r["date"] for r in recent_result]
+            
+            # Build day-by-day status
+            from datetime import date as dt_date, timedelta
+            today = dt_date.today()
+            day_status = []
+            planned_count = 0
+            gap_count = 0
+            
+            for i in range(days + 1):  # Include today
+                check_date = today + timedelta(days=i)
+                date_str = check_date.isoformat()
+                
+                if date_str in plans:
+                    day_status.append({
+                        "date": date_str,
+                        "day_name": check_date.strftime("%A"),
+                        "has_plan": True,
+                        "plan_id": plans[date_str]["plan_id"],
+                        "status": plans[date_str]["status"],
+                        "goal": plans[date_str]["goal"]
+                    })
+                    planned_count += 1
+                else:
+                    day_status.append({
+                        "date": date_str,
+                        "day_name": check_date.strftime("%A"),
+                        "has_plan": False,
+                        "plan_id": None,
+                        "status": "unplanned",
+                        "goal": None
+                    })
+                    gap_count += 1
+            
+            # Calculate expected sessions based on block
+            expected_sessions = None
+            coverage_pct = None
+            if block_result and block_result["sessions_per_week"]:
+                expected_sessions = block_result["sessions_per_week"]
+                # Rough calculation: expected per week * (days/7)
+                expected_in_range = expected_sessions * (days / 7)
+                coverage_pct = round((planned_count / expected_in_range) * 100) if expected_in_range > 0 else None
+            
+            return {
+                "horizon_days": days,
+                "planned_count": planned_count,
+                "gap_count": gap_count,
+                "coverage_percent": coverage_pct,
+                "current_block": {
+                    "name": block_result["name"] if block_result else None,
+                    "type": block_result["type"] if block_result else None,
+                    "sessions_per_week": block_result["sessions_per_week"] if block_result else None,
+                    "intent": block_result["intent"] if block_result else None
+                } if block_result else None,
+                "days": day_status,
+                "recent_training_dates": recent_dates
+            }
+
     def close(self):
         """Close Neo4j driver connection."""
         self.driver.close()

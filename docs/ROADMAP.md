@@ -2,7 +2,7 @@
 
 > **Purpose**: This document tells the story of where Arnold is going and why it matters. For technical architecture details, see ARCHITECTURE.md.
 
-> **Last Updated**: January 2, 2026 (Training Metrics Specification Complete)
+> **Last Updated**: January 2, 2026 (DuckDB Analytics Layer Complete)
 
 ---
 
@@ -79,8 +79,10 @@ Arnold bridges this gap. Not by simplifying the analysis, but by making sophisti
 - ✅ Race history consolidated (95 races, 2005-2023, running + triathlon)
 - ✅ DATA_DICTIONARY.md created (comprehensive schema reference)
 - ✅ **TRAINING_METRICS.md created** (evidence-based metrics with 17 citations)
-- ⏳ DuckDB analytics database (next step)
-- ⏳ Implement Tier 1 metrics (ACWR, Monotony, Strain from workout data)
+- ✅ **Muscle heatmap dashboard** (Streamlit + DuckDB, Weber-Fechner log normalization)
+- ✅ **DuckDB analytics setup script** (scripts/setup_analytics.py with Tier 1 metrics)
+- ⏳ Run setup script, verify metrics working
+- 📋 arnold-analytics-mcp (query interface, report generation)
 - 📋 Pattern detection with Bayesian evidence framework
 - 📋 Visual artifacts (charts, correlations, trends)
 

@@ -1,276 +1,208 @@
 # Arnold Project - Thread Handoff
 
-> **Last Updated**: January 2, 2026 (Training Metrics Specification Complete)
-> **Previous Thread**: Training Metrics Research & Documentation Session
-> **Compactions in Previous Thread**: 2
+> **Last Updated**: January 2, 2026 (Exercise Matching Architecture Complete)
+> **Previous Thread**: Analytics MCP Operational + Data Quality Fixes
+> **Compactions in Previous Thread**: 1
 
 ## For New Claude Instance
 
-You're picking up development of **Arnold**, an AI-native fitness coaching system built on Neo4j. This thread completed major data infrastructure work.
+You're picking up development of **Arnold**, an AI-native fitness coaching system built on Neo4j + DuckDB. The exercise matching architecture was just completed, fixing the brittle string matching that was breaking workout logging.
 
 ---
 
 ## Step 1: Read the Core Documents
 
 ```
-1. /Users/brock/Documents/GitHub/arnold/docs/ARCHITECTURE.md  (Master reference)
-2. /Users/brock/Documents/GitHub/arnold/docs/DATA_DICTIONARY.md  (Data lake reference)
-3. /Users/brock/Documents/GitHub/arnold/docs/TRAINING_METRICS.md  (NEW - Evidence-based metrics w/ citations)
-4. /Users/brock/Documents/GitHub/arnold/docs/ROADMAP.md  (Vision document)
+1. /Users/brock/Documents/GitHub/arnold/docs/ARCHITECTURE.md  (System architecture - includes Exercise Matching section)
+2. /Users/brock/Documents/GitHub/arnold/docs/PLANNING.md  (Planning system design)
+3. /Users/brock/Documents/GitHub/arnold/docs/exercise_kb_improvement_plan.md  (Phase 8 = matching architecture)
+4. /Users/brock/Documents/GitHub/arnold/docs/DATA_DICTIONARY.md  (Data lake reference)
+5. /Users/brock/Documents/GitHub/arnold/docs/TRAINING_METRICS.md  (Evidence-based metrics)
 ```
 
 ---
 
 ## Step 2: What Was Accomplished This Session
 
-### Major Deliverables
+### Major Deliverable: Exercise Matching Architecture ✅
 
-1. **TRAINING_METRICS.md Created** - Comprehensive evidence-based metrics specification
-   - Tier 1: Metrics from logged workouts (ACWR, Volume Load, Monotony, Strain)
-   - Tier 2: Metrics requiring biometrics (hrTSS, Readiness, ATL/CTL/TSB)
-   - Tier 3: External platform metrics (Suunto TSS - NOT available via Apple Health)
-   - 17 peer-reviewed citations with full bibliographic details
-   - Coaching decision matrix with thresholds
+**The Problem**: `find_canonical_exercise` used exact string matching (toLower). Failed on common queries:
+- "KB swing" → Not found
+- "pull up" → Wrong match
+- "sit ups" → Missing from DB
+- "landmine press" → Missing from DB
 
-2. **Data Availability Clarified**
-   - Suunto TSS does NOT sync to Apple Health (confirmed via research)
-   - hrTSS can be calculated from HR data during workouts
-   - Polar arm band HR can provide workout HR when worn during strength sessions
-   - Max HR calculated from age (220 - 50 = 170 bpm for Brock)
-
-3. **Documentation Updated**
-   - ARCHITECTURE.md: Added Training Metrics section, updated roadmap
-   - DATA_DICTIONARY.md: Added reference to TRAINING_METRICS.md
-   - HANDOFF.md: This file, updated for new session
-
-### Previous Session Accomplishments (Preserved)
-
-- Apple Health Import: 292K records, 12 Parquet tables
-- Race History: 95 races (2005-2023) consolidated
-- Clinical FHIR: 494 labs with LOINC codes
-- Ultrahuman: 234 days daily metrics
-
-### Data Lake Current State
+**The Solution**: Three-layer architecture
 
 ```
-/data/staging/                          ROWS
-├── apple_health_hr.parquet            3,892   (hourly aggregated)
-├── apple_health_hrv.parquet           9,912   (raw measurements)
-├── apple_health_sleep.parquet         4,281   (sleep segments)
-├── apple_health_workouts.parquet        197   (from Suunto/Polar/Ultrahuman)
-├── apple_health_steps.parquet         1,672   (daily by source)
-├── apple_health_resting_hr.parquet      168
-├── apple_health_weight.parquet            3   (sparse - manual only)
-├── apple_health_bp.parquet                2   (sparse)
-├── clinical_labs.parquet                494   (179 unique tests, LOINC coded)
-├── clinical_conditions.parquet           12   (ICD/SNOMED coded)
-├── clinical_medications.parquet          58   (RxNorm coded)
-├── clinical_immunizations.parquet        20   (CVX coded)
-├── ultrahuman_daily.parquet             234   (May 2025 → Jan 2026)
-├── race_history.parquet                  95   (2005 → 2023)
-├── workouts.parquet                     163   (Neo4j export)
-├── sets.parquet                       2,453   (Neo4j export)
-├── exercises.parquet                  4,242   (Neo4j export)
-└── movement_patterns.parquet             28   (Neo4j export)
+┌─────────────────────────────────────────────────────┐
+│            SEMANTIC LAYER (Claude)                  │
+│  "KB swing" → "Kettlebell Swing"                    │
+│  Claude IS the semantic layer                       │
+└─────────────────────────┬───────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────┐
+│            RETRIEVAL LAYER (Neo4j)                  │
+│  Full-text index + Vector index                     │
+│  Returns candidates, Claude picks best              │
+└─────────────────────────┬───────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────┐
+│            ENRICHMENT LAYER (Graph)                 │
+│  Aliases on Exercise nodes                          │
+│  Embeddings added incrementally                     │
+└─────────────────────────────────────────────────────┘
 ```
 
+### Implementation Complete
+
+| Component | Status |
+|-----------|--------|
+| Full-text index (`exercise_search`) | ✅ Live |
+| Vector index (`exercise_embedding_index`) | ✅ Live |
+| Initial aliases (51 exercises) | ✅ Complete |
+| `search_exercises` tool | ✅ Working |
+| Bug fix (parameter conflict) | ✅ Fixed |
+
+### Test Results (All Passing)
+
+| Query | Top Match | Score |
+|-------|-----------|-------|
+| kettlebell swing | Kettlebell Swings | 7.73 |
+| KB swing | Kettlebell Swings | 6.30 |
+| sit ups | Sit-Up | 6.74 |
+| landmine press | Single Arm Landmine Shoulder Press | 5.99 |
+| pull up | Pullups | 4.26 |
+| push up | Pushups | 4.04 |
+| sandbag ground to shoulder | Sandbag Shouldering | 6.90 |
+
+### Files Changed
+
+| File | Change |
+|------|--------|
+| `src/arnold-profile-mcp/arnold_profile_mcp/neo4j_client.py` | Added `search_exercises()`, fixed param conflict |
+| `src/arnold-profile-mcp/arnold_profile_mcp/server.py` | Added `search_exercises` tool |
+| `docs/ARCHITECTURE.md` | Added Exercise Matching Architecture section |
+| `docs/exercise_kb_improvement_plan.md` | Added Phase 8, updated status |
+
+### Incremental Improvement Path
+
+The system improves with use:
+1. Add aliases as exercises are touched in workouts
+2. Add embeddings for semantic search fallback when needed
+3. Fill gaps (missing exercises) as discovered
+
 ---
 
-## Step 3: Current Context
+## Step 3: Current State
 
-### Active Goals
+### The Fifty Workout (Tomorrow)
 
-| Goal | Target Date | Priority | Key Modalities |
-|------|-------------|----------|----------------|
-| Deadlift 405x5 | Dec 2026 | High | Hip Hinge (novice/linear) |
-| Hellgate 100k | Dec 2026 | High | Ultra Endurance (advanced/block) |
-| 10 Pain-Free Ring Dips | Jun 2026 | Medium | Shoulder Mobility (novice/linear) |
-| Stay healthy | — | Meta | — |
+Plan created for January 3rd:
+- **Plan ID**: `PLAN:d805010d-a9df-49c6-9392-1daba60e2f5a`
+- **Status**: Confirmed
+- 5 rounds × 5 exercises × 10 reps = 250 reps
+- Finisher: 50 push-ups, 50 sit-ups
+- Total: 350 reps, ~60 min
 
-### Current Block
+Exercises: Trap Bar Deadlift, Sandbag Shouldering, Chin-Ups, Push-Ups, Kettlebell Swings
 
-**Accumulation** - Week 1 of 4 (Dec 30 → Jan 26)
-- Intent: Build work capacity, establish movement patterns
-- Volume: moderate-high | Intensity: moderate
-
-### Medical Status
-
-- **Knee Surgery** (Nov 12, 2025): **CLEARED** for normal activity
-- **Shoulder Mobility Limitation**: Movement gap, ring dips contraindicated until addressed
-
-### 10-Day Training Plan (Active)
-
-| Date | Focus | Status |
-|------|-------|--------|
-| Wed 1/1 | Easy Move - kickboxing/jump rope | Today |
-| **Thu 1/2** | 🎂 **THE FIFTY** - Birthday workout | Tomorrow |
-| Fri 1/3 | REST | |
-| Sat 1/4 | HINGE - Deadlift focus | |
-| Sun 1/5 | LONG RUN - 7-8 miles | |
-| Mon 1/6 | REST | |
-| Tue 1/7 | UPPER PULL | |
-| Wed 1/8 | CONDITIONING | |
-| Thu 1/9 | SQUAT/PUSH | |
-
-### Birthday Workout (Jan 2) - "The Fifty"
+### Analytics Tools (All Operational)
 
 ```
-5.0 mile run
-50 pushups
-50 pullups  
-50 KB swings @53lb
-50 air squats
-50 ab rollouts
+arnold-analytics:check_red_flags      → Flags biometric gaps
+arnold-analytics:get_readiness_snapshot → Returns available data
+arnold-analytics:get_training_load    → Volume/pattern analysis
+arnold-analytics:get_exercise_history → PR tracking, e1RM
+arnold-analytics:get_sleep_analysis   → Sleep pattern analysis
 ```
 
----
+### MCP Roster
 
-## Step 4: Key Discoveries This Session
-
-### Training Load Data Availability
-
-**What's Available:**
-- Suunto calculates TSS, ATL, CTL, TSB internally
-- Polar arm band HR monitor provides quality HR data
-- Apple Health contains granular HR samples (~5 min intervals)
-- Ultrahuman provides daily HRV, sleep scores, recovery scores
-
-**What's NOT Available:**
-- Suunto TSS does NOT sync to Apple Health (proprietary)
-- FIT file manual export would have TSS, but not worth the effort
-- rTSS (pace-based) only available in Suunto/Garmin apps
-
-**Workaround:**
-- Calculate hrTSS from HR data during workouts
-- Wear Polar arm band during strength sessions (currently only paired with Suunto for cardio)
-- HR during workout is better than RPE for load quantification
-
-### Biometric Parameters for Brock
-
-| Parameter | Value | Source |
-|-----------|-------|--------|
-| Max HR (estimated) | 170 bpm | 220 - age (50) |
-| LTHR (estimated) | 144.5 bpm | 0.85 × Max HR |
-| Resting HR | ~50 bpm | Ultrahuman data |
-
-### Ultrahuman Granular Data in Apple Health
-
-Ultrahuman writes HR samples every ~5 minutes to Apple Health (not just daily aggregates).
-- **Aggregated** (Ultrahuman CSV): Sleep scores, recovery scores → `/data/staging/ultrahuman_daily.parquet`
-- **Granular** (Apple Health XML): HR every ~5min → `/data/staging/apple_health_hr.parquet`
-
-### Clinical Data is Gold
-
-494 lab results with LOINC codes from MyChart/Epic. This enables longitudinal biomarker tracking — exactly the kind of analysis specialists charge thousands for.
-
-### Race History Complete
-
-18 years of endurance racing (2005-2023):
-- 7 × 100-milers (including Old Dominion, Massanutten, Grindstone)
-- 14 × 100Ks (Hellgate 12 times!)
-- 2 × Half Ironman (Eagleman, Black Bear)
-- Multiple marathons, 50-milers, shorter races
-
-### Data Gaps Identified
-
-- **Weight**: Only 3 manual entries — needs regular weigh-ins
-- **Blood Pressure**: Only 2 entries — sparse
-- **Workout Overlap**: 197 Apple Health workouts vs 163 Neo4j workouts — some dedupe needed
+| MCP | Status | Purpose |
+|-----|--------|---------|
+| arnold-profile-mcp | ✅ | Profile, equipment, exercise search |
+| arnold-training-mcp | ✅ | Planning, logging, execution |
+| arnold-memory-mcp | ✅ | Context, observations, semantic search |
+| arnold-analytics-mcp | ✅ | Readiness, training load, red flags |
+| neo4j-mcp | ✅ | Direct graph queries |
 
 ---
 
-## Step 5: What's Next
+## Step 4: Immediate Next Steps
 
-### Immediate Priority
+### Option A: Execute The Fifty
+- Tomorrow (Jan 3) is the workout
+- Use `complete_as_written` or `complete_with_deviations` to log
 
-1. **Create DuckDB database** (`arnold_analytics.duckdb`)
-   - Load all Parquet files
-   - Create unified views
+### Option B: Coaching Loop
+- Plan remaining Week 1 sessions
+- Test full workflow with new exercise matching
 
-2. **First Analytics Queries**
-   - Training volume trends
-   - HRV ↔ workout performance correlation
-   - Sleep impact analysis
-
-3. **Continue Training Plan**
-   - Execute birthday workout (Jan 2)
-   - Log results, reconcile
-
-### Near-Term
-
-1. **arnold-analytics-mcp** - Query interface for Claude
-2. **Pattern detection** - Bayesian evidence framework implementation
-3. **Visual artifacts** - React charts for data exploration
-
-### Backlog
-
-- Workout deduplication (Apple Health vs Neo4j)
-- Garmin historical .FIT import
-- Real-time sync pipeline
+### Option C: Continue Enrichment
+- Add more aliases to commonly-used exercises
+- Batch backfill embeddings for semantic search
 
 ---
 
-## Step 6: Key Files Reference
+## Step 5: Load Context
 
-| File | Purpose |
-|------|---------|
-| `/docs/TRAINING_METRICS.md` | **NEW** - Evidence-based metrics with citations |
-| `/docs/ARCHITECTURE.md` | Master technical reference |
-| `/docs/DATA_DICTIONARY.md` | **NEW** - Data lake schema reference |
-| `/docs/ROADMAP.md` | Vision, narrative, design philosophy |
-| `/docs/HANDOFF.md` | This file |
-| `/data/catalog.json` | Data intelligence layer (17 sources) |
-| `/scripts/sync/import_apple_health.py` | **NEW** - Apple Health streaming parser |
-| `/scripts/sync/stage_ultrahuman.py` | CSV → Parquet staging |
-| `/src/arnold-analytics-mcp/DESIGN.md` | Analytics MCP tool interface |
+Call `arnold-memory:load_briefing` to get:
+- Active goals (Deadlift 405x5, Hellgate 100k, Ring Dips 10, Stay Healthy)
+- Current block (Week 1 of 4, Accumulation)
+- Training levels per modality
+- Active injuries (knee surgery recovery - cleared for normal activity)
+- Recent workouts
+- Equipment inventory
 
 ---
 
-## Step 7: Brock's Preferences
+## Athlete Context (Brock)
 
-- Substance over praise
-- Direct answers, no engagement farming
-- Graph-first thinking
-- Evidence-based (ontologies, citations)
-- Phone-readable output formats
-- Lifelong athlete phenotype (35 years martial arts, 18 years ultra) — program accordingly
-- **Solve problems you can observe, not problems you imagine**
-- Census questions: Use Census API, never web search
+- **Age**: 50 (turned 50 January 2, 2026)
+- **Background**: 35 years martial arts, 18 years ultrarunning, desk job
+- **Recent**: Knee surgery November 2025, cleared for normal activity
+- **Goals**: Deadlift 405x5, Hellgate 100k, 10 pain-free ring dips by June 2026
+- **Training philosophy**: Evidence-based, prefers substance over engagement
 
 ---
 
-## Step 8: How to Start
+## Architecture Summary
 
 ```
-1. Call load_briefing (arnold-memory-mcp)
-2. Read DATA_DICTIONARY.md for data lake context
-3. Review what Brock wants to work on
+Neo4j (CYBERDYNE-CORE)     DuckDB (T-1000)
+├── Relationships          ├── Time-series
+├── Exercise graph         ├── Aggregations  
+├── Coaching workflow      ├── Metrics
+└── Memory/observations    └── Reports
+
+Claude Desktop orchestrates both via MCP servers
 ```
 
 ---
 
-## Step 9: Transcript Location
+## Critical Notes for Future Claude
 
-Previous conversation transcripts available at:
-```
-/mnt/transcripts/2026-01-02-00-22-23-training-load-metrics-specification.txt  (Current session)
-/mnt/transcripts/2026-01-01-17-24-56-apple-health-export-discovery.txt  (Previous session)
-```
+1. **Use `search_exercises` not `find_canonical_exercise`** - The new tool returns multiple candidates with relevance scores. Claude should normalize input, review candidates, and select the best match.
 
-Use these for detailed context if needed. Current transcript contains:
-- Training load metrics research (ACWR, TSS, hrTSS)
-- Data source investigation (Neo4j, DuckDB, Suunto, Apple Health)
-- Metric tier definitions with citations
-- Data pipeline architecture
+2. **Incremental embedding strategy** - Don't try to embed all 4,242 exercises upfront. Add embeddings as exercises are touched. System gets smarter with use.
+
+3. **Full-text index covers name + aliases** - The `exercise_search` index searches both fields. Add aliases to exercises as you discover common variations.
+
+4. **Parameter naming in Neo4j driver** - Don't use `query` as a parameter name in `session.run()` - it conflicts with the driver's method signature. We fixed this with `search_term`.
+
+5. **Post-surgery ACWR interpretation** - High ACWR is expected during ramp-up. Don't flag as injury risk without context.
 
 ---
 
-## Codenames (Internal)
+## Rebuild Commands (If Needed)
 
-| Codename | Component |
-|----------|-----------|
-| CYBERDYNE-CORE | Neo4j database |
-| T-800 | Exercise knowledge graph |
-| SARAH-CONNOR | User profile/digital twin |
-| T-1000 | Analyst (analytics-mcp) |
-| SKYNET-READER | Data import pipelines |
+```bash
+# If Neo4j data changes:
+python scripts/export_to_analytics.py
+
+# Always after export:
+python scripts/create_analytics_db.py
+```
