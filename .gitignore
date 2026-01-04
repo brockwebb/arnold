@@ -37,34 +37,69 @@ wheels/
 *.swo
 *~
 
-# Data - Reference/Public
-data/ontologies/*.obo
-data/ontologies/*.owl
-data/exercises/
-data/cache/
+# =============================================================================
+# DATA LAKE - Structure preserved, contents ignored
+# =============================================================================
 
+# Raw data (exports from devices/services)
+data/raw/**
+!data/raw/.gitkeep
+!data/raw/README.md
+
+# Staging (parsed/cleaned, pre-Postgres)
+data/staging/**
+!data/staging/.gitkeep
+
+# Exports (generated reports, not source data)
+data/exports/**
+!data/exports/.gitkeep
+
+# Cache (temporary processing files)
+data/cache/**
+!data/cache/.gitkeep
+
+# Legacy DuckDB (to be removed after full migration)
+data/*.duckdb
+
+# =============================================================================
 # PERSONAL DATA - NEVER COMMIT (PII/PHI)
+# =============================================================================
 data/profile.json
 data/observations.json
 data/workouts/
 data/backups/
 data/user/
-data/*.json
 data/normalization/
-data/raw/
-data/staging/
-data/exports/
 
-# Claude conversation transcripts (private)
-docs/transcripts/
+# =============================================================================
+# REFERENCE DATA - Public ontologies (large files, download separately)
+# =============================================================================
+data/ontologies/*.obo
+data/ontologies/*.owl
+data/exercises/
 
-# Large ontology source files (use kernel/ for imports)
 ontologies/anatomy/fma.owl
 ontologies/uberon/*.obo
 ontologies/uberon/*.json
 ontologies/exercises/free-exercise-db/
 ontologies/exercises/*.xlsx
 ontologies/exercises/*.csv
+
+# =============================================================================
+# RESEARCH - External repos and exploration (not part of project)
+# =============================================================================
+research/**
+!research/.gitkeep
+!research/README.md
+
+# =============================================================================
+# DOCS - Private content
+# =============================================================================
+docs/transcripts/
+
+# =============================================================================
+# OTHER
+# =============================================================================
 
 # Testing
 .pytest_cache/
@@ -73,3 +108,7 @@ htmlcov/
 
 # MacOS
 .DS_Store
+
+# Logs
+*.log
+logs/

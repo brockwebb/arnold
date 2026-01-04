@@ -1,0 +1,978 @@
+{
+  "version": "1.0",
+  "created_at": "2025-12-31T23:45:00-05:00",
+  "person_tz": "America/New_York",
+  "sources": {
+    "neo4j_workouts": {
+      "raw_path": "raw/neo4j_snapshots/workouts_*.json",
+      "staging_table": "staging/workouts.parquet",
+      "grain": "workout",
+      "row_count": 163,
+      "date_range": [
+        "2024-04-04",
+        "2025-12-30"
+      ],
+      "time_handling": {
+        "field": "date",
+        "format": "YYYY-MM-DD",
+        "tz": "local_implicit",
+        "attribution": "workout_date",
+        "note": "Single-day workouts only currently. Ultra events may span midnight - use start date as attribution."
+      },
+      "columns": {
+        "workout_id": {
+          "type": "string",
+          "pk": true
+        },
+        "date": {
+          "type": "date"
+        },
+        "type": {
+          "type": "string",
+          "values": [
+            "strength",
+            "conditioning",
+            "endurance",
+            "recovery",
+            "deload",
+            "mobility",
+            "mixed"
+          ],
+          "nullable": true
+        },
+        "duration_min": {
+          "type": "int",
+          "nullable": true
+        },
+        "notes": {
+          "type": "string",
+          "nullable": true
+        }
+      },
+      "join_keys": [
+        "workout_id",
+        "date"
+      ],
+      "fitness_for_use": {
+        "completeness": "high - all workouts logged",
+        "consistency": "medium - type field sometimes null",
+        "timeliness": "daily"
+      }
+    },
+    "neo4j_sets": {
+      "raw_path": "raw/neo4j_snapshots/sets_*.json",
+      "staging_table": "staging/sets.parquet",
+      "grain": "set",
+      "row_count": 2453,
+      "time_handling": {
+        "field": "date",
+        "format": "YYYY-MM-DD",
+        "attribution": "via workout"
+      },
+      "columns": {
+        "set_id": {
+          "type": "string",
+          "pk": true
+        },
+        "workout_id": {
+          "type": "string",
+          "fk": "workouts.workout_id"
+        },
+        "date": {
+          "type": "date"
+        },
+        "set_number": {
+          "type": "int"
+        },
+        "reps": {
+          "type": "int",
+          "nullable": true
+        },
+        "load_lbs": {
+          "type": "float",
+          "nullable": true
+        },
+        "rpe": {
+          "type": "float",
+          "nullable": true,
+          "range": [
+            1,
+            10
+          ]
+        },
+        "duration_sec": {
+          "type": "int",
+          "nullable": true
+        },
+        "distance_miles": {
+          "type": "float",
+          "nullable": true
+        },
+        "notes": {
+          "type": "string",
+          "nullable": true
+        },
+        "exercise_id": {
+          "type": "string",
+          "fk": "exercises.exercise_id"
+        },
+        "exercise_name": {
+          "type": "string"
+        },
+        "patterns": {
+          "type": "string",
+          "note": "comma-separated movement patterns"
+        }
+      },
+      "join_keys": [
+        "set_id",
+        "workout_id",
+        "date",
+        "exercise_id"
+      ],
+      "measures": [
+        "reps",
+        "load_lbs",
+        "rpe",
+        "duration_sec",
+        "distance_miles"
+      ],
+      "fitness_for_use": {
+        "completeness": "high",
+        "consistency": "medium - some tabata sets have duration but no reps",
+        "known_issues": [
+          "duration_sec and reps are mutually exclusive for some exercises"
+        ]
+      }
+    },
+    "neo4j_exercises": {
+      "raw_path": "raw/neo4j_snapshots/exercises_*.json",
+      "staging_table": "staging/exercises.parquet",
+      "grain": "exercise",
+      "row_count": 4242,
+      "columns": {
+        "exercise_id": {
+          "type": "string",
+          "pk": true
+        },
+        "name": {
+          "type": "string"
+        },
+        "equipment": {
+          "type": "string",
+          "nullable": true
+        },
+        "force_type": {
+          "type": "string",
+          "nullable": true,
+          "values": [
+            "push",
+            "pull",
+            "static"
+          ]
+        },
+        "mechanic": {
+          "type": "string",
+          "nullable": true,
+          "values": [
+            "compound",
+            "isolation"
+          ]
+        },
+        "patterns": {
+          "type": "string",
+          "note": "comma-separated"
+        }
+      },
+      "join_keys": [
+        "exercise_id"
+      ]
+    },
+    "neo4j_movement_patterns": {
+      "raw_path": "raw/neo4j_snapshots/movement_patterns_*.json",
+      "staging_table": "staging/movement_patterns.parquet",
+      "grain": "pattern",
+      "row_count": 28,
+      "columns": {
+        "pattern_id": {
+          "type": "string",
+          "pk": true
+        },
+        "name": {
+          "type": "string"
+        },
+        "plane_of_motion": {
+          "type": "string",
+          "nullable": true
+        }
+      },
+      "join_keys": [
+        "pattern_id",
+        "name"
+      ]
+    },
+    "ultrahuman": {
+      "raw_path": "raw/ultrahuman/*.csv",
+      "staging_table": "staging/ultrahuman_daily.parquet",
+      "grain": "date",
+      "row_count": 234,
+      "date_range": [
+        "2025-05-13",
+        "2026-01-01"
+      ],
+      "time_handling": {
+        "field": "date",
+        "format": "YYYY-MM-DD",
+        "tz": "local_implicit",
+        "attribution": "metric_date",
+        "note": "Daily aggregates. Sleep metrics attributed to wake date."
+      },
+      "columns": {
+        "date": {
+          "type": "date",
+          "nullable": false
+        },
+        "sleep_score": {
+          "type": "float",
+          "nullable": true
+        },
+        "recovery_score": {
+          "type": "float",
+          "nullable": true
+        },
+        "movement_score": {
+          "type": "float",
+          "nullable": true
+        },
+        "steps": {
+          "type": "float",
+          "nullable": true
+        },
+        "calories": {
+          "type": "float",
+          "nullable": true
+        },
+        "sleep_minutes": {
+          "type": "float",
+          "nullable": true
+        },
+        "sleep_awake_minutes": {
+          "type": "float",
+          "nullable": true
+        },
+        "deep_sleep_minutes": {
+          "type": "float",
+          "nullable": true
+        },
+        "rem_sleep_minutes": {
+          "type": "float",
+          "nullable": true
+        },
+        "light_sleep_minutes": {
+          "type": "float",
+          "nullable": true
+        },
+        "sleep_efficiency": {
+          "type": "float",
+          "nullable": true
+        },
+        "perceived_recovery": {
+          "type": "float",
+          "nullable": true
+        },
+        "phase_advance_steps": {
+          "type": "float",
+          "nullable": true
+        },
+        "skin_temp_c": {
+          "type": "float",
+          "nullable": true
+        },
+        "resting_hr": {
+          "type": "float",
+          "nullable": true
+        },
+        "hrv_ms": {
+          "type": "float",
+          "nullable": true
+        },
+        "activity_minutes": {
+          "type": "float",
+          "nullable": true
+        },
+        "_source": {
+          "type": "string",
+          "nullable": false
+        },
+        "_source_file": {
+          "type": "string",
+          "nullable": false
+        }
+      },
+      "join_keys": [
+        "date"
+      ],
+      "measures": [
+        "sleep_score",
+        "recovery_score",
+        "hrv_ms",
+        "resting_hr",
+        "steps",
+        "calories"
+      ],
+      "fitness_for_use": {
+        "completeness": "high - daily metrics since ring activation",
+        "consistency": "high - automated collection",
+        "timeliness": "manual export currently"
+      },
+      "updated_at": "2026-01-01T16:39:40.253492"
+    },
+    "apple_health_hr": {
+      "raw_path": "raw/apple_health_export/",
+      "staging_table": "staging/apple_health_hr.parquet",
+      "grain": "varies",
+      "row_count": 3892,
+      "date_range": [
+        "2025-05-15",
+        "2025-12-31"
+      ],
+      "columns": {
+        "hour": {
+          "type": "datetime",
+          "nullable": false
+        },
+        "source_name": {
+          "type": "string",
+          "nullable": false
+        },
+        "hr_avg": {
+          "type": "float",
+          "nullable": false
+        },
+        "hr_min": {
+          "type": "int",
+          "nullable": false
+        },
+        "hr_max": {
+          "type": "int",
+          "nullable": false
+        },
+        "hr_count": {
+          "type": "int",
+          "nullable": false
+        },
+        "date": {
+          "type": "datetime",
+          "nullable": false
+        }
+      },
+      "updated_at": "2026-01-01T16:59:46.383779"
+    },
+    "apple_health_hrv": {
+      "raw_path": "raw/apple_health_export/",
+      "staging_table": "staging/apple_health_hrv.parquet",
+      "grain": "varies",
+      "row_count": 9912,
+      "date_range": [
+        "2025-05-15",
+        "2025-12-06"
+      ],
+      "columns": {
+        "date": {
+          "type": "datetime",
+          "nullable": false
+        },
+        "measured_at": {
+          "type": "datetime",
+          "nullable": false
+        },
+        "hrv_ms": {
+          "type": "int",
+          "nullable": false
+        },
+        "unit": {
+          "type": "string",
+          "nullable": false
+        },
+        "source_name": {
+          "type": "string",
+          "nullable": false
+        }
+      },
+      "updated_at": "2026-01-01T16:59:46.383779"
+    },
+    "apple_health_weight": {
+      "raw_path": "raw/apple_health_export/",
+      "staging_table": "staging/apple_health_weight.parquet",
+      "grain": "varies",
+      "row_count": 3,
+      "date_range": [
+        "2024-01-28",
+        "2026-01-01"
+      ],
+      "columns": {
+        "date": {
+          "type": "datetime",
+          "nullable": false
+        },
+        "measured_at": {
+          "type": "datetime",
+          "nullable": false
+        },
+        "weight_lbs": {
+          "type": "int",
+          "nullable": false
+        },
+        "unit": {
+          "type": "string",
+          "nullable": false
+        },
+        "source_name": {
+          "type": "string",
+          "nullable": false
+        }
+      },
+      "updated_at": "2026-01-01T16:59:46.383779"
+    },
+    "apple_health_sleep": {
+      "raw_path": "raw/apple_health_export/",
+      "staging_table": "staging/apple_health_sleep.parquet",
+      "grain": "varies",
+      "row_count": 4281,
+      "date_range": [
+        "2025-05-15",
+        "2025-12-06"
+      ],
+      "columns": {
+        "date": {
+          "type": "datetime",
+          "nullable": false
+        },
+        "start_ts": {
+          "type": "datetime",
+          "nullable": false
+        },
+        "end_ts": {
+          "type": "datetime",
+          "nullable": false
+        },
+        "duration_minutes": {
+          "type": "float",
+          "nullable": false
+        },
+        "sleep_stage": {
+          "type": "string",
+          "nullable": false
+        },
+        "source_name": {
+          "type": "string",
+          "nullable": false
+        }
+      },
+      "updated_at": "2026-01-01T16:59:46.383779"
+    },
+    "apple_health_steps": {
+      "raw_path": "raw/apple_health_export/",
+      "staging_table": "staging/apple_health_steps.parquet",
+      "grain": "varies",
+      "row_count": 1672,
+      "date_range": [
+        "2021-12-13",
+        "2026-01-01"
+      ],
+      "columns": {
+        "date": {
+          "type": "datetime",
+          "nullable": false
+        },
+        "source_name": {
+          "type": "string",
+          "nullable": false
+        },
+        "steps": {
+          "type": "int",
+          "nullable": false
+        }
+      },
+      "updated_at": "2026-01-01T16:59:46.383779"
+    },
+    "apple_health_bp": {
+      "raw_path": "raw/apple_health_export/",
+      "staging_table": "staging/apple_health_bp.parquet",
+      "grain": "varies",
+      "row_count": 2,
+      "date_range": [
+        "2026-01-01",
+        "2026-01-01"
+      ],
+      "columns": {
+        "date": {
+          "type": "datetime",
+          "nullable": false
+        },
+        "timestamp": {
+          "type": "datetime",
+          "nullable": false
+        },
+        "systolic": {
+          "type": "int",
+          "nullable": false
+        },
+        "diastolic": {
+          "type": "int",
+          "nullable": false
+        },
+        "source_name": {
+          "type": "string",
+          "nullable": false
+        }
+      },
+      "updated_at": "2026-01-01T16:59:46.383779"
+    },
+    "apple_health_workouts": {
+      "raw_path": "raw/apple_health_export/",
+      "staging_table": "staging/apple_health_workouts.parquet",
+      "grain": "varies",
+      "row_count": 197,
+      "date_range": [
+        "2024-04-15",
+        "2025-09-02"
+      ],
+      "columns": {
+        "date": {
+          "type": "datetime",
+          "nullable": false
+        },
+        "start_ts": {
+          "type": "datetime",
+          "nullable": false
+        },
+        "end_ts": {
+          "type": "datetime",
+          "nullable": false
+        },
+        "activity": {
+          "type": "string",
+          "nullable": false
+        },
+        "duration_min": {
+          "type": "float",
+          "nullable": false
+        },
+        "distance": {
+          "type": "float",
+          "nullable": true
+        },
+        "total_distance_unit": {
+          "type": "string",
+          "nullable": true
+        },
+        "calories": {
+          "type": "float",
+          "nullable": true
+        },
+        "source_name": {
+          "type": "string",
+          "nullable": false
+        }
+      },
+      "updated_at": "2026-01-01T16:59:46.383779"
+    },
+    "apple_health_resting_hr": {
+      "raw_path": "raw/apple_health_export/",
+      "staging_table": "staging/apple_health_resting_hr.parquet",
+      "grain": "varies",
+      "row_count": 168,
+      "date_range": [
+        "2025-05-16",
+        "2025-12-06"
+      ],
+      "columns": {
+        "date": {
+          "type": "datetime",
+          "nullable": false
+        },
+        "measured_at": {
+          "type": "datetime",
+          "nullable": false
+        },
+        "resting_hr": {
+          "type": "int",
+          "nullable": false
+        },
+        "unit": {
+          "type": "string",
+          "nullable": false
+        },
+        "source_name": {
+          "type": "string",
+          "nullable": false
+        }
+      },
+      "updated_at": "2026-01-01T16:59:46.383779"
+    },
+    "clinical_labs": {
+      "raw_path": "raw/apple_health_export/",
+      "staging_table": "staging/clinical_labs.parquet",
+      "grain": "varies",
+      "row_count": 494,
+      "date_range": [
+        "2019-12-27",
+        "2025-12-31"
+      ],
+      "columns": {
+        "date": {
+          "type": "datetime",
+          "nullable": false
+        },
+        "test_name": {
+          "type": "string",
+          "nullable": false
+        },
+        "loinc_code": {
+          "type": "string",
+          "nullable": true
+        },
+        "value": {
+          "type": "float",
+          "nullable": true
+        },
+        "unit": {
+          "type": "string",
+          "nullable": false
+        },
+        "ref_range_low": {
+          "type": "float",
+          "nullable": true
+        },
+        "ref_range_high": {
+          "type": "float",
+          "nullable": true
+        },
+        "ref_range_text": {
+          "type": "string",
+          "nullable": false
+        },
+        "encounter_type": {
+          "type": "string",
+          "nullable": false
+        },
+        "status": {
+          "type": "string",
+          "nullable": false
+        },
+        "source_file": {
+          "type": "string",
+          "nullable": false
+        }
+      },
+      "updated_at": "2026-01-01T16:59:46.383779"
+    },
+    "clinical_conditions": {
+      "raw_path": "raw/apple_health_export/",
+      "staging_table": "staging/clinical_conditions.parquet",
+      "grain": "varies",
+      "row_count": 12,
+      "date_range": [
+        "2016-06-15",
+        "2025-12-08"
+      ],
+      "columns": {
+        "condition_name": {
+          "type": "string",
+          "nullable": false
+        },
+        "icd_code": {
+          "type": "string",
+          "nullable": false
+        },
+        "snomed_code": {
+          "type": "string",
+          "nullable": false
+        },
+        "onset_date": {
+          "type": "datetime",
+          "nullable": false
+        },
+        "abatement_date": {
+          "type": "datetime",
+          "nullable": true
+        },
+        "clinical_status": {
+          "type": "string",
+          "nullable": false
+        },
+        "source_file": {
+          "type": "string",
+          "nullable": false
+        }
+      },
+      "updated_at": "2026-01-01T16:59:46.383779"
+    },
+    "clinical_medications": {
+      "raw_path": "raw/apple_health_export/",
+      "staging_table": "staging/clinical_medications.parquet",
+      "grain": "varies",
+      "row_count": 58,
+      "date_range": [
+        "2018-11-18",
+        "2025-12-04"
+      ],
+      "columns": {
+        "medication_name": {
+          "type": "string",
+          "nullable": false
+        },
+        "rxnorm_code": {
+          "type": "string",
+          "nullable": true
+        },
+        "dosage": {
+          "type": "string",
+          "nullable": false
+        },
+        "authored_date": {
+          "type": "datetime",
+          "nullable": false
+        },
+        "status": {
+          "type": "string",
+          "nullable": false
+        },
+        "source_file": {
+          "type": "string",
+          "nullable": false
+        }
+      },
+      "updated_at": "2026-01-01T16:59:46.383779"
+    },
+    "clinical_immunizations": {
+      "raw_path": "raw/apple_health_export/",
+      "staging_table": "staging/clinical_immunizations.parquet",
+      "grain": "varies",
+      "row_count": 20,
+      "date_range": [
+        "2016-09-16",
+        "2025-09-06"
+      ],
+      "columns": {
+        "vaccine_name": {
+          "type": "string",
+          "nullable": false
+        },
+        "cvx_code": {
+          "type": "string",
+          "nullable": false
+        },
+        "date": {
+          "type": "datetime",
+          "nullable": false
+        },
+        "lot_number": {
+          "type": "string",
+          "nullable": false
+        },
+        "status": {
+          "type": "string",
+          "nullable": false
+        },
+        "source_file": {
+          "type": "string",
+          "nullable": false
+        }
+      },
+      "updated_at": "2026-01-01T16:59:46.383779"
+    }
+  },
+  "link_strategies": {
+    "date": {
+      "description": "Simple date match - works for day-grain sources",
+      "confidence": "high",
+      "applicable_to": [
+        "workouts",
+        "daily_metrics",
+        "sleep",
+        "hrv"
+      ]
+    },
+    "workout_id": {
+      "description": "Direct foreign key to workout",
+      "confidence": "high",
+      "applicable_to": [
+        "sets"
+      ]
+    },
+    "exercise_id": {
+      "description": "Foreign key to exercise reference",
+      "confidence": "high",
+      "applicable_to": [
+        "sets"
+      ]
+    },
+    "time_overlap": {
+      "description": "Activities that overlap in time (Suunto run = Apple workout)",
+      "confidence": "medium",
+      "method": "start_time within 15 min window",
+      "applicable_to": [
+        "activities from different sources"
+      ]
+    }
+  },
+  "known_questions": {
+    "volume_by_day": {
+      "question": "How much did I train each day?",
+      "requires": [
+        "sets"
+      ],
+      "sql": "SELECT date, COUNT(*) as sets, SUM(reps) as total_reps FROM sets GROUP BY date ORDER BY date",
+      "group_by": "date",
+      "measures": [
+        "count(*)",
+        "sum(reps)",
+        "sum(load_lbs * reps)"
+      ]
+    },
+    "volume_by_pattern": {
+      "question": "Which movement patterns am I training?",
+      "requires": [
+        "sets"
+      ],
+      "note": "patterns field is comma-separated, needs unnest",
+      "group_by": "pattern",
+      "measures": [
+        "count(*)",
+        "sum(reps)"
+      ]
+    },
+    "exercise_progression": {
+      "question": "How has my [exercise] progressed over time?",
+      "requires": [
+        "sets"
+      ],
+      "filter": "exercise_name",
+      "group_by": "date",
+      "measures": [
+        "max(load_lbs)",
+        "sum(reps)",
+        "count(*)"
+      ]
+    },
+    "workout_frequency": {
+      "question": "How often am I training?",
+      "requires": [
+        "workouts"
+      ],
+      "group_by": "week",
+      "measures": [
+        "count(*)"
+      ]
+    },
+    "pattern_balance": {
+      "question": "Am I balanced across movement patterns?",
+      "requires": [
+        "sets"
+      ],
+      "note": "Compare Hip Hinge vs Squat vs Push vs Pull",
+      "group_by": "pattern, week",
+      "measures": [
+        "count(*)",
+        "sum(reps)"
+      ]
+    }
+  },
+  "future_sources": {
+    "suunto": {
+      "status": "planned",
+      "format": "fit",
+      "grain": "activity",
+      "expected_fields": [
+        "start_ts",
+        "end_ts",
+        "duration_sec",
+        "distance_m",
+        "avg_hr",
+        "max_hr",
+        "elevation_gain",
+        "gps_track"
+      ],
+      "time_handling": {
+        "field": "start_ts",
+        "attribution": "start_date",
+        "note": "Ultras cross midnight - attribute to start date"
+      },
+      "link_via": "date (or time_overlap for matching with other sources)"
+    },
+    "garmin": {
+      "status": "future",
+      "format": "fit or api",
+      "grain": "activity",
+      "note": "Similar to Suunto - GPS activities, HR data"
+    },
+    "labs": {
+      "status": "future",
+      "grain": "test_date (sparse)",
+      "expected_fields": [
+        "biomarkers by test"
+      ],
+      "note": "Infrequent but high value - blood panels, metabolic markers"
+    }
+  },
+  "edge_cases": {
+    "midnight_crossing": {
+      "description": "Activities that span midnight (ultras, overnight sleep)",
+      "solution": "Store start_ts_utc and end_ts_utc, compute attribution_date based on convention",
+      "conventions": {
+        "activities": "start_date",
+        "sleep": "wake_date"
+      }
+    },
+    "timezone_travel": {
+      "description": "User travels, device records in different TZ",
+      "solution": "Store UTC, convert to user TZ on display. GPS data may include location."
+    },
+    "duplicate_sources": {
+      "description": "Same activity recorded in multiple systems (Apple + Suunto)",
+      "solution": "time_overlap matching, dedupe on analysis"
+    }
+  },
+  "views": {
+    "daily_volume": {
+      "description": "Training volume aggregated by day",
+      "grain": "date",
+      "refresh": "on_export",
+      "columns": [
+        "date",
+        "workout_count",
+        "set_count",
+        "total_reps",
+        "total_load_volume"
+      ]
+    },
+    "weekly_summary": {
+      "description": "Week-level training summary",
+      "grain": "year_week",
+      "refresh": "on_export",
+      "columns": [
+        "year",
+        "week",
+        "workout_count",
+        "set_count",
+        "total_reps",
+        "pattern_distribution"
+      ]
+    },
+    "exercise_progression": {
+      "description": "Per-exercise metrics over time",
+      "grain": "date x exercise",
+      "refresh": "on_export",
+      "columns": [
+        "date",
+        "exercise_id",
+        "exercise_name",
+        "max_load",
+        "total_reps",
+        "set_count"
+      ]
+    }
+  }
+}

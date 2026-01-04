@@ -1,11 +1,11 @@
 [project]
 name = "arnold-analytics-mcp"
-version = "0.1.0"
+version = "0.2.0"
 description = "Analytics MCP for Arnold coaching system - Arnold's eyes into the data"
 requires-python = ">=3.11"
 dependencies = [
     "mcp>=1.0.0",
-    "duckdb>=1.0.0",
+    "psycopg2-binary>=2.9.0",
     "python-dateutil>=2.8.0",
 ]
 
