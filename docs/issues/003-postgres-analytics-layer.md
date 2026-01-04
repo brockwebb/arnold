@@ -1,6 +1,6 @@
 # Issue 003: Analytics Layer — DuckDB → Postgres
 
-> **Status**: Planning
+> **Status**: Phase 2 Complete (Polar HR + Apple Health loaded)
 > **Priority**: High
 > **Created**: January 3, 2026
 > **Related**: ARCHITECTURE.md (Analytics Architecture section)
@@ -226,32 +226,111 @@ $$ LANGUAGE plpgsql;
 
 ---
 
-## Implementation Plan
+## Implementation Status
 
-### Phase 1: Postgres Setup
-- [ ] Docker container for Postgres
-- [ ] Create schema (tables + frames)
-- [ ] Connection config in `.env`
+### Phase 1: Postgres Setup ✅ COMPLETE (Jan 3, 2026)
 
-### Phase 2: Initial Data Load
-- [ ] Script: Neo4j workouts → workout_summaries
-- [ ] Script: Parquet biometrics → biometric_readings
-- [ ] Validate data matches current DuckDB
+**What was built:**
+- Database `arnold_analytics` created
+- `workout_summaries` table (165 workouts synced)
+- `biometric_readings` table (schema ready, no data yet)
+- `training_load_daily` materialized view (ACWR, volume tracking)
+- `readiness_daily` materialized view (ready for biometrics)
+- `postgres-mcp` installed and connected
+- Sync script: `scripts/sync_neo4j_to_postgres.py`
 
-### Phase 3: Frame Validation
-- [ ] Create materialized views
-- [ ] Compare frame outputs to current DuckDB queries
-- [ ] Tune refresh strategy
+**Verified working:**
+```sql
+SELECT * FROM training_load_daily ORDER BY workout_date DESC LIMIT 5;
+-- Returns ACWR, acute_7d, chronic_28d, daily_volume
+```
 
-### Phase 4: MCP Integration
-- [ ] Update arnold-analytics-mcp to query Postgres
-- [ ] Add frame-based tools (get_readiness, get_training_load)
+**Python env upgraded:** arnold conda env → Python 3.12 (was 3.10)
+
+---
+
+### Phase 2: Polar HR Data Load ✅ COMPLETE (Jan 4, 2026)
+
+**What was built:**
+
+| Table/View | Rows | Purpose |
+|------------|------|--------|
+| `polar_sessions` | 61 | Raw session data (May 2025 - Jan 2026) |
+| `hr_samples` | 167,670 | Second-by-second HR |
+| `polar_session_metrics` | (view) | TRIMP, Edwards TRIMP, Intensity Factor |
+| `hr_training_load_daily` | (view) | Daily aggregates, zone distribution |
+| `trimp_acwr` | (view) | HR-based ACWR |
+| `combined_training_load` | (view) | Unified volume + HR metrics |
+
+**Data coverage:**
+- Complete (volume + HR): 51 days
+- Volume only: 114 days
+- HR only: 7 days
+
+**Key metrics:**
+- Banister TRIMP (HR reserve-based)
+- Edwards TRIMP (zone-weighted)
+- Intensity Factor
+- Polarization (% low/high intensity)
+- TRIMP-based ACWR
+
+**Files created:**
+- `scripts/migrations/002_polar_sessions.sql`
+- `scripts/import_polar_sessions.py`
+
+**Linkage established:**
+- `workout_summaries.polar_session_id` → FK to `polar_sessions`
+- Match by date + duration similarity
+- 51 workouts linked (confidence 0.6-1.0)
+- 10 orphaned Polar sessions (runs/walks not logged in Arnold)
+
+### Apple Health Import (Jan 4, 2026)
+
+**Imported to `biometric_readings`:**
+
+| Metric | Records | Range |
+|--------|---------|-------|
+| HRV (morning avg) | 97 | May-Dec 2025 |
+| Resting HR | 158 | May-Dec 2025 |
+| Sleep total | 188 | May-Dec 2025 |
+| Sleep deep | 181 | May-Dec 2025 |
+| Sleep REM | 176 | May-Dec 2025 |
+
+**Views created:**
+- `readiness_daily` — Materialized view aggregating biometrics by date
+- `daily_status` — Comprehensive view joining training + HR + readiness
+
+**Data coverage:**
+
+| Type | Days |
+|------|------|
+| Full (training + HR + readiness) | 50 |
+| Readiness only | 119 |
+| Training only | 95 |
+| Training + readiness | 19 |
+| Training + HR | 1 |
+
+**Files created:**
+- `scripts/import_apple_health.py`
+
+---
+
+## Remaining Implementation
+
+### Phase 3: MCP Integration
+- [ ] Update arnold-analytics-mcp to query Postgres instead of DuckDB
+- [ ] Validate existing tools work with new backend
 - [ ] Remove DuckDB dependency
 
-### Phase 5: Incremental Sync
-- [ ] Post-workout hook → sync to Postgres
-- [ ] Biometric import → upsert to Postgres
-- [ ] Scheduled frame refresh (or trigger-based)
+### Phase 4: Incremental Sync
+- [ ] Post-workout hook in training-mcp → sync to Postgres
+- [ ] Biometric import scripts → upsert to Postgres
+- [ ] Scheduled frame refresh (cron or trigger-based)
+
+### Ongoing Maintenance
+- Re-export Polar data periodically (manual process)
+- Re-export Apple Health to refresh biometrics (manual process)
+- Run `REFRESH MATERIALIZED VIEW readiness_daily` after biometric imports
 
 ---
 

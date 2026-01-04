@@ -1,16 +1,108 @@
 # Arnold Project - Thread Handoff
 
-> **Last Updated**: January 3, 2026 (Exercise Batch Lookup + Postgres Analytics Planning)
-> **Previous Thread**: Exercise Mapping + The Fifty + Bug Fixes
-> **Compactions in Previous Thread**: 2
-
-## For New Claude Instance
-
-You're picking up development of **Arnold**, an AI-native fitness coaching system built on Neo4j + Postgres. The exercise matching architecture was just completed, fixing the brittle string matching that was breaking workout logging.
+> **Last Updated**: January 4, 2026 (Polar HR + Apple Health Biometrics Complete)
+> **Previous Thread**: Postgres Analytics Layer Phase 2
+> **Compactions in Previous Thread**: 1
 
 ---
 
-## Step 1: Read the Core Documents
+## New Thread Start Here
+
+**Context**: You're continuing development of Arnold, an AI-native fitness coaching system. The analytics layer just got real data (Polar HR + Apple Health biometrics). Next task is migrating arnold-analytics-mcp from DuckDB to Postgres.
+
+**Quick Start**:
+```
+1. Read this file (you're doing it)
+2. Call arnold-memory:load_briefing (gets athlete context, goals, current block)
+3. Run the validation checklist below
+4. Start on the Phase 3 task list
+```
+
+**If you need more context**: Read `/docs/ARCHITECTURE.md` and `/docs/issues/003-postgres-analytics-layer.md`
+
+**If you have questions**: Ask Brock - he prefers direct questions over guessing.
+
+---
+
+## Validation Checklist
+
+Run these before starting work:
+
+```
+[ ] Postgres accessible: psql -d arnold_analytics -c "SELECT 1"
+[ ] Tables exist: SELECT COUNT(*) FROM workout_summaries;  -- Should be 165
+[ ] Views work: SELECT * FROM daily_status LIMIT 1;
+[ ] MCP servers running: arnold-training:get_coach_briefing returns data
+```
+
+---
+
+## Phase 3 Task List: Migrate arnold-analytics-mcp to Postgres
+
+```
+[ ] 1. Read arnold-analytics-mcp source code
+      Location: src/arnold-analytics-mcp/arnold_analytics_mcp/server.py
+      Understand current DuckDB queries
+
+[ ] 2. Add Postgres connection to arnold-analytics-mcp
+      - Add psycopg2 to pyproject.toml
+      - Create connection helper (reuse pattern from import scripts)
+
+[ ] 3. Migrate get_readiness_snapshot
+      Query: SELECT * FROM daily_status WHERE date = $1
+      Return: HRV, RHR, sleep, recent training load, coaching notes
+
+[ ] 4. Migrate get_training_load
+      Query: SELECT * FROM trimp_acwr WHERE daily_trimp > 0 ORDER BY session_date DESC
+      Return: Workout count, volume trends, pattern distribution, ACWR
+
+[ ] 5. Migrate get_exercise_history
+      May need new view joining workout_summaries.exercises JSONB
+      Return: PR, working weights, estimated 1RM, distance to goal
+
+[ ] 6. Migrate check_red_flags
+      Query daily_status for recovery issues
+      Check trimp_acwr for overtraining indicators
+
+[ ] 7. Migrate get_sleep_analysis
+      Query: SELECT * FROM readiness_daily WHERE reading_date >= $1
+
+[ ] 8. Validate all tools work
+      Compare outputs to DuckDB versions
+      Test edge cases (missing data, nulls)
+
+[ ] 9. Remove DuckDB dependency
+      Remove from pyproject.toml
+      Delete DuckDB-specific code
+      Update docs
+```
+
+**Verification queries** (run in postgres-mcp to understand the data):
+
+```sql
+-- Recent training with full context
+SELECT date, workout_type, trimp, hrv_ms, sleep_hours, data_coverage
+FROM daily_status WHERE data_coverage != 'readiness_only'
+ORDER BY date DESC LIMIT 10;
+
+-- TRIMP-based ACWR trend
+SELECT session_date, daily_trimp, acute_load_7d, chronic_load_28d, acwr
+FROM trimp_acwr WHERE daily_trimp > 0
+ORDER BY session_date DESC LIMIT 10;
+
+-- Readiness metrics
+SELECT reading_date, hrv_ms, rhr_bpm, sleep_hours, sleep_quality_pct
+FROM readiness_daily ORDER BY reading_date DESC LIMIT 10;
+```
+
+### Other Options (if Phase 3 isn't the priority)
+
+- **Plan Week 1 Sessions**: 4 workouts logged (Dec 28, 30, Jan 2, 3). Target: 3-4/week.
+- **Issue 002 Phases 2-3**: Intent-based exercise selection, historical context. See `/docs/issues/002-exercise-lookup-efficiency.md`
+
+---
+
+## Reference: Core Documents
 
 ```
 1. /docs/ARCHITECTURE.md              (System architecture - master reference)
@@ -26,16 +118,73 @@ You're picking up development of **Arnold**, an AI-native fitness coaching syste
 /docs/issues/
 ├── 001-planning-tool-integrity.md     → RESOLVED (atomic writes)
 ├── 002-exercise-lookup-efficiency.md  → Phase 1 COMPLETE (batch lookup)
-└── 003-postgres-analytics-layer.md    → PLANNING (DuckDB → Postgres)
+└── 003-postgres-analytics-layer.md    → Phase 2 COMPLETE (Polar + Apple Health loaded)
+                                        Phase 3 READY (migrate MCP to Postgres)
 ```
 
 These track architectural decisions, implementation status, and open questions.
 
 ---
 
-## Step 2: What Was Accomplished This Session
+## Reference: Session History
 
-### Exercise Batch Lookup (Issue 002 - Phase 1 Complete)
+### Polar HR Data Ingestion (Issue 003 - Phase 2 COMPLETE)
+
+**Problem**: Analytics infrastructure built but starving for biometric data. `readiness_daily` frame empty.
+
+**Solution**: Ingested Polar HR monitor export data.
+
+**What was built:**
+
+| Table/View | Rows | Purpose |
+|------------|------|--------|
+| `polar_sessions` | 61 | Raw session data (May 2025 - Jan 2026) |
+| `hr_samples` | 167,670 | Second-by-second HR |
+| `polar_session_metrics` | (view) | TRIMP, Edwards TRIMP, Intensity Factor |
+| `hr_training_load_daily` | (view) | Daily aggregates, zone distribution |
+| `trimp_acwr` | (view) | HR-based ACWR (better than volume-based) |
+| `combined_training_load` | (view) | Unified volume + HR metrics |
+| `readiness_daily` | 188 days | Sleep, HRV, resting HR |
+| `daily_status` | (view) | Everything combined |
+
+**Data coverage:**
+- Full (training + HR + readiness): 50 days
+- Readiness only: 119 days
+- Volume only: 95 days
+- Training + readiness: 19 days
+- Training + HR: 1 day (Jan 3)
+
+**Key metrics now available:**
+- **Banister TRIMP**: Duration × HR reserve ratio × exponential intensity factor
+- **Edwards TRIMP**: Zone-weighted (Z1×1 + Z2×2 + Z3×3 + Z4×4 + Z5×5)
+- **Intensity Factor**: avg_hr / threshold_hr
+- **Polarization**: % time in low (Z1-2) vs high (Z4-5) intensity
+- **TRIMP-based ACWR**: More meaningful than volume ACWR
+
+**Example query:**
+```sql
+SELECT * FROM combined_training_load WHERE workout_date = '2026-01-03';
+-- Returns: The Fifty - 21,000 lbs volume, TRIMP 91, Edwards TRIMP 204, IF 0.85
+```
+
+**Files created:**
+- `scripts/migrations/002_polar_sessions.sql` — Tables + views
+- `scripts/import_polar_sessions.py` — Idempotent Polar importer
+- `scripts/import_apple_health.py` — Apple Health biometrics importer
+
+**Linkage:**
+- `workout_summaries.polar_session_id` → FK to `polar_sessions`
+- Match confidence: 1.0 (single session, duration match), 0.8 (single session), 0.6-0.7 (multi-session)
+- 51 workouts linked, 10 orphaned Polar sessions (runs/walks not logged)
+
+**Import command:**
+```bash
+python scripts/import_polar_sessions.py data/raw/20260103--polar-user-data-export_b658889b-4ecd-4050-8bab-57e4f187cbca
+```
+
+---
+
+### Previous: Exercise Batch Lookup (Issue 002 - Phase 1 Complete)
 
 **Problem**: Building one workout required 10-20 tool calls for exercise ID resolution. Doesn't scale.
 
@@ -61,21 +210,31 @@ Tool returns: {resolved: {...}, needs_clarification: {...}, not_found: [...]}
 - `src/arnold-training-mcp/arnold_training_mcp/server.py` — added tool definitions and handlers
 - `src/arnold-profile-mcp/arnold_profile_mcp/server.py` — marked search_exercises as DEPRECATED
 
-### Postgres Analytics Layer (Issue 003 - Planning)
+### Postgres Analytics Layer (Issue 003 - Phase 1 COMPLETE)
 
 **Problem**: DuckDB requires full rebuild on every change. Can't do incremental updates or pre-computed views.
 
-**Solution**: Replace DuckDB with Postgres. Build analytical "frames" (like Census products):
-- `readiness_daily` — morning check-in
-- `training_load_weekly` — ACWR, monotony, strain  
-- `progression_by_modality` — goal tracking
-- `biometric_series` — long-term trends
+**Solution**: Replace DuckDB with Postgres. Build analytical "frames" (like Census products).
+
+**What was built:**
+- Database `arnold_analytics` created and operational
+- `workout_summaries` table — 165 workouts synced from Neo4j
+- `biometric_readings` table — schema ready for Apple Health/Ultrahuman
+- `training_load_daily` frame — ACWR, acute/chronic load, volume (WORKING)
+- `readiness_daily` frame — ready for biometric data
+- `postgres-mcp` installed (crystaldba/postgres-mcp) — includes index tuning, health checks
+- Sync script: `scripts/sync_neo4j_to_postgres.py`
+
+**Python env upgraded:** arnold conda env rebuilt at Python 3.12 (was 3.10, required for postgres-mcp)
 
 **Architecture split**:
 - Neo4j: graphs, relationships, structure (workouts, plans, exercises)
-- Postgres: time-series bulk data (292K biometrics), denormalized summaries, computed frames
+- Postgres: time-series bulk data, denormalized summaries, computed frames
 
-**Status**: Schema drafted, implementation plan documented. Not yet built.
+**Verified working:**
+```sql
+SELECT workout_date, daily_volume, acwr FROM training_load_daily ORDER BY workout_date DESC;
+```
 
 ---
 
@@ -378,7 +537,7 @@ The system improves with use:
 
 ---
 
-## Step 3: Current State
+## Reference: Current State
 
 ### The Fifty Workout (Today - Jan 3)
 
@@ -405,52 +564,12 @@ arnold-analytics:get_sleep_analysis   → Sleep pattern analysis
 
 | MCP | Status | Purpose |
 |-----|--------|---------|
-| arnold-profile-mcp | ✅ | Profile, equipment, exercise search |
-| arnold-training-mcp | ✅ | Planning, logging, execution |
+| arnold-profile-mcp | ✅ | Profile, equipment, activities |
+| arnold-training-mcp | ✅ | Planning, logging, execution, exercise search |
 | arnold-memory-mcp | ✅ | Context, observations, semantic search |
-| arnold-analytics-mcp | ✅ | Readiness, training load, red flags |
+| arnold-analytics-mcp | ✅ | Readiness, training load, red flags (uses DuckDB, migration pending) |
 | neo4j-mcp | ✅ | Direct graph queries |
-
----
-
-## Step 4: Immediate Next Steps
-
-### Option A: Plan Week 1 Remaining Sessions
-- Current: 3 workouts logged (Dec 28, Dec 30, Jan 3)
-- Block target: 3-4 sessions/week × 4 weeks
-- Identify gaps and schedule remaining Week 1 sessions
-
-### Option B: Bayesian Pattern Detection
-- Next Phase 2 item from roadmap
-- Replace threshold-based alerts with evidence accumulation
-- Handles sparse data gracefully (common in biometrics)
-
-### Option C: Update Documentation / Roadmap
-- Mark exercise mapping complete in exercise_kb_improvement_plan.md
-- Update roadmap with Phase 2 progress
-- Review any stale documentation
-
----
-
-## Step 5: Quick Start for New Thread
-
-```
-1. Read /Users/brock/Documents/GitHub/arnold/docs/HANDOFF.md (this file)
-2. Call arnold-memory:load_briefing
-3. Optionally: Call arnold-analytics:check_red_flags
-```
-
----
-
-## Step 6: Load Context (Expanded)
-
-Call `arnold-memory:load_briefing` to get:
-- Active goals (Deadlift 405x5, Hellgate 100k, Ring Dips 10, Stay Healthy)
-- Current block (Week 1 of 4, Accumulation)
-- Training levels per modality
-- Active injuries (knee surgery recovery - cleared for normal activity)
-- Recent workouts
-- Equipment inventory
+| postgres-mcp | ✅ NEW | Direct SQL, index tuning, health checks (crystaldba/postgres-mcp) |
 
 ---
 
@@ -467,39 +586,115 @@ Call `arnold-memory:load_briefing` to get:
 ## Architecture Summary
 
 ```
-Neo4j (CYBERDYNE-CORE)     Postgres (T-1000) [Planned]
-├── Relationships          ├── Time-series biometrics
-├── Exercise graph         ├── Workout summaries  
-├── Coaching workflow      ├── Analytical frames
-└── Memory/observations    └── Pre-computed reports
+Neo4j (CYBERDYNE-CORE)         Postgres (T-1000)
+├── Relationships               ├── workout_summaries (165, linked to Polar)
+├── Exercise graph              ├── polar_sessions (61 sessions)
+├── Coaching workflow           ├── hr_samples (167K samples)
+└── Memory/observations         ├── biometric_readings (HRV, RHR, sleep)
+                                ├── readiness_daily (materialized view)
+                                ├── combined_training_load (view)
+                                ├── trimp_acwr (view)
+                                └── daily_status (view)
 
-Claude Desktop orchestrates both via MCP servers
+Claude Desktop orchestrates via MCP servers:
+- arnold-* MCPs for domain logic
+- neo4j-mcp for graph queries  
+- postgres-mcp for analytics queries
 ```
 
 ---
 
 ## Critical Notes for Future Claude
 
-1. **Use `search_exercises` not `find_canonical_exercise`** - The new tool returns multiple candidates with relevance scores. Claude should normalize input, review candidates, and select the best match.
+1. **Postgres analytics layer is live** - Database `arnold_analytics` has:
+   - 165 workouts in `workout_summaries` (51 linked to Polar sessions)
+   - 61 Polar sessions with 167K HR samples
+   - Biometrics (HRV, RHR, sleep) in `biometric_readings`
+   - Key views: `daily_status`, `combined_training_load`, `trimp_acwr`, `readiness_daily`
+   - Use `postgres-mcp:execute_sql` for direct queries
 
-2. **Incremental embedding strategy** - Don't try to embed all 4,242 exercises upfront. Add embeddings as exercises are touched. System gets smarter with use.
+2. **Use `search_exercises` not `find_canonical_exercise`** - The new tool returns multiple candidates with relevance scores. Claude should normalize input, review candidates, and select the best match.
 
-3. **Full-text index covers name + aliases** - The `exercise_search` index searches both fields. Add aliases to exercises as you discover common variations.
+3. **Incremental embedding strategy** - Don't try to embed all 4,242 exercises upfront. Add embeddings as exercises are touched. System gets smarter with use.
 
-4. **Parameter naming in Neo4j driver** - Don't use `query` as a parameter name in `session.run()` - it conflicts with the driver's method signature. We fixed this with `search_term`.
+4. **Full-text index covers name + aliases** - The `exercise_search` index searches both fields. Add aliases to exercises as you discover common variations.
 
-5. **Post-surgery ACWR interpretation** - High ACWR is expected during ramp-up. Don't flag as injury risk without context.
+5. **Parameter naming in Neo4j driver** - Don't use `query` as a parameter name in `session.run()` - it conflicts with the driver's method signature. We fixed this with `search_term`.
+
+6. **Post-surgery ACWR interpretation** - High ACWR is expected during ramp-up. Don't flag as injury risk without context.
+
+7. **Workout ↔ Polar linkage** - `workout_summaries.polar_session_id` is FK to `polar_sessions`. Match confidence in `polar_match_confidence` (1.0 = high, 0.6 = multi-session day). 10 orphaned Polar sessions exist (runs/walks not logged in Arnold).
+
+8. **Postgres connection** - Import scripts use `psycopg2.connect(dbname='arnold_analytics')` relying on local socket auth. May need adjustment for MCP server context.
+
+9. **Materialized view refresh** - `readiness_daily` needs manual refresh after biometric imports: `REFRESH MATERIALIZED VIEW readiness_daily`
+
+10. **JSONB in workout_summaries** - The `exercises` column contains structured data. Use `jsonb_array_elements()` for queries.
+
+11. **Null handling** - Many metrics are nullable (no HR data, no sleep data). Views handle this but tools need null-safe logic.
 
 ---
 
-## Rebuild Commands (Current - DuckDB)
+## Frequently Asked Questions
 
-> **Note**: Postgres migration planned but not yet implemented. See Issue 003.
+**Q: Why both Neo4j and Postgres?**
+A: Neo4j excels at relationships (exercise→muscle→pattern graphs, coaching observations, training plans). Postgres excels at time-series analytics (ACWR calculations, trend analysis, aggregations). Each does what it's best at.
 
+**Q: Why not just use postgres-mcp directly from Claude?**
+A: arnold-analytics-mcp wraps domain logic. It knows what "readiness" means, what thresholds matter, how to interpret ACWR. Raw SQL would require Claude to re-derive this each conversation.
+
+**Q: What's the TRIMP formula?**
+A: Banister TRIMP = duration_minutes × HR_reserve_ratio × 0.64 × exp(1.92 × HR_reserve_ratio). Edwards TRIMP = Σ(zone_minutes × zone_weight) where Z1=1, Z2=2, Z3=3, Z4=4, Z5=5. Both are in `polar_session_metrics` view.
+
+**Q: Why 51 workouts linked but 61 Polar sessions?**
+A: 10 Polar sessions are runs/walks that weren't logged in Arnold (outdoor activities without structured sets). They're orphaned but kept for completeness.
+
+**Q: What if I need to re-run an import?**
+A: All import scripts are idempotent. They use ON CONFLICT DO UPDATE or skip existing records. Safe to re-run.
+
+---
+
+## Sync Commands
+
+### Neo4j → Postgres Sync
 ```bash
-# If Neo4j data changes:
-python scripts/export_to_analytics.py
+# Sync workout summaries from Neo4j to Postgres
+python scripts/sync_neo4j_to_postgres.py
+```
 
-# Always after export:
+### Polar HR Data Import
+```bash
+# Import Polar export (idempotent - skips existing sessions)
+python scripts/import_polar_sessions.py data/raw/<polar-export-folder>
+
+# Example:
+python scripts/import_polar_sessions.py data/raw/20260103--polar-user-data-export_b658889b-4ecd-4050-8bab-57e4f187cbca
+```
+
+### Apple Health Biometrics Import
+```bash
+# First: Export from iPhone Health app, extract, stage to parquet
+# (staging scripts in scripts/export_to_analytics.py)
+
+# Then: Import staged parquet files to Postgres
+python scripts/import_apple_health.py
+
+# Refresh the materialized view after import
+psql -d arnold_analytics -c "REFRESH MATERIALIZED VIEW readiness_daily"
+```
+
+### Workout ↔ Polar Linkage
+Linkage is automatic during `sync_neo4j_to_postgres.py`. To re-run linkage manually:
+```sql
+-- Run the linkage query in postgres-mcp or psql
+-- See scripts/migrations/002_polar_sessions.sql for the matching logic
+```
+
+### Legacy DuckDB (still used by arnold-analytics-mcp)
+```bash
+# Old DuckDB rebuild - DEPRECATED, will be removed in Phase 3
+python scripts/export_to_analytics.py
 python scripts/create_analytics_db.py
 ```
+
+> **Note**: arnold-analytics-mcp still uses DuckDB. Migration to Postgres is Phase 3 of Issue 003.
