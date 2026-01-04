@@ -1,8 +1,54 @@
 # Arnold Neo4j Schema Reference
 
-> **Last Updated:** December 31, 2025
+> **Last Updated:** January 3, 2026
 
 This document describes the complete graph schema for the Arnold knowledge graph.
+
+---
+
+## Quick Reference: ID Conventions
+
+**ID prefixes map to node labels as follows:**
+
+| ID Prefix | Node Label | Example |
+|-----------|------------|----------|
+| `PLAN:` | `PlannedWorkout` | `PLAN:18b82903-1d0c-4047-bec1-82f38ea65e34` |
+| `PLANBLOCK:` | `PlannedBlock` | `PLANBLOCK:5c6a497e-580b-4cde-8cd8-420e33258f81` |
+| `PLANSET:` | `PlannedSet` | `PLANSET:721051dc-3197-4f4f-b013-7397e524d07d` |
+| `BLOCK:` | `Block` | `BLOCK:2025-Q1-1-accumulation` |
+| `GOAL:` | `Goal` | `GOAL:deadlift-405x5-2026` |
+| `MOD:` | `Modality` | `MOD:hip-hinge-strength` |
+| `TL:` | `TrainingLevel` | `TL:brock:hip-hinge-strength` |
+| `PMODEL:` | `PeriodizationModel` | `PMODEL:linear` |
+| `INJ:` | `Injury` | `INJ:knee-surgery-2025` |
+| `EXERCISE:` | `Exercise` | `EXERCISE:Trap_Bar_Deadlift` |
+| `CANONICAL:FFDB:` | `Exercise` | `CANONICAL:FFDB:846` |
+| `CUSTOM:` | `Exercise` | `CUSTOM:Boxing` |
+| *(no prefix)* | `Workout`, `WorkoutBlock`, `Set` | Raw UUID |
+
+**Note:** Executed workouts (`Workout`, `WorkoutBlock`, `Set`) use raw UUIDs without prefixes. Planned items use prefixes to distinguish them at a glance.
+
+---
+
+## Quick Reference: Planned vs Executed States
+
+Arnold tracks training in two states: **Planned** (future intent) and **Executed** (completed reality).
+
+| Concept | Planned (Future) | Executed (Done) | Key Relationship |
+|---------|------------------|-----------------|------------------|
+| Session | `PlannedWorkout` | `Workout` | |
+| Block | `PlannedBlock` | `WorkoutBlock` | |
+| Set | `PlannedSet` | `Set` | |
+| Person → Session | `HAS_PLANNED_WORKOUT` | `PERFORMED` | |
+| Session → Block | `HAS_PLANNED_BLOCK` | `HAS_BLOCK` | |
+| Block → Set | `CONTAINS_PLANNED` | `CONTAINS` | |
+| Set → Exercise | `PRESCRIBES` | `OF_EXERCISE` | |
+
+**Lifecycle:**
+```
+PlannedWorkout (draft) → (confirmed) → Workout (executed)
+                                    ↘ (skipped)
+```
 
 ---
 
@@ -218,14 +264,19 @@ Sports and activities (for endurance modalities).
 ```cypher
 (:Workout {
   id: string,
+  name: string,              // Human-friendly name (e.g., "The Fifty", "Upper Body Push")
   date: date,
   type: string,              // strength | conditioning | mobility
   duration_minutes: int,
   notes: string,
-  source: string,            // "obsidian" | "adhoc" | "planned"
+  source: string,            // "planned" | "adhoc" | "obsidian"
   imported_at: datetime
 })
 ```
+
+**Name Population:**
+- From plan execution: `name` ← `PlannedWorkout.goal`
+- From ad-hoc logging: `name` ← provided by user/Claude
 
 **Relationships:**
 ```cypher

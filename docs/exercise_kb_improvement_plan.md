@@ -1,8 +1,8 @@
 # Exercise Knowledge Base Improvement Plan
 
 **Created:** 2024-12-29  
-**Updated:** 2026-01-02 (Phase 8 Infrastructure Complete)
-**Status:** Phase 5 In Progress, Phase 8 ✅ Complete  
+**Updated:** 2026-01-03 (Phase 6 confirmed complete, read query efficiency)
+**Status:** Phase 5 In Progress, Phase 6 ✅ Complete, Phase 8 ✅ Complete  
 **Priority:** Critical for coaching intelligence
 
 ---
@@ -16,9 +16,9 @@
 | Muscles (active) | 47 |
 | MovementPatterns | 26 |
 | ACTIVATES (pattern→muscle) | 116 |
-| Custom workout exercises | 144 |
-| Custom with canonical mappings | 31 |
-| Custom needing work | 113 |
+| Custom workout exercises | 150 |
+| Custom with canonical mappings | 87 |
+| Custom needing work | 63 |
 
 ---
 
@@ -68,7 +68,7 @@ RETURN e.name as canonicalExercise, collect(custom.name) as yourVariants
 ```cypher
 // Custom exercise → canonical → movement pattern → muscles
 MATCH (custom:Exercise {source: 'user_workout_log'})
-OPTIONAL MATCH (custom)-[:MAPS_TO|VARIATION_OF]->(canonical:Exercise)-[:HAS_MOVEMENT_PATTERN]->(mp:MovementPattern)
+OPTIONAL MATCH (custom)-[:MAPS_TO|VARIATION_OF]->(canonical:Exercise)-[:INVOLVES]->(mp:MovementPattern)
 OPTIONAL MATCH (mp)-[:ACTIVATES]->(m:Muscle)
 RETURN custom.name, mp.name as pattern, collect(m.name) as inferredMuscles
 ```
@@ -119,7 +119,7 @@ RETURN custom.name, mp.name as pattern, collect(m.name) as inferredMuscles
 31 custom exercises with existing MAPS_TO relationships work via chain traversal.
 
 ### 5B: Match Unmapped → Canonical (In Progress)
-113 custom exercises need MAPS_TO relationships to canonical exercises.
+63 custom exercises need MAPS_TO relationships to canonical exercises (was 113, now 87 mapped).
 
 **Categories identified:**
 - Easy canonical matches (Pallof Press, Kettlebell Swings, Box Step-Up)
@@ -139,10 +139,10 @@ Examples: Wood Splitting, specific mobility drills.
 
 ## Remaining Phases
 
-### Phase 6: Link Exercises to MovementPatterns
+### ✅ Phase 6: Link Exercises to MovementPatterns (Complete)
 
-Currently 0 `HAS_MOVEMENT_PATTERN` relationships.
-4,082 exercises need pattern classification.
+4,951 `INVOLVES` relationships exist between exercises and movement patterns.
+4,135 exercises have at least one pattern linked.
 
 ### Phase 7: Validation Queries
 
@@ -177,10 +177,10 @@ Query helpers should be documented in MCP function descriptions so coaching quer
 | Metric | Current | Target |
 |--------|---------|--------|
 | Exercises → specific Muscle | 4,082 | All active |
-| Custom exercises with targeting path | 31 | 144 |
+| Custom exercises with targeting path | 87 | 150 |
 | Movement Patterns defined | 26 | 26 ✓ |
 | ACTIVATES relationships | 116 | 116 ✓ |
-| HAS_MOVEMENT_PATTERN | 0 | 4,082 |
+| INVOLVES | 4,951 | 4,255 |
 
 ---
 

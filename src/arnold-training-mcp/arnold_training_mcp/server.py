@@ -109,8 +109,66 @@ Use this before creating a plan to understand current state.""",
         ),
         
         # =====================================================================
-        # EXERCISE SELECTION TOOLS
+        # EXERCISE SEARCH & SELECTION TOOLS
         # =====================================================================
+        types.Tool(
+            name="search_exercises",
+            description="""Search exercises using full-text search with fuzzy matching.
+Returns multiple candidates with relevance scores for Claude to select from.
+
+IMPORTANT: Claude should NORMALIZE the query first (semantic layer).
+Example: "KB swing" → "kettlebell swing" BEFORE calling this tool.
+
+The tool handles string matching variations (swing vs swings).""",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "query": {
+                        "type": "string",
+                        "description": "Search query (exercise name or common alias)"
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "description": "Max results to return (default 5)",
+                        "default": 5
+                    }
+                },
+                "required": ["query"]
+            }
+        ),
+        types.Tool(
+            name="resolve_exercises",
+            description="""Batch resolve exercise names to IDs in a single call.
+
+Use this when building workout plans to resolve ALL exercises at once
+instead of making individual search_exercises calls.
+
+IMPORTANT: Claude should NORMALIZE all names first (semantic layer).
+Example: ["KB swing", "RDL"] → ["kettlebell swing", "romanian deadlift"]
+
+Returns:
+- resolved: High-confidence matches ready to use
+- needs_clarification: Low-confidence matches requiring user input
+- not_found: Names with no matches
+
+If needs_clarification or not_found are non-empty, discuss with user before proceeding.""",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "names": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "List of NORMALIZED exercise names to resolve"
+                    },
+                    "confidence_threshold": {
+                        "type": "number",
+                        "description": "Minimum score (0-1) to auto-accept (default 0.5)",
+                        "default": 0.5
+                    }
+                },
+                "required": ["names"]
+            }
+        ),
         types.Tool(
             name="suggest_exercises",
             description="""Find exercises matching criteria.
@@ -360,11 +418,13 @@ Use when user reports changes from the plan:
 - "Had to drop weight on last set"
 - "Only got 4 reps instead of 5"
 - "Skipped the finisher"
+- "Swapped exercise X for exercise Y"
 
 Deviation structure:
 - planned_set_id: Which set deviated
 - actual_reps: What they actually did
 - actual_load_lbs: Actual weight used
+- substitute_exercise_id: If they did a DIFFERENT exercise (optional)
 - reason: fatigue/pain/equipment/time/technique
 - notes: User's explanation""",
             inputSchema={
@@ -383,6 +443,10 @@ Deviation structure:
                                 "planned_set_id": {"type": "string"},
                                 "actual_reps": {"type": "integer"},
                                 "actual_load_lbs": {"type": "number"},
+                                "substitute_exercise_id": {
+                                    "type": "string",
+                                    "description": "If they did a different exercise, the ID of the substitute"
+                                },
                                 "reason": {
                                     "type": "string",
                                     "enum": ["fatigue", "pain", "equipment", "time", "technique"]
@@ -593,9 +657,82 @@ async def call_tool_handler(name: str, arguments: dict[str, Any]) -> list[types.
             return [types.TextContent(type="text", text=f"❌ Error: {str(e)}")]
 
     # =========================================================================
-    # EXERCISE SELECTION TOOLS
+    # EXERCISE SEARCH & SELECTION TOOLS
     # =========================================================================
     
+    elif name == "search_exercises":
+        try:
+            query = arguments["query"]
+            limit = arguments.get("limit", 5)
+            
+            logger.info(f"Searching exercises for: {query}")
+            
+            results = neo4j_client.search_exercises(query, limit)
+            
+            if not results:
+                return [types.TextContent(
+                    type="text",
+                    text=f"No exercises found matching '{query}'."
+                )]
+            
+            # Format as readable list
+            lines = [f"Found {len(results)} exercise(s) matching '{query}':\n"]
+            for i, r in enumerate(results, 1):
+                lines.append(f"{i}. **{r['name']}**")
+                lines.append(f"   ID: `{r['exercise_id']}`")
+                lines.append(f"   Score: {r['score']:.2f}\n")
+            
+            return [types.TextContent(
+                type="text",
+                text="\n".join(lines)
+            )]
+            
+        except Exception as e:
+            logger.error(f"Error searching exercises: {str(e)}", exc_info=True)
+            return [types.TextContent(type="text", text=f"❌ Error: {str(e)}")]
+
+    elif name == "resolve_exercises":
+        try:
+            names = arguments["names"]
+            threshold = arguments.get("confidence_threshold", 0.5)
+            
+            logger.info(f"Resolving {len(names)} exercises")
+            
+            result = neo4j_client.resolve_exercises(names, threshold)
+            
+            # Format as readable summary
+            lines = ["**Exercise Resolution Results:**\n"]
+            lines.append(f"Total: {result['summary']['total']} | "
+                        f"Resolved: {result['summary']['resolved']} | "
+                        f"Needs Clarification: {result['summary']['needs_clarification']} | "
+                        f"Not Found: {result['summary']['not_found']}\n")
+            
+            if result['resolved']:
+                lines.append("\n✅ **Resolved (ready to use):**")
+                for name, match in result['resolved'].items():
+                    lines.append(f"  • '{name}' → `{match['id']}` ({match['name']}) [{match['confidence']}]")
+            
+            if result['needs_clarification']:
+                lines.append("\n⚠️ **Needs Clarification:**")
+                for name, candidates in result['needs_clarification'].items():
+                    lines.append(f"  • '{name}' - top matches:")
+                    for c in candidates:
+                        lines.append(f"    - `{c['id']}` ({c['name']}) score: {c['score']:.2f}")
+            
+            if result['not_found']:
+                lines.append("\n❌ **Not Found:**")
+                for name in result['not_found']:
+                    lines.append(f"  • '{name}'")
+            
+            return [types.TextContent(
+                type="text",
+                text="\n".join(lines)
+            )]
+            
+        except Exception as e:
+            logger.error(f"Error resolving exercises: {str(e)}", exc_info=True)
+            return [types.TextContent(type="text", text=f"❌ Error: {str(e)}")]
+
     elif name == "suggest_exercises":
         try:
             logger.info(f"Suggesting exercises with filters: {arguments}")

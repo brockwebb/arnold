@@ -105,15 +105,9 @@ async def list_tools_handler() -> list[types.Tool]:
         ),
         types.Tool(
             name="search_exercises",
-            description="""Search exercises using full-text search with fuzzy matching. Returns multiple candidates for Claude to select from.
+            description="""[DEPRECATED] Use arnold-training:search_exercises or arnold-training:resolve_exercises instead.
 
-Use this when you need to find exercises by name or alias. The tool returns up to 5 candidates with relevance scores.
-Claude should:
-1. Normalize the query first (e.g., 'KB swing' → 'kettlebell swing')
-2. Review the candidates and select the best match
-3. If no good match exists, create a custom exercise
-
-The full-text index searches exercise names AND aliases (common alternative names).""",
+This tool remains for backward compatibility but exercise operations now live in training-mcp.""",
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -121,58 +115,6 @@ The full-text index searches exercise names AND aliases (common alternative name
                     "limit": {"type": "integer", "description": "Max results to return (default 5)", "default": 5}
                 },
                 "required": ["query"]
-            }
-        ),
-        types.Tool(
-            name="log_workout",
-            description="""Save a pre-structured workout. Claude Desktop interprets user's natural language and structures it into the workout schema BEFORE calling this tool. This tool is DUMB - it just saves data.
-
-Required fields in workout_data:
-- person_id: UUID of person (auto-filled from profile if not provided)
-- date: YYYY-MM-DD
-- exercises: Array of exercise objects with sets
-
-Optional fields:
-- workout_id: UUID (auto-generated if not provided)
-- type: strength/endurance/mobility/sport/mixed
-- duration_minutes: Integer
-- notes: String
-
-Exercise object structure:
-- exercise_name: String (required)
-- exercise_id: UUID or null (use find_canonical_exercise to get this)
-- purpose: warm-up/main-work/accessory/cool-down/active-recovery
-- sets: Array of set objects
-- notes: String
-
-Set object structure:
-- set_number: Integer
-- reps: Integer or null
-- load_lbs: Number or null
-- duration_seconds: Integer or null
-- distance_miles: Number or null
-- rpe: Number (1-10) or null
-- notes: String or null""",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "workout_data": {
-                        "type": "object",
-                        "description": "Fully structured workout following workout_schema.json"
-                    }
-                },
-                "required": ["workout_data"]
-            }
-        ),
-        types.Tool(
-            name="get_workout_by_date",
-            description="Retrieve a logged workout by date (YYYY-MM-DD).",
-            inputSchema={
-                "type": "object",
-                "properties": {
-                    "workout_date": {"type": "string", "format": "date", "description": "Workout date in YYYY-MM-DD format"}
-                },
-                "required": ["workout_date"]
             }
         ),
         types.Tool(
@@ -518,104 +460,6 @@ Ready to set up equipment and log workouts!"""
             return [types.TextContent(
                 type="text",
                 text=f"❌ Error searching exercises: {str(e)}"
-            )]
-
-    elif name == "log_workout":
-        try:
-            workout_data = arguments["workout_data"]
-
-            # Parse if it's a JSON string
-            if isinstance(workout_data, str):
-                workout_data = json.loads(workout_data)
-
-            logger.info(f"Logging workout for {workout_data.get('date', 'unknown date')}")
-
-            # Validate person_id or auto-fill from profile
-            if "person_id" not in workout_data:
-                profile = profile_mgr.get_profile()
-                workout_data["person_id"] = profile["person_id"]
-
-            # Auto-generate workout_id if not provided
-            if "workout_id" not in workout_data:
-                workout_data["workout_id"] = str(uuid.uuid4())
-
-            # Write to Neo4j ONLY
-            result = neo4j_client.create_workout_node(workout_data)
-            
-            logger.info(f"Workout logged successfully: {workout_data['workout_id']}")
-
-            # Format summary
-            exercise_summary = "\n".join([
-                f"- {ex['exercise_name']}: {len(ex['sets'])} sets"
-                for ex in workout_data['exercises']
-            ])
-            
-            # Check if any exercises need muscle mapping
-            exercises_needing_mapping = result.get('exercises_needing_mapping', [])
-            mapping_note = ""
-            if exercises_needing_mapping:
-                mapping_note = f"\n\n⚠️ **{len(exercises_needing_mapping)} exercise(s) need muscle mapping:**\n"
-                mapping_note += "\n".join([f"- {ex['name']}" for ex in exercises_needing_mapping])
-                mapping_note += "\n\nWould you like to map these exercises to muscles now?"
-
-            return [types.TextContent(
-                type="text",
-                text=f"""✅ Workout logged!
-
-**Date:** {workout_data['date']}
-**Exercises:**
-{exercise_summary}
-
-Saved to Neo4j.{mapping_note}"""
-            )]
-
-        except FileNotFoundError:
-            logger.error("Profile not found")
-            return [types.TextContent(
-                type="text",
-                text="❌ No profile found. Create your profile first using intake_profile."
-            )]
-        except Exception as e:
-            logger.error(f"Error logging workout: {str(e)}", exc_info=True)
-            return [types.TextContent(
-                type="text",
-                text=f"❌ Error logging workout: {str(e)}"
-            )]
-
-    elif name == "get_workout_by_date":
-        try:
-            workout_date = arguments["workout_date"]
-
-            logger.info(f"Retrieving workout for {workout_date}")
-
-            # Get profile
-            profile = profile_mgr.get_profile()
-
-            # Query Neo4j directly
-            workout = neo4j_client.get_workout_by_date(profile["person_id"], workout_date)
-
-            if workout:
-                return [types.TextContent(
-                    type="text",
-                    text=json.dumps(workout, indent=2)
-                )]
-            else:
-                return [types.TextContent(
-                    type="text",
-                    text=f"❌ No workout found for {workout_date}"
-                )]
-
-        except FileNotFoundError:
-            logger.error("Profile not found")
-            return [types.TextContent(
-                type="text",
-                text="❌ No profile found. Create your profile first using intake_profile."
-            )]
-        except Exception as e:
-            logger.error(f"Error retrieving workout: {str(e)}", exc_info=True)
-            return [types.TextContent(
-                type="text",
-                text=f"❌ Error retrieving workout: {str(e)}"
             )]
 
     elif name == "record_observation":

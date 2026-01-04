@@ -35,67 +35,91 @@ class Neo4jTrainingClient:
             - equipment available
             - recent workout summary
             - active goals
+        
+        Optimized: Single query with CALL {} subqueries (was 5 round-trips).
         """
         with self.driver.session(database=self.database) as session:
-            # Get person
-            person_result = session.run("""
+            result = session.run("""
                 MATCH (p:Person {id: $person_id})
-                RETURN p
+                
+                // Collect injuries with constraints
+                CALL {
+                    WITH p
+                    OPTIONAL MATCH (p)-[:HAS_INJURY]->(i:Injury)
+                    WHERE i.status IN ['active', 'recovering']
+                    OPTIONAL MATCH (i)-[:CREATES]->(c:Constraint)
+                    WITH i, collect(c.description) as constraints
+                    WHERE i IS NOT NULL
+                    RETURN collect({
+                        injury: i.name,
+                        status: i.status,
+                        body_part: i.body_part,
+                        constraints: constraints
+                    }) as injuries
+                }
+                
+                // Collect equipment
+                CALL {
+                    WITH p
+                    OPTIONAL MATCH (p)-[:HAS_ACCESS_TO]->(inv:EquipmentInventory)
+                    OPTIONAL MATCH (inv)-[contains:CONTAINS]->(eq:EquipmentCategory)
+                    WHERE eq IS NOT NULL
+                    RETURN collect(DISTINCT {
+                        name: eq.name,
+                        type: eq.type,
+                        weight_lbs: contains.weight_lbs,
+                        weight_range_min: contains.weight_range_min,
+                        weight_range_max: contains.weight_range_max,
+                        adjustable: contains.adjustable
+                    }) as equipment
+                }
+                
+                // Collect recent workouts (last 7 days)
+                CALL {
+                    WITH p
+                    OPTIONAL MATCH (p)-[:PERFORMED]->(w:Workout)
+                    WHERE w.date >= date() - duration('P7D')
+                    WITH w ORDER BY w.date DESC
+                    WHERE w IS NOT NULL
+                    RETURN collect({
+                        date: w.date,
+                        type: w.type,
+                        duration: w.duration_minutes
+                    }) as recent_workouts
+                }
+                
+                // Collect active goals
+                CALL {
+                    WITH p
+                    OPTIONAL MATCH (p)-[:HAS_GOAL]->(g:Goal)
+                    WHERE g.status = 'active'
+                    RETURN collect({
+                        id: g.id,
+                        description: g.description,
+                        type: g.goal_type,
+                        target_date: g.target_date
+                    }) as goals
+                }
+                
+                RETURN p,
+                       injuries,
+                       equipment,
+                       recent_workouts,
+                       goals
             """, person_id=person_id)
-            person_record = person_result.single()
-            if not person_record:
+            
+            record = result.single()
+            if not record:
                 return None
             
-            # Get injuries with constraints (Person direct, no Athlete)
-            injuries_result = session.run("""
-                MATCH (p:Person {id: $person_id})-[:HAS_INJURY]->(i:Injury)
-                WHERE i.status IN ['active', 'recovering']
-                OPTIONAL MATCH (i)-[:CREATES]->(c:Constraint)
-                WITH i, collect(c.description) as constraints
-                RETURN i.name as injury, 
-                       i.status as status, 
-                       i.body_part as body_part,
-                       constraints
-            """, person_id=person_id)
-            injuries = [dict(r) for r in injuries_result]
-            
-            # Get equipment
-            equipment_result = session.run("""
-                MATCH (p:Person {id: $person_id})-[:HAS_ACCESS_TO]->(inv:EquipmentInventory)
-                MATCH (inv)-[contains:CONTAINS]->(eq:EquipmentCategory)
-                RETURN DISTINCT eq.name as name,
-                       eq.type as type,
-                       contains.weight_lbs as weight_lbs,
-                       contains.weight_range_min as weight_range_min,
-                       contains.weight_range_max as weight_range_max,
-                       contains.adjustable as adjustable
-            """, person_id=person_id)
-            equipment = [dict(r) for r in equipment_result]
-            
-            # Get recent workouts (last 7 days) - Person direct
-            workouts_result = session.run("""
-                MATCH (p:Person {id: $person_id})-[:PERFORMED]->(w:Workout)
-                WHERE w.date >= date() - duration('P7D')
-                RETURN DISTINCT w.date as date,
-                       w.type as type,
-                       w.duration_minutes as duration
-                ORDER BY w.date DESC
-            """, person_id=person_id)
-            recent_workouts = [dict(r) for r in workouts_result]
-            
-            # Get active goals
-            goals_result = session.run("""
-                MATCH (p:Person {id: $person_id})-[:HAS_GOAL]->(g:Goal)
-                WHERE g.status = 'active'
-                RETURN g.id as id,
-                       g.description as description,
-                       g.goal_type as type,
-                       g.target_date as target_date
-            """, person_id=person_id)
-            goals = [dict(r) for r in goals_result]
+            # Filter out null entries from collections
+            injuries = [i for i in record["injuries"] if i.get("injury")]
+            equipment = [e for e in record["equipment"] if e.get("name")]
+            recent_workouts = [w for w in record["recent_workouts"] if w.get("date")]
+            goals = [g for g in record["goals"] if g.get("id")]
             
             return {
-                "person": dict(person_record["p"]),
+                "person": dict(record["p"]),
                 "injuries": injuries,
                 "equipment": equipment,
                 "recent_workouts": recent_workouts,
@@ -121,8 +145,108 @@ class Neo4jTrainingClient:
             return [dict(r) for r in result]
 
     # =========================================================================
-    # EXERCISE SELECTION
+    # EXERCISE SEARCH & SELECTION
     # =========================================================================
+
+    def search_exercises(self, query: str, limit: int = 5) -> list:
+        """
+        Search exercises using full-text index with fuzzy matching.
+        Returns candidates for Claude to select from.
+        
+        IMPORTANT: Claude should normalize the query first (semantic layer),
+        then this tool handles string matching (retrieval layer).
+        
+        Args:
+            query: NORMALIZED search query (e.g., "kettlebell swing" not "KB swing")
+            limit: Maximum number of results to return
+            
+        Returns:
+            List of dicts with exercise_id, name, score
+        """
+        with self.driver.session(database=self.database) as session:
+            # Use full-text index with fuzzy matching
+            # Note: parameter named 'search_term' to avoid conflict with driver's 'query' arg
+            result = session.run("""
+                CALL db.index.fulltext.queryNodes('exercise_search', $search_term + '~')
+                YIELD node, score
+                RETURN node.id as exercise_id, node.name as name, score
+                ORDER BY score DESC
+                LIMIT $limit
+            """, search_term=query, limit=limit)
+            
+            results = []
+            for record in result:
+                results.append({
+                    'exercise_id': record['exercise_id'],
+                    'name': record['name'],
+                    'score': record['score']
+                })
+            
+            return results
+
+    def resolve_exercises(self, names: List[str], confidence_threshold: float = 0.5) -> Dict[str, Any]:
+        """
+        Batch resolve exercise names to IDs.
+        
+        IMPORTANT: Claude should normalize ALL names first (semantic layer),
+        then call this once for the entire plan.
+        
+        Args:
+            names: List of NORMALIZED exercise names
+            confidence_threshold: Minimum score to auto-accept (0-1 normalized)
+            
+        Returns:
+            Dict with:
+            - resolved: {name: {id, name, score, confidence}} for matches above threshold
+            - needs_clarification: {name: [candidates]} for matches below threshold
+            - not_found: [names] with no matches at all
+        """
+        with self.driver.session(database=self.database) as session:
+            resolved = {}
+            needs_clarification = {}
+            not_found = []
+            
+            for name in names:
+                # Search for each name
+                result = session.run("""
+                    CALL db.index.fulltext.queryNodes('exercise_search', $search_term + '~')
+                    YIELD node, score
+                    RETURN node.id as exercise_id, node.name as name, score
+                    ORDER BY score DESC
+                    LIMIT 5
+                """, search_term=name)
+                
+                candidates = [dict(r) for r in result]
+                
+                if not candidates:
+                    not_found.append(name)
+                elif candidates[0]['score'] >= confidence_threshold * 10:  # Lucene scores ~0-10
+                    # High confidence match
+                    best = candidates[0]
+                    resolved[name] = {
+                        'id': best['exercise_id'],
+                        'name': best['name'],
+                        'score': best['score'],
+                        'confidence': 'high' if best['score'] > 7 else 'medium'
+                    }
+                else:
+                    # Low confidence - needs human input
+                    needs_clarification[name] = [
+                        {'id': c['exercise_id'], 'name': c['name'], 'score': c['score']}
+                        for c in candidates[:3]
+                    ]
+            
+            return {
+                'resolved': resolved,
+                'needs_clarification': needs_clarification,
+                'not_found': not_found,
+                'summary': {
+                    'total': len(names),
+                    'resolved': len(resolved),
+                    'needs_clarification': len(needs_clarification),
+                    'not_found': len(not_found)
+                }
+            }
 
     def suggest_exercises(
         self,
@@ -263,30 +387,21 @@ class Neo4jTrainingClient:
     ) -> List[Dict[str, Any]]:
         """
         Find alternative exercises that preserve specified characteristics.
+        
+        Optimized: Single query (was 2 round-trips, but second query
+        already re-fetched original characteristics anyway).
         """
         preserve = preserve or ["movement_pattern", "primary_muscles"]
         
         with self.driver.session(database=self.database) as session:
-            # Get original exercise characteristics
-            original = session.run("""
-                MATCH (e:Exercise {id: $exercise_id})
-                OPTIONAL MATCH (e)-[:INVOLVES]->(mp:MovementPattern)
-                OPTIONAL MATCH (e)-[:TARGETS {role: 'primary'}]->(m:Muscle)
-                RETURN e.name as name,
-                       collect(DISTINCT mp.name) as patterns,
-                       collect(DISTINCT m.name) as primary_muscles
-            """, exercise_id=exercise_id).single()
-            
-            if not original:
-                return []
-            
-            # Find exercises with similar characteristics
+            # Single query: get original characteristics and find similar exercises
             result = session.run("""
                 MATCH (e:Exercise {id: $exercise_id})
                 OPTIONAL MATCH (e)-[:INVOLVES]->(mp:MovementPattern)
                 OPTIONAL MATCH (e)-[:TARGETS {role: 'primary'}]->(m:Muscle)
                 
-                WITH e, collect(DISTINCT mp) as orig_patterns, collect(DISTINCT m) as orig_muscles
+                WITH e, collect(DISTINCT mp) as orig_patterns, collect(DISTINCT m) as orig_muscles,
+                     e.name as original_name
                 
                 // Find alternatives
                 MATCH (alt:Exercise)
@@ -294,12 +409,12 @@ class Neo4jTrainingClient:
                 OPTIONAL MATCH (alt)-[:INVOLVES]->(alt_mp:MovementPattern)
                 OPTIONAL MATCH (alt)-[:TARGETS {role: 'primary'}]->(alt_m:Muscle)
                 
-                WITH alt, orig_patterns, orig_muscles,
+                WITH alt, orig_patterns, orig_muscles, original_name,
                      collect(DISTINCT alt_mp) as alt_patterns,
                      collect(DISTINCT alt_m) as alt_muscles
                 
                 // Score similarity
-                WITH alt,
+                WITH alt, original_name,
                      size([p IN orig_patterns WHERE p IN alt_patterns]) as pattern_match,
                      size([m IN orig_muscles WHERE m IN alt_muscles]) as muscle_match,
                      size(orig_patterns) as total_patterns,
@@ -327,13 +442,102 @@ class Neo4jTrainingClient:
     def create_planned_workout(self, plan_data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Create a PlannedWorkout with blocks and sets.
+        
+        Validates:
+        - Date is not in the distant past (warns if >7 days ago)
+        - Date year makes sense (warns if previous year)
         """
+        # Date validation
+        plan_date_str = plan_data["date"]
+        plan_date = date.fromisoformat(plan_date_str) if isinstance(plan_date_str, str) else plan_date_str
+        today = date.today()
+        
+        # Check for obviously wrong year (last year or earlier)
+        if plan_date.year < today.year:
+            raise ValueError(
+                f"Plan date {plan_date} appears to be in the wrong year. "
+                f"Current year is {today.year}. Did you mean {plan_date.replace(year=today.year)}?"
+            )
+        
+        # Warn if date is more than 7 days in the past
+        days_ago = (today - plan_date).days
+        if days_ago > 7:
+            raise ValueError(
+                f"Plan date {plan_date} is {days_ago} days in the past. "
+                f"Use log_adhoc_workout for past workouts, or confirm this date is correct."
+            )
+        
+        # Prepare blocks data for UNWIND (flatten structure)
+        blocks_data = []
+        for block in plan_data.get("blocks", []):
+            blocks_data.append({
+                "id": block["id"],
+                "name": block["name"],
+                "block_type": block["block_type"],
+                "order": block["order"],
+                "protocol_notes": block.get("protocol_notes"),
+                "notes": block.get("notes"),
+                "sets": block.get("sets", [])
+            })
+        
         with self.driver.session(database=self.database) as session:
-            # Create PlannedWorkout node
+            # Single atomic operation: create workout, blocks, and sets
+            # If any part fails (e.g., exercise not found), nothing is committed
+            result = session.run("""
+                // First, verify all exercises exist before creating anything
+                WITH $blocks as blocks
+                UNWIND blocks as block
+                UNWIND block.sets as s
+                WITH collect(DISTINCT s.exercise_id) as exercise_ids
+                
+                // Check all exercises exist
+                CALL {
+                    WITH exercise_ids
+                    UNWIND exercise_ids as eid
+                    OPTIONAL MATCH (e:Exercise {id: eid})
+                    WITH eid, e
+                    WHERE e IS NULL AND eid IS NOT NULL
+                    RETURN collect(eid) as missing
+                }
+                
+                // Fail if any exercises are missing
+                WITH missing
+                WHERE size(missing) > 0
+                CALL apoc.util.validate(true, 'Exercises not found: ' + apoc.text.join(missing, ', '), [0])
+                
+                RETURN null
+            """, blocks=blocks_data)
+            
+            # If we get here without APOC, do the check manually
+            # (APOC may not be installed)
+            
+            # Verify exercises exist first
+            exercise_ids = set()
+            for block in blocks_data:
+                for s in block.get("sets", []):
+                    if s.get("exercise_id"):
+                        exercise_ids.add(s["exercise_id"])
+            
+            if exercise_ids:
+                check_result = session.run("""
+                    UNWIND $ids as eid
+                    OPTIONAL MATCH (e:Exercise {id: eid})
+                    WITH eid, e
+                    WHERE e IS NULL
+                    RETURN collect(eid) as missing
+                """, ids=list(exercise_ids))
+                
+                missing = check_result.single()["missing"]
+                if missing:
+                    raise ValueError(f"Exercises not found: {', '.join(missing)}")
+            
+            # Now create everything in one statement
             result = session.run("""
                 MATCH (p:Person {id: $person_id})
+                
+                // Create the workout
                 CREATE (pw:PlannedWorkout {
-                    id: $plan_id,
+                    plan_id: $plan_id,
                     date: date($date),
                     status: 'draft',
                     goal: $goal,
@@ -343,7 +547,40 @@ class Neo4jTrainingClient:
                     created_at: datetime()
                 })
                 CREATE (p)-[:HAS_PLANNED_WORKOUT]->(pw)
-                RETURN pw
+                
+                // Create blocks
+                WITH pw
+                UNWIND $blocks as block
+                CREATE (pb:PlannedBlock {
+                    id: block.id,
+                    name: block.name,
+                    block_type: block.block_type,
+                    order: block.order,
+                    protocol_notes: block.protocol_notes,
+                    notes: block.notes
+                })
+                CREATE (pw)-[:HAS_PLANNED_BLOCK {order: block.order}]->(pb)
+                
+                // Create sets for this block
+                WITH pw, pb, block
+                UNWIND block.sets as s
+                MATCH (e:Exercise {id: s.exercise_id})
+                CREATE (ps:PlannedSet {
+                    id: s.id,
+                    order: s.order,
+                    round: s.round,
+                    prescribed_reps: s.prescribed_reps,
+                    prescribed_load_lbs: s.prescribed_load_lbs,
+                    prescribed_rpe: s.prescribed_rpe,
+                    prescribed_duration_seconds: s.prescribed_duration_seconds,
+                    prescribed_distance_miles: s.prescribed_distance_miles,
+                    intensity_zone: s.intensity_zone,
+                    notes: s.notes
+                })
+                CREATE (pb)-[:CONTAINS_PLANNED {order: s.order, round: s.round}]->(ps)
+                CREATE (ps)-[:PRESCRIBES]->(e)
+                
+                RETURN DISTINCT pw.plan_id as plan_id
             """,
                 person_id=plan_data["person_id"],
                 plan_id=plan_data["id"],
@@ -351,76 +588,22 @@ class Neo4jTrainingClient:
                 goal=plan_data.get("goal"),
                 focus=plan_data.get("focus", []),
                 duration=plan_data.get("estimated_duration_minutes"),
-                notes=plan_data.get("notes")
+                notes=plan_data.get("notes"),
+                blocks=blocks_data
             )
             
-            plan_record = result.single()
+            record = result.single()
+            if not record:
+                raise ValueError("Failed to create workout plan - no blocks/sets provided?")
             
-            # Create blocks and sets
-            for block in plan_data.get("blocks", []):
-                block_result = session.run("""
-                    MATCH (pw:PlannedWorkout {id: $plan_id})
-                    CREATE (pb:PlannedBlock {
-                        id: $block_id,
-                        name: $name,
-                        block_type: $block_type,
-                        order: $order,
-                        protocol_notes: $protocol_notes,
-                        notes: $notes
-                    })
-                    CREATE (pw)-[:HAS_PLANNED_BLOCK {order: $order}]->(pb)
-                    RETURN pb
-                """,
-                    plan_id=plan_data["id"],
-                    block_id=block["id"],
-                    name=block["name"],
-                    block_type=block["block_type"],
-                    order=block["order"],
-                    protocol_notes=block.get("protocol_notes"),
-                    notes=block.get("notes")
-                )
-                
-                # Create sets
-                for set_data in block.get("sets", []):
-                    session.run("""
-                        MATCH (pb:PlannedBlock {id: $block_id})
-                        MATCH (e:Exercise {id: $exercise_id})
-                        CREATE (ps:PlannedSet {
-                            id: $set_id,
-                            order: $order,
-                            round: $round,
-                            prescribed_reps: $reps,
-                            prescribed_load_lbs: $load,
-                            prescribed_rpe: $rpe,
-                            prescribed_duration_seconds: $duration,
-                            prescribed_distance_miles: $distance,
-                            intensity_zone: $intensity,
-                            notes: $notes
-                        })
-                        CREATE (pb)-[:CONTAINS_PLANNED {order: $order, round: $round}]->(ps)
-                        CREATE (ps)-[:PRESCRIBES]->(e)
-                    """,
-                        block_id=block["id"],
-                        set_id=set_data["id"],
-                        exercise_id=set_data["exercise_id"],
-                        order=set_data["order"],
-                        round=set_data.get("round"),
-                        reps=set_data.get("prescribed_reps"),
-                        load=set_data.get("prescribed_load_lbs"),
-                        rpe=set_data.get("prescribed_rpe"),
-                        duration=set_data.get("prescribed_duration_seconds"),
-                        distance=set_data.get("prescribed_distance_miles"),
-                        intensity=set_data.get("intensity_zone"),
-                        notes=set_data.get("notes")
-                    )
-            
-            return {"id": plan_data["id"], "status": "draft"}
+            return {"id": record["plan_id"], "status": "draft"}
 
     def get_planned_workout(self, plan_id: str) -> Optional[Dict[str, Any]]:
         """Get a planned workout with all blocks and sets."""
         with self.driver.session(database=self.database) as session:
             result = session.run("""
-                MATCH (pw:PlannedWorkout {id: $plan_id})
+                MATCH (pw:PlannedWorkout)
+                WHERE pw.plan_id = $plan_id OR pw.id = $plan_id
                 OPTIONAL MATCH (pw)-[hpb:HAS_PLANNED_BLOCK]->(pb:PlannedBlock)
                 OPTIONAL MATCH (pb)-[cp:CONTAINS_PLANNED]->(ps:PlannedSet)
                 OPTIONAL MATCH (ps)-[:PRESCRIBES]->(e:Exercise)
@@ -462,7 +645,7 @@ class Neo4jTrainingClient:
             blocks = [b for b in record["blocks"] if b["id"] is not None]
             
             return {
-                "id": pw["id"],
+                "id": pw.get("plan_id") or pw.get("id"),  # Support both for migration
                 "date": str(pw["date"]),
                 "status": pw["status"],
                 "goal": pw.get("goal"),
@@ -478,7 +661,7 @@ class Neo4jTrainingClient:
             result = session.run("""
                 MATCH (p:Person {id: $person_id})-[:HAS_PLANNED_WORKOUT]->(pw:PlannedWorkout)
                 WHERE pw.date = date($date)
-                RETURN pw.id as plan_id
+                RETURN COALESCE(pw.plan_id, pw.id) as plan_id
             """, person_id=person_id, date=plan_date)
             
             record = result.single()
@@ -498,16 +681,18 @@ class Neo4jTrainingClient:
             
             if timestamp_field:
                 result = session.run(f"""
-                    MATCH (pw:PlannedWorkout {{id: $plan_id}})
+                    MATCH (pw:PlannedWorkout)
+                    WHERE pw.plan_id = $plan_id OR pw.id = $plan_id
                     SET pw.status = $status,
                         pw.{timestamp_field} = datetime()
-                    RETURN pw.id as id, pw.status as status
+                    RETURN COALESCE(pw.plan_id, pw.id) as id, pw.status as status
                 """, plan_id=plan_id, status=status)
             else:
                 result = session.run("""
-                    MATCH (pw:PlannedWorkout {id: $plan_id})
+                    MATCH (pw:PlannedWorkout)
+                    WHERE pw.plan_id = $plan_id OR pw.id = $plan_id
                     SET pw.status = $status
-                    RETURN pw.id as id, pw.status as status
+                    RETURN COALESCE(pw.plan_id, pw.id) as id, pw.status as status
                 """, plan_id=plan_id, status=status)
             
             return dict(result.single())
@@ -528,15 +713,21 @@ class Neo4jTrainingClient:
             
             # Create Workout node from plan - Person direct, no Athlete
             result = session.run("""
-                MATCH (pw:PlannedWorkout {id: $plan_id})
+                MATCH (pw:PlannedWorkout)
+                WHERE pw.plan_id = $plan_id OR pw.id = $plan_id
+                WITH pw
+                LIMIT 1
+                MATCH (pw)  // Re-anchor after WITH
                 MATCH (p:Person)-[:HAS_PLANNED_WORKOUT]->(pw)
                 
                 CREATE (w:Workout {
                     id: randomUUID(),
+                    name: pw.goal,
                     date: pw.date,
                     type: 'strength',
                     duration_minutes: pw.estimated_duration_minutes,
                     notes: pw.notes,
+                    source: 'planned',
                     imported_at: datetime()
                 })
                 
@@ -598,11 +789,14 @@ class Neo4jTrainingClient:
         """
         Convert planned workout to executed with recorded deviations.
         
+        Atomically creates workout and applies all deviations.
+        
         deviations format:
         [{
             "planned_set_id": "PLANSET:xxx",
             "actual_reps": 4,
             "actual_load_lbs": 175,
+            "substitute_exercise_id": "CUSTOM:Sandbag_Box_Squat",  # optional
             "reason": "fatigue",
             "notes": "Form breaking down"
         }]
@@ -614,42 +808,76 @@ class Neo4jTrainingClient:
             if "error" in base_result:
                 return base_result
             
-            # Now apply deviations
-            for dev in deviations:
+            if deviations:
+                # Separate deviations into exercise substitutions vs rep/load changes
+                substitutions = [d for d in deviations if d.get("substitute_exercise_id")]
+                rep_load_changes = [d for d in deviations if not d.get("substitute_exercise_id")]
+                
+                # Handle exercise substitutions first
+                # Delete old OF_EXERCISE relationship, create new one
+                if substitutions:
+                    session.run("""
+                        UNWIND $substitutions as sub
+                        MATCH (ps:PlannedSet {id: sub.planned_set_id})
+                        MATCH (ps)-[:PRESCRIBES]->(old_ex:Exercise)
+                        MATCH (s:Set)-[old_rel:OF_EXERCISE]->(old_ex)
+                        WHERE EXISTS { (s)<-[:CONTAINS]-(:WorkoutBlock)<-[:HAS_BLOCK]-(:Workout)-[:EXECUTED_FROM]->(:PlannedWorkout)-[:HAS_PLANNED_BLOCK]->(:PlannedBlock)-[:CONTAINS_PLANNED]->(ps) }
+                        
+                        // Find the substitute exercise
+                        MATCH (new_ex:Exercise {id: sub.substitute_exercise_id})
+                        
+                        // Delete old relationship, create new one
+                        DELETE old_rel
+                        CREATE (s)-[:OF_EXERCISE]->(new_ex)
+                        
+                        // Update set properties
+                        SET s.reps = COALESCE(sub.actual_reps, s.reps),
+                            s.load_lbs = COALESCE(sub.actual_load_lbs, s.load_lbs),
+                            s.notes = COALESCE(sub.notes, s.notes)
+                        
+                        // Create deviation relationship with substitution info
+                        CREATE (s)-[:DEVIATED_FROM {
+                            reason: sub.reason,
+                            substituted_from: old_ex.id,
+                            substituted_to: new_ex.id,
+                            rep_deviation: CASE WHEN sub.actual_reps IS NOT NULL THEN sub.actual_reps - ps.prescribed_reps ELSE null END,
+                            load_deviation_lbs: CASE WHEN sub.actual_load_lbs IS NOT NULL THEN sub.actual_load_lbs - ps.prescribed_load_lbs ELSE null END,
+                            notes: sub.notes
+                        }]->(ps)
+                    """, substitutions=substitutions)
+                
+                # Handle rep/load changes (no exercise substitution)
+                if rep_load_changes:
+                    session.run("""
+                        UNWIND $deviations as dev
+                        MATCH (ps:PlannedSet {id: dev.planned_set_id})
+                        MATCH (s:Set)-[:OF_EXERCISE]->(:Exercise)<-[:PRESCRIBES]-(ps)
+                        
+                        // Update actual values
+                        SET s.reps = COALESCE(dev.actual_reps, s.reps),
+                            s.load_lbs = COALESCE(dev.actual_load_lbs, s.load_lbs),
+                            s.notes = COALESCE(dev.notes, s.notes)
+                        
+                        // Create deviation relationship
+                        CREATE (s)-[:DEVIATED_FROM {
+                            reason: dev.reason,
+                            rep_deviation: CASE WHEN dev.actual_reps IS NOT NULL THEN dev.actual_reps - ps.prescribed_reps ELSE null END,
+                            load_deviation_lbs: CASE WHEN dev.actual_load_lbs IS NOT NULL THEN dev.actual_load_lbs - ps.prescribed_load_lbs ELSE null END,
+                            notes: dev.notes
+                        }]->(ps)
+                    """, deviations=rep_load_changes)
+                
+                # Update execution compliance
                 session.run("""
-                    MATCH (ps:PlannedSet {id: $planned_set_id})
-                    MATCH (s:Set)-[:OF_EXERCISE]->(:Exercise)<-[:PRESCRIBES]-(ps)
-                    
-                    // Update actual values
-                    SET s.reps = COALESCE($actual_reps, s.reps),
-                        s.load_lbs = COALESCE($actual_load, s.load_lbs),
-                        s.notes = COALESCE($notes, s.notes)
-                    
-                    // Create deviation relationship
-                    CREATE (s)-[:DEVIATED_FROM {
-                        reason: $reason,
-                        rep_deviation: $actual_reps - ps.prescribed_reps,
-                        load_deviation_lbs: $actual_load - ps.prescribed_load_lbs,
-                        notes: $notes
-                    }]->(ps)
-                """,
-                    planned_set_id=dev["planned_set_id"],
-                    actual_reps=dev.get("actual_reps"),
-                    actual_load=dev.get("actual_load_lbs"),
-                    reason=dev.get("reason", "unspecified"),
-                    notes=dev.get("notes")
-                )
-            
-            # Update execution compliance
-            session.run("""
-                MATCH (w:Workout)-[ef:EXECUTED_FROM]->(pw:PlannedWorkout {id: $plan_id})
-                SET ef.compliance = 'with_deviations'
-            """, plan_id=plan_id)
+                    MATCH (w:Workout)-[ef:EXECUTED_FROM]->(pw:PlannedWorkout)
+                    WHERE pw.plan_id = $plan_id OR pw.id = $plan_id
+                    SET ef.compliance = 'with_deviations'
+                """, plan_id=plan_id)
             
             return {
                 "workout_id": base_result["workout_id"],
                 "plan_id": plan_id,
-                "compliance": "with_deviations",
+                "compliance": "with_deviations" if deviations else "as_written",
                 "deviations_recorded": len(deviations)
             }
 
@@ -657,11 +885,12 @@ class Neo4jTrainingClient:
         """Mark a planned workout as skipped."""
         with self.driver.session(database=self.database) as session:
             result = session.run("""
-                MATCH (pw:PlannedWorkout {id: $plan_id})
+                MATCH (pw:PlannedWorkout)
+                WHERE pw.plan_id = $plan_id OR pw.id = $plan_id
                 SET pw.status = 'skipped',
                     pw.skipped_at = datetime(),
                     pw.skip_reason = $reason
-                RETURN pw.id as id, pw.status as status
+                RETURN COALESCE(pw.plan_id, pw.id) as id, pw.status as status
             """, plan_id=plan_id, reason=reason)
             
             return dict(result.single())
@@ -672,15 +901,72 @@ class Neo4jTrainingClient:
 
     def log_adhoc_workout(self, workout_data: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Log an unplanned/ad-hoc workout.
-        This is the migrated log_workout from arnold-profile.
+        Log an unplanned/ad-hoc workout atomically.
+        
+        Either the entire workout is created, or nothing is (no orphans).
+        Exercises that don't exist are created as CUSTOM: exercises.
         """
+        # Prepare exercises data for UNWIND
+        exercises_data = []
+        for exercise in workout_data.get("exercises", []):
+            exercises_data.append({
+                "exercise_id": exercise.get("exercise_id"),
+                "exercise_name": exercise.get("exercise_name"),
+                "sets": exercise.get("sets", [])
+            })
+        
         with self.driver.session(database=self.database) as session:
-            # Create workout node - Person direct, no Athlete
+            # Step 1: Resolve all exercise IDs (find existing or create custom)
+            # This is separate so we can report which exercises were created
+            exercises_resolved = []
+            exercises_needing_mapping = []
+            
+            for ex in exercises_data:
+                exercise_id = ex.get("exercise_id")
+                exercise_name = ex.get("exercise_name")
+                
+                if not exercise_id and exercise_name:
+                    # Try to find by name
+                    find_result = session.run("""
+                        MATCH (e:Exercise)
+                        WHERE toLower(e.name) = toLower($name)
+                        RETURN e.id as id
+                        LIMIT 1
+                    """, name=exercise_name)
+                    
+                    record = find_result.single()
+                    if record:
+                        exercise_id = record["id"]
+                    else:
+                        # Create custom exercise
+                        custom_id = 'CUSTOM:' + exercise_name.replace(' ', '_')
+                        session.run("""
+                            MERGE (e:Exercise {id: $id})
+                            ON CREATE SET 
+                                e.name = $name,
+                                e.source = 'user_workout_log',
+                                e.created_at = datetime()
+                        """, id=custom_id, name=exercise_name)
+                        exercise_id = custom_id
+                        exercises_needing_mapping.append({
+                            "id": exercise_id,
+                            "name": exercise_name
+                        })
+                
+                exercises_resolved.append({
+                    "exercise_id": exercise_id,
+                    "exercise_name": exercise_name,
+                    "sets": ex.get("sets", [])
+                })
+            
+            # Step 2: Create workout, block, and all sets in one atomic statement
             result = session.run("""
                 MATCH (p:Person {id: $person_id})
+                
+                // Create workout
                 CREATE (w:Workout {
                     id: $workout_id,
+                    name: $name,
                     date: date($date),
                     type: $type,
                     duration_minutes: $duration_minutes,
@@ -689,21 +975,8 @@ class Neo4jTrainingClient:
                     imported_at: datetime()
                 })
                 CREATE (p)-[:PERFORMED]->(w)
-                RETURN w
-            """,
-                person_id=workout_data["person_id"],
-                workout_id=workout_data["workout_id"],
-                date=workout_data["date"],
-                type=workout_data.get("type", "strength"),
-                duration_minutes=workout_data.get("duration_minutes"),
-                notes=workout_data.get("notes")
-            )
-
-            workout_record = result.single()
-
-            # Create WorkoutBlock for organization
-            session.run("""
-                MATCH (w:Workout {id: $workout_id})
+                
+                // Create single block for ad-hoc workouts
                 CREATE (b:WorkoutBlock {
                     id: randomUUID(),
                     name: 'Main',
@@ -711,80 +984,46 @@ class Neo4jTrainingClient:
                     order: 1
                 })
                 CREATE (w)-[:HAS_BLOCK {order: 1}]->(b)
-            """, workout_id=workout_data["workout_id"])
-
-            # Create sets and link to exercises
-            exercises_needing_mapping = []
-            set_order = 0
+                
+                // Create all sets
+                WITH w, b
+                UNWIND $exercises as ex
+                UNWIND ex.sets as s
+                MATCH (e:Exercise {id: ex.exercise_id})
+                CREATE (set:Set {
+                    id: randomUUID(),
+                    order: s.set_number,
+                    set_number: s.set_number,
+                    reps: s.reps,
+                    load_lbs: s.load_lbs,
+                    duration_seconds: s.duration_seconds,
+                    distance_miles: s.distance_miles,
+                    rpe: s.rpe,
+                    notes: s.notes
+                })
+                CREATE (b)-[:CONTAINS {order: s.set_number}]->(set)
+                CREATE (set)-[:OF_EXERCISE]->(e)
+                
+                RETURN DISTINCT w.id as workout_id
+            """,
+                person_id=workout_data["person_id"],
+                workout_id=workout_data["workout_id"],
+                name=workout_data.get("name"),
+                date=workout_data["date"],
+                type=workout_data.get("type", "strength"),
+                duration_minutes=workout_data.get("duration_minutes"),
+                notes=workout_data.get("notes"),
+                exercises=exercises_resolved
+            )
             
-            for exercise in workout_data.get("exercises", []):
-                exercise_id = exercise.get("exercise_id")
-                exercise_name = exercise.get("exercise_name")
-
-                # If no exercise_id, create/find exercise node
-                if not exercise_id:
-                    find_result = session.run("""
-                        MATCH (ex:Exercise)
-                        WHERE toLower(ex.name) = toLower($name)
-                        RETURN ex.id as id
-                        LIMIT 1
-                    """, name=exercise_name)
-                    
-                    find_record = find_result.single()
-                    if find_record:
-                        exercise_id = find_record["id"]
-                    else:
-                        # Create custom exercise
-                        create_result = session.run("""
-                            CREATE (ex:Exercise {
-                                id: 'CUSTOM:' + replace($name, ' ', '_'),
-                                name: $name,
-                                source: 'user_workout_log',
-                                created_at: datetime()
-                            })
-                            RETURN ex.id as id
-                        """, name=exercise_name)
-                        exercise_id = create_result.single()["id"]
-                        
-                        exercises_needing_mapping.append({
-                            "id": exercise_id,
-                            "name": exercise_name
-                        })
-
-                # Create sets
-                for set_data in exercise.get("sets", []):
-                    set_order += 1
-                    session.run("""
-                        MATCH (w:Workout {id: $workout_id})-[:HAS_BLOCK]->(b:WorkoutBlock)
-                        MATCH (ex:Exercise {id: $exercise_id})
-                        CREATE (s:Set {
-                            id: randomUUID(),
-                            order: $order,
-                            set_number: $set_number,
-                            reps: $reps,
-                            load_lbs: $load_lbs,
-                            duration_seconds: $duration_seconds,
-                            distance_miles: $distance_miles,
-                            notes: $notes
-                        })
-                        CREATE (b)-[:CONTAINS {order: $order}]->(s)
-                        CREATE (s)-[:OF_EXERCISE]->(ex)
-                    """,
-                        workout_id=workout_data["workout_id"],
-                        exercise_id=exercise_id,
-                        order=set_order,
-                        set_number=set_data.get("set_number", set_order),
-                        reps=set_data.get("reps"),
-                        load_lbs=set_data.get("load_lbs"),
-                        duration_seconds=set_data.get("duration_seconds"),
-                        distance_miles=set_data.get("distance_miles"),
-                        notes=set_data.get("notes")
-                    )
-
+            record = result.single()
+            if not record:
+                raise ValueError("Failed to create workout - no exercises/sets provided?")
+            
             return {
-                "workout_id": workout_data["workout_id"],
+                "workout_id": record["workout_id"],
                 "date": workout_data["date"],
-                "exercises_logged": len(workout_data.get("exercises", [])),
+                "exercises_logged": len(exercises_resolved),
                 "exercises_needing_mapping": exercises_needing_mapping
             }
 
@@ -859,96 +1098,130 @@ class Neo4jTrainingClient:
         - Person -[:HAS_LEVEL]-> TrainingLevel -[:FOR_MODALITY]-> Modality
         - Person -[:PERFORMED]-> Workout (no Athlete intermediary)
         - Block -[:SERVES]-> Goal
+        
+        Optimized: Single query with CALL {} subqueries (was 6 round-trips).
         """
         with self.driver.session(database=self.database) as session:
-            # Get person basics
-            person_result = session.run("""
+            result = session.run("""
                 MATCH (p:Person {id: $person_id})
-                RETURN p.name as name
-            """, person_id=person_id).single()
+                
+                // Get active block
+                CALL {
+                    WITH p
+                    OPTIONAL MATCH (p)-[:HAS_BLOCK]->(b:Block {status: 'active'})
+                    OPTIONAL MATCH (b)-[:SERVES]->(g:Goal)
+                    WITH b, collect(g.name) as served_goals
+                    RETURN {
+                        name: b.name,
+                        block_type: b.block_type,
+                        week_count: b.week_count,
+                        intent: b.intent,
+                        volume_target: b.volume_target,
+                        intensity_target: b.intensity_target,
+                        start_date: toString(b.start_date),
+                        end_date: toString(b.end_date),
+                        served_goals: served_goals
+                    } as block_info
+                }
+                
+                // Get active goals with modalities
+                CALL {
+                    WITH p
+                    OPTIONAL MATCH (p)-[:HAS_GOAL]->(g:Goal {status: 'active'})
+                    OPTIONAL MATCH (g)-[:REQUIRES]->(m:Modality)
+                    OPTIONAL MATCH (p)-[:HAS_LEVEL]->(tl:TrainingLevel)-[:FOR_MODALITY]->(m)
+                    OPTIONAL MATCH (tl)-[:USES_MODEL]->(pm:PeriodizationModel)
+                    WITH g, collect(DISTINCT {
+                        modality: m.name,
+                        level: tl.current_level,
+                        model: pm.name
+                    }) as modality_info
+                    WHERE g IS NOT NULL
+                    WITH g, modality_info
+                    ORDER BY CASE g.priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 WHEN 'meta' THEN 3 ELSE 4 END
+                    RETURN collect({
+                        name: g.name,
+                        priority: g.priority,
+                        target_date: toString(g.target_date),
+                        modality_info: modality_info
+                    }) as goals
+                }
+                
+                // Get recent workouts (last 7 days)
+                CALL {
+                    WITH p
+                    OPTIONAL MATCH (p)-[:PERFORMED]->(w:Workout)
+                    WHERE w.date >= date() - duration('P7D')
+                    OPTIONAL MATCH (w)-[:HAS_BLOCK]->(b:WorkoutBlock)-[:CONTAINS]->(s:Set)
+                    OPTIONAL MATCH (s)-[:OF_EXERCISE]->(e:Exercise)-[:INVOLVES]->(mp:MovementPattern)
+                    WITH w, count(DISTINCT s) as sets, collect(DISTINCT mp.name) as patterns
+                    WHERE w IS NOT NULL
+                    WITH w, sets, patterns ORDER BY w.date DESC LIMIT 5
+                    RETURN collect({
+                        date: toString(w.date),
+                        type: w.type,
+                        sets: sets,
+                        patterns: patterns
+                    }) as recent_workouts
+                }
+                
+                // Get next planned workout
+                CALL {
+                    WITH p
+                    OPTIONAL MATCH (p)-[:HAS_PLANNED_WORKOUT]->(pw:PlannedWorkout)
+                    WHERE pw.status IN ['draft', 'confirmed'] AND pw.date >= date()
+                    WITH pw ORDER BY pw.date ASC LIMIT 1
+                    RETURN {
+                        name: pw.goal,
+                        date: toString(pw.date),
+                        status: pw.status,
+                        goal: pw.goal
+                    } as next_plan
+                }
+                
+                // Get active injuries
+                CALL {
+                    WITH p
+                    OPTIONAL MATCH (p)-[:HAS_INJURY]->(i:Injury)
+                    WHERE i.status IN ['active', 'recovering']
+                    RETURN collect({
+                        injury: i.name,
+                        status: i.status,
+                        body_part: i.body_part
+                    }) as injuries
+                }
+                
+                RETURN p.name as athlete_name,
+                       block_info,
+                       goals,
+                       recent_workouts,
+                       next_plan,
+                       injuries
+            """, person_id=person_id)
             
-            if not person_result:
+            record = result.single()
+            if not record:
                 return None
             
-            # Get active block and goals it serves
-            block_result = session.run("""
-                MATCH (p:Person {id: $person_id})-[:HAS_BLOCK]->(b:Block {status: 'active'})
-                OPTIONAL MATCH (b)-[:SERVES]->(g:Goal)
-                WITH b, collect(g.name) as goals
-                RETURN b.name as block_name,
-                       b.block_type as block_type,
-                       b.week_count as block_weeks,
-                       b.intent as block_intent,
-                       b.volume_target as volume_target,
-                       b.intensity_target as intensity_target,
-                       toString(b.start_date) as block_start,
-                       toString(b.end_date) as block_end,
-                       goals
-            """, person_id=person_id).single()
+            # Filter nulls from collections
+            goals = [g for g in record["goals"] if g.get("name")]
+            recent_workouts = [w for w in record["recent_workouts"] if w.get("date")]
+            injuries = [i for i in record["injuries"] if i.get("injury")]
+            
+            block_info = record["block_info"]
+            next_plan = record["next_plan"]
             
             # Calculate current week in block
             current_week = None
-            if block_result and block_result["block_start"]:
+            if block_info and block_info.get("start_date"):
                 from datetime import date
-                block_start = date.fromisoformat(block_result["block_start"])
+                block_start = date.fromisoformat(block_info["start_date"])
                 days_in = (date.today() - block_start).days
                 current_week = (days_in // 7) + 1
             
-            # Get active goals with modalities and training levels
-            goals_result = session.run("""
-                MATCH (p:Person {id: $person_id})-[:HAS_GOAL]->(g:Goal {status: 'active'})
-                OPTIONAL MATCH (g)-[:REQUIRES]->(m:Modality)
-                OPTIONAL MATCH (p)-[:HAS_LEVEL]->(tl:TrainingLevel)-[:FOR_MODALITY]->(m)
-                OPTIONAL MATCH (tl)-[:USES_MODEL]->(pm:PeriodizationModel)
-                WITH g, collect(DISTINCT {
-                    modality: m.name,
-                    level: tl.current_level,
-                    model: pm.name
-                }) as modality_info
-                RETURN g.name as name,
-                       g.priority as priority,
-                       toString(g.target_date) as target_date,
-                       modality_info
-                ORDER BY CASE g.priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 WHEN 'meta' THEN 3 ELSE 4 END
-            """, person_id=person_id)
-            goals = [dict(r) for r in goals_result]
-            
-            # Get recent workouts (last 7 days) - Person now directly PERFORMED
-            recent_result = session.run("""
-                MATCH (p:Person {id: $person_id})-[:PERFORMED]->(w:Workout)
-                WHERE w.date >= date() - duration('P7D')
-                OPTIONAL MATCH (w)-[:HAS_BLOCK]->(b:WorkoutBlock)-[:CONTAINS]->(s:Set)
-                OPTIONAL MATCH (s)-[:OF_EXERCISE]->(e:Exercise)-[:INVOLVES]->(mp:MovementPattern)
-                WITH w, count(DISTINCT s) as sets, collect(DISTINCT mp.name) as patterns
-                RETURN toString(w.date) as date, w.type as type, sets, patterns
-                ORDER BY w.date DESC
-                LIMIT 5
-            """, person_id=person_id)
-            recent_workouts = [dict(r) for r in recent_result]
-            
-            # Get next planned workout
-            next_plan_result = session.run("""
-                MATCH (p:Person {id: $person_id})-[:HAS_PLANNED_WORKOUT]->(pw:PlannedWorkout)
-                WHERE pw.status IN ['draft', 'confirmed'] AND pw.date >= date()
-                RETURN pw.goal as name,
-                       toString(pw.date) as date,
-                       pw.status as status,
-                       pw.goal as goal
-                ORDER BY pw.date ASC
-                LIMIT 1
-            """, person_id=person_id).single()
-            
-            # Get active injuries (Person direct, no Athlete)
-            injuries_result = session.run("""
-                MATCH (p:Person {id: $person_id})-[:HAS_INJURY]->(i:Injury)
-                WHERE i.status IN ['active', 'recovering']
-                RETURN i.name as injury, i.status as status, i.body_part as body_part
-            """, person_id=person_id)
-            injuries = [dict(r) for r in injuries_result]
-            
             # Build briefing
             briefing = {
-                "athlete": person_result["name"],
+                "athlete": record["athlete_name"],
                 "goals": goals,
                 "current_block": None,
                 "recent_workouts": recent_workouts,
@@ -957,26 +1230,26 @@ class Neo4jTrainingClient:
                 "workouts_this_week": len(recent_workouts)
             }
             
-            if block_result and block_result["block_name"]:
+            if block_info and block_info.get("name"):
                 briefing["current_block"] = {
-                    "name": block_result["block_name"],
-                    "type": block_result["block_type"],
+                    "name": block_info["name"],
+                    "type": block_info["block_type"],
                     "week": current_week,
-                    "of_weeks": block_result["block_weeks"],
-                    "intent": block_result["block_intent"],
-                    "volume": block_result["volume_target"],
-                    "intensity": block_result["intensity_target"],
-                    "start": block_result["block_start"],
-                    "end": block_result["block_end"],
-                    "serves_goals": block_result["goals"]
+                    "of_weeks": block_info["week_count"],
+                    "intent": block_info["intent"],
+                    "volume": block_info["volume_target"],
+                    "intensity": block_info["intensity_target"],
+                    "start": block_info["start_date"],
+                    "end": block_info["end_date"],
+                    "serves_goals": block_info["served_goals"]
                 }
             
-            if next_plan_result:
+            if next_plan and next_plan.get("date"):
                 briefing["next_planned"] = {
-                    "name": next_plan_result["name"],
-                    "date": next_plan_result["date"],
-                    "status": next_plan_result["status"],
-                    "goal": next_plan_result["goal"]
+                    "name": next_plan["name"],
+                    "date": next_plan["date"],
+                    "status": next_plan["status"],
+                    "goal": next_plan["goal"]
                 }
             
             return briefing
@@ -1001,7 +1274,7 @@ class Neo4jTrainingClient:
                 
                 WITH pw, count(DISTINCT pb) as block_count, count(DISTINCT ps) as set_count
                 
-                RETURN pw.id as plan_id,
+                RETURN COALESCE(pw.plan_id, pw.id) as plan_id,
                        toString(pw.date) as date,
                        pw.status as status,
                        pw.goal as goal,
@@ -1022,36 +1295,58 @@ class Neo4jTrainingClient:
         - Days with plans (and their status)
         - Days without plans (gaps)
         - Current block context for gap-filling recommendations
+        
+        Optimized: Single query with CALL {} subqueries (was 3 round-trips).
         """
         with self.driver.session(database=self.database) as session:
-            # Get all plans in date range
-            plans_result = session.run("""
-                MATCH (p:Person {id: $person_id})-[:HAS_PLANNED_WORKOUT]->(pw:PlannedWorkout)
-                WHERE pw.date >= date() AND pw.date <= date() + duration('P' + $days + 'D')
-                RETURN toString(pw.date) as date,
-                       pw.id as plan_id,
-                       pw.status as status,
-                       pw.goal as goal
-                ORDER BY pw.date ASC
+            result = session.run("""
+                MATCH (p:Person {id: $person_id})
+                
+                // Get all plans in date range
+                CALL {
+                    WITH p
+                    OPTIONAL MATCH (p)-[:HAS_PLANNED_WORKOUT]->(pw:PlannedWorkout)
+                    WHERE pw.date >= date() AND pw.date <= date() + duration('P' + $days + 'D')
+                    WITH pw WHERE pw IS NOT NULL
+                    RETURN collect({
+                        date: toString(pw.date),
+                        plan_id: COALESCE(pw.plan_id, pw.id),
+                        status: pw.status,
+                        goal: pw.goal
+                    }) as plans
+                }
+                
+                // Get current block for context
+                CALL {
+                    WITH p
+                    OPTIONAL MATCH (p)-[:HAS_BLOCK]->(b:Block {status: 'active'})
+                    RETURN {
+                        name: b.name,
+                        type: b.block_type,
+                        sessions_per_week: b.sessions_per_week,
+                        intent: b.intent
+                    } as block_info
+                }
+                
+                // Get recent workout dates (last 14 days)
+                CALL {
+                    WITH p
+                    OPTIONAL MATCH (p)-[:PERFORMED]->(w:Workout)
+                    WHERE w.date >= date() - duration('P14D')
+                    RETURN collect(toString(w.date)) as recent_dates
+                }
+                
+                RETURN plans, block_info, recent_dates
             """, person_id=person_id, days=str(days))
-            plans = {r["date"]: dict(r) for r in plans_result}
             
-            # Get current block for context
-            block_result = session.run("""
-                MATCH (p:Person {id: $person_id})-[:HAS_BLOCK]->(b:Block {status: 'active'})
-                RETURN b.name as name,
-                       b.block_type as type,
-                       b.sessions_per_week as sessions_per_week,
-                       b.intent as intent
-            """, person_id=person_id).single()
+            record = result.single()
+            if not record:
+                return None
             
-            # Get recent workout dates to understand training frequency
-            recent_result = session.run("""
-                MATCH (p:Person {id: $person_id})-[:PERFORMED]->(w:Workout)
-                WHERE w.date >= date() - duration('P14D')
-                RETURN toString(w.date) as date
-            """, person_id=person_id)
-            recent_dates = [r["date"] for r in recent_result]
+            # Convert plans list to dict keyed by date
+            plans = {p["date"]: p for p in record["plans"] if p.get("date")}
+            block_info = record["block_info"]
+            recent_dates = record["recent_dates"]
             
             # Build day-by-day status
             from datetime import date as dt_date, timedelta
@@ -1088,8 +1383,8 @@ class Neo4jTrainingClient:
             # Calculate expected sessions based on block
             expected_sessions = None
             coverage_pct = None
-            if block_result and block_result["sessions_per_week"]:
-                expected_sessions = block_result["sessions_per_week"]
+            if block_info and block_info.get("sessions_per_week"):
+                expected_sessions = block_info["sessions_per_week"]
                 # Rough calculation: expected per week * (days/7)
                 expected_in_range = expected_sessions * (days / 7)
                 coverage_pct = round((planned_count / expected_in_range) * 100) if expected_in_range > 0 else None
@@ -1100,11 +1395,11 @@ class Neo4jTrainingClient:
                 "gap_count": gap_count,
                 "coverage_percent": coverage_pct,
                 "current_block": {
-                    "name": block_result["name"] if block_result else None,
-                    "type": block_result["type"] if block_result else None,
-                    "sessions_per_week": block_result["sessions_per_week"] if block_result else None,
-                    "intent": block_result["intent"] if block_result else None
-                } if block_result else None,
+                    "name": block_info["name"],
+                    "type": block_info["type"],
+                    "sessions_per_week": block_info["sessions_per_week"],
+                    "intent": block_info["intent"]
+                } if block_info and block_info.get("name") else None,
                 "days": day_status,
                 "recent_training_dates": recent_dates
             }
