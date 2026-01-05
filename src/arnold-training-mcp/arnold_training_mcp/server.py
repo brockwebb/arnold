@@ -3,10 +3,15 @@
 
 This MCP server provides tools for:
 - Training context (injuries, equipment, recent history)
-- Workout planning and programming
-- Exercise selection and safety checking
-- Workout logging (planned and ad-hoc)
+- Workout planning and programming (Neo4j)
+- Exercise selection and safety checking (Neo4j)
+- Workout logging and execution (Postgres per ADR-002)
 - Execution tracking with deviation recording
+
+Architecture (ADR-002):
+- Plans (intentions) → Neo4j
+- Executed workouts (facts) → Postgres
+- Lightweight StrengthWorkout refs in Neo4j for relationship queries
 """
 
 from mcp.server import Server
@@ -20,6 +25,7 @@ import uuid
 from datetime import datetime, date
 
 from neo4j_client import Neo4jTrainingClient
+from postgres_client import PostgresTrainingClient
 
 # Configure logging
 logging.basicConfig(
@@ -35,6 +41,7 @@ logger = logging.getLogger(__name__)
 # Initialize server
 server = Server("arnold-training-mcp")
 neo4j_client = Neo4jTrainingClient()
+postgres_client = PostgresTrainingClient()
 
 # Default person_id (loaded from profile on first use)
 _cached_person_id = None
@@ -258,7 +265,7 @@ Returns ranked alternatives with similarity scores.""",
         ),
         
         # =====================================================================
-        # PLANNING TOOLS
+        # PLANNING TOOLS (Neo4j - intentions)
         # =====================================================================
         types.Tool(
             name="create_workout_plan",
@@ -391,13 +398,14 @@ Use at conversation start to identify planning gaps that need filling.""",
         ),
         
         # =====================================================================
-        # EXECUTION TOOLS
+        # EXECUTION TOOLS (Postgres - facts, per ADR-002)
         # =====================================================================
         types.Tool(
             name="complete_as_written",
             description="""Mark a planned workout as completed exactly as written.
 
 Converts the plan to an executed workout with no deviations.
+Writes to Postgres (facts) and creates Neo4j reference.
 Use when user reports "done" or "completed as planned".""",
             inputSchema={
                 "type": "object",
@@ -414,6 +422,7 @@ Use when user reports "done" or "completed as planned".""",
             name="complete_with_deviations",
             description="""Mark a planned workout as completed with recorded deviations.
 
+Writes to Postgres with deviation tracking.
 Use when user reports changes from the plan:
 - "Had to drop weight on last set"
 - "Only got 4 reps instead of 5"
@@ -483,12 +492,14 @@ Deviation structure:
             description="""Log an ad-hoc/unplanned workout.
 
 Use when user did a workout that wasn't planned in advance.
+Writes directly to Postgres (facts) and creates Neo4j reference.
 Claude interprets natural language and structures it before calling.
 
-Structure same as arnold-profile log_workout:
+Structure:
 - date: YYYY-MM-DD
-- exercises: Array with exercise_name, sets
-- Set: reps, load_lbs, duration_seconds, etc.""",
+- name: Workout name/goal
+- exercises: Array with exercise_id/name, sets
+- Set: reps, load_lbs, rpe, etc.""",
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -502,11 +513,11 @@ Structure same as arnold-profile log_workout:
         ),
         
         # =====================================================================
-        # HISTORY TOOLS
+        # HISTORY TOOLS (Postgres - facts, per ADR-002)
         # =====================================================================
         types.Tool(
             name="get_workout_by_date",
-            description="Get an executed workout by date.",
+            description="Get an executed workout by date from Postgres.",
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -521,7 +532,7 @@ Structure same as arnold-profile log_workout:
         ),
         types.Tool(
             name="get_recent_workouts",
-            description="Get summary of recent workouts.",
+            description="Get summary of recent workouts from Postgres.",
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -546,12 +557,14 @@ async def call_tool_handler(name: str, arguments: dict[str, Any]) -> list[types.
         return [types.TextContent(type="text", text=f"❌ {str(e)}")]
 
     # =========================================================================
-    # CONTEXT TOOLS
+    # CONTEXT TOOLS (Hybrid: Neo4j context + Postgres workouts)
     # =========================================================================
     
     if name == "get_coach_briefing":
         try:
             logger.info(f"Getting coach briefing for {person_id}")
+            
+            # Get context from Neo4j (goals, block, injuries, next plan)
             briefing = neo4j_client.get_coach_briefing(person_id)
             
             if not briefing:
@@ -560,9 +573,13 @@ async def call_tool_handler(name: str, arguments: dict[str, Any]) -> list[types.
                     text="❌ Could not load briefing. Check profile exists."
                 )]
             
+            # Get recent workouts from Postgres (ADR-002)
+            recent_workouts = postgres_client.get_sessions_for_briefing(days=7)
+            workouts_this_week = postgres_client.get_workouts_this_week()
+            
             # Format as readable briefing
             lines = [f"**Athlete:** {briefing['athlete']}"]
-            lines.append(f"**Workouts this week:** {briefing['workouts_this_week']}")
+            lines.append(f"**Workouts this week:** {workouts_this_week}")
             
             # Goals with modality info
             if briefing.get('goals'):
@@ -570,7 +587,6 @@ async def call_tool_handler(name: str, arguments: dict[str, Any]) -> list[types.
                 for g in briefing['goals']:
                     target = f" (by {g['target_date']})" if g.get('target_date') else ""
                     lines.append(f"  • {g['name']}{target} [{g['priority']}]")
-                    # Show modality/level/model info
                     for m in g.get('modality_info', []):
                         if m.get('modality'):
                             lines.append(f"    → {m['modality']}: {m.get('level', '?')} level, {m.get('model', '?')}")
@@ -594,9 +610,10 @@ async def call_tool_handler(name: str, arguments: dict[str, Any]) -> list[types.
                 lines.append(f"\n**Next Planned:** {nxt['name']}")
                 lines.append(f"**Date:** {nxt['date']} | **Status:** {nxt['status']}")
             
-            if briefing.get('recent_workouts'):
-                lines.append("\n**Recent Workouts:**")
-                for w in briefing['recent_workouts']:
+            # Use Postgres workouts instead of Neo4j
+            if recent_workouts:
+                lines.append("\n**Recent Workouts (Postgres):**")
+                for w in recent_workouts:
                     patterns = ", ".join(w.get('patterns', [])[:3]) or "—"
                     lines.append(f"  • {w['date']}: {w.get('type', 'workout')} ({w['sets']} sets) — {patterns}")
             
@@ -626,6 +643,10 @@ async def call_tool_handler(name: str, arguments: dict[str, Any]) -> list[types.
                     type="text",
                     text="❌ Could not load training context. Check profile exists."
                 )]
+            
+            # Replace Neo4j recent_workouts with Postgres
+            context['recent_workouts'] = postgres_client.get_recent_sessions(days=7)
+            context['workouts_this_week'] = postgres_client.get_workouts_this_week()
             
             return [types.TextContent(
                 type="text",
@@ -657,7 +678,7 @@ async def call_tool_handler(name: str, arguments: dict[str, Any]) -> list[types.
             return [types.TextContent(type="text", text=f"❌ Error: {str(e)}")]
 
     # =========================================================================
-    # EXERCISE SEARCH & SELECTION TOOLS
+    # EXERCISE SEARCH & SELECTION TOOLS (Neo4j)
     # =========================================================================
     
     elif name == "search_exercises":
@@ -675,7 +696,6 @@ async def call_tool_handler(name: str, arguments: dict[str, Any]) -> list[types.
                     text=f"No exercises found matching '{query}'."
                 )]
             
-            # Format as readable list
             lines = [f"Found {len(results)} exercise(s) matching '{query}':\n"]
             for i, r in enumerate(results, 1):
                 lines.append(f"{i}. **{r['name']}**")
@@ -700,7 +720,6 @@ async def call_tool_handler(name: str, arguments: dict[str, Any]) -> list[types.
             
             result = neo4j_client.resolve_exercises(names, threshold)
             
-            # Format as readable summary
             lines = ["**Exercise Resolution Results:**\n"]
             lines.append(f"Total: {result['summary']['total']} | "
                         f"Resolved: {result['summary']['resolved']} | "
@@ -802,20 +821,18 @@ async def call_tool_handler(name: str, arguments: dict[str, Any]) -> list[types.
             return [types.TextContent(type="text", text=f"❌ Error: {str(e)}")]
 
     # =========================================================================
-    # PLANNING TOOLS
+    # PLANNING TOOLS (Neo4j - intentions)
     # =========================================================================
     
     elif name == "create_workout_plan":
         try:
             plan_data = arguments["plan_data"]
             
-            # Parse if string
             if isinstance(plan_data, str):
                 plan_data = json.loads(plan_data)
             
             logger.info(f"Creating plan for {plan_data.get('date')}")
             
-            # Add IDs
             plan_data["person_id"] = person_id
             plan_data["id"] = f"PLAN:{uuid.uuid4()}"
             
@@ -829,7 +846,6 @@ async def call_tool_handler(name: str, arguments: dict[str, Any]) -> list[types.
             
             result = neo4j_client.create_planned_workout(plan_data)
             
-            # Build summary
             block_summary = "\n".join([
                 f"  • {b['name']}: {len(b.get('sets', []))} sets"
                 for b in plan_data.get("blocks", [])
@@ -927,7 +943,6 @@ Use `confirm_plan` when ready to lock it in."""
                     text=f"No plans found for the next {days} days."
                 )]
             
-            # Format as readable summary
             lines = [f"**Upcoming Plans (next {days} days):**\n"]
             for p in plans:
                 status_emoji = {
@@ -958,15 +973,12 @@ Use `confirm_plan` when ready to lock it in."""
             
             status = neo4j_client.get_planning_status(person_id, days)
             
-            # Format as readable summary
             lines = [f"**Planning Status (next {days} days):**\n"]
             
-            # Summary stats
             lines.append(f"📊 **Coverage:** {status['planned_count']} planned / {status['gap_count']} gaps")
             if status.get('coverage_percent') is not None:
                 lines.append(f"📈 **Block Coverage:** {status['coverage_percent']}%")
             
-            # Current block context
             if status.get('current_block') and status['current_block'].get('name'):
                 block = status['current_block']
                 lines.append(f"\n**Current Block:** {block['name']} ({block['type']})")
@@ -975,7 +987,6 @@ Use `confirm_plan` when ready to lock it in."""
                 if block.get('intent'):
                     lines.append(f"**Intent:** {block['intent']}")
             
-            # Day-by-day breakdown
             lines.append("\n**Day-by-Day:**")
             for day in status['days']:
                 if day['has_plan']:
@@ -999,7 +1010,7 @@ Use `confirm_plan` when ready to lock it in."""
             return [types.TextContent(type="text", text=f"❌ Error: {str(e)}")]
 
     # =========================================================================
-    # EXECUTION TOOLS
+    # EXECUTION TOOLS (Postgres - facts, per ADR-002)
     # =========================================================================
     
     elif name == "complete_as_written":
@@ -1007,21 +1018,72 @@ Use `confirm_plan` when ready to lock it in."""
             plan_id = arguments["plan_id"]
             logger.info(f"Completing plan as written: {plan_id}")
             
-            result = neo4j_client.complete_workout_as_written(plan_id)
-            
-            if "error" in result:
+            # 1. Get the plan from Neo4j
+            plan = neo4j_client.get_planned_workout(plan_id)
+            if not plan:
                 return [types.TextContent(
                     type="text",
-                    text=f"❌ {result['error']}"
+                    text=f"❌ Plan not found: {plan_id}"
                 )]
+            
+            # 2. Transform plan to Postgres format
+            sets = []
+            for block in plan.get('blocks', []):
+                for s in block.get('sets', []):
+                    sets.append({
+                        'exercise_id': s.get('exercise_id'),
+                        'exercise_name': s.get('exercise_name'),
+                        'block_name': block.get('name'),
+                        'block_type': block.get('block_type'),
+                        'set_order': s.get('order'),
+                        'prescribed_reps': s.get('prescribed_reps'),
+                        'prescribed_load_lbs': s.get('prescribed_load_lbs'),
+                        'prescribed_rpe': s.get('prescribed_rpe'),
+                        'actual_reps': s.get('prescribed_reps'),  # As written
+                        'actual_load_lbs': s.get('prescribed_load_lbs'),
+                        'actual_rpe': s.get('prescribed_rpe'),
+                        'is_deviation': False
+                    })
+            
+            # 3. Write to Postgres
+            result = postgres_client.log_strength_session(
+                session_date=plan['date'],
+                name=plan.get('goal', 'Workout'),
+                sets=sets,
+                duration_minutes=plan.get('estimated_duration_minutes'),
+                notes=plan.get('notes'),
+                source='from_plan',
+                plan_id=plan_id
+            )
+            
+            # 4. Create Neo4j reference node
+            neo4j_ref = neo4j_client.create_strength_workout_ref(
+                postgres_id=result['session_id'],
+                date=plan['date'],
+                name=plan.get('goal', 'Workout'),
+                plan_id=plan_id,
+                person_id=person_id
+            )
+            
+            # 5. Update Postgres with Neo4j ID
+            if neo4j_ref:
+                postgres_client.update_session_neo4j_id(
+                    result['session_id'], 
+                    neo4j_ref.get('id')
+                )
+            
+            # 6. Update plan status
+            neo4j_client.update_plan_status(plan_id, "completed")
             
             return [types.TextContent(
                 type="text",
                 text=f"""✅ Workout completed!
 
-**Workout ID:** {result['workout_id']}
-**From Plan:** {result['plan_id']}
-**Compliance:** {result['compliance']}
+**Session ID:** {result['session_id']} (Postgres)
+**Neo4j Ref:** {neo4j_ref.get('id') if neo4j_ref else 'N/A'}
+**From Plan:** {plan_id}
+**Sets:** {result['set_count']}
+**Compliance:** as_written
 
 Great work! 💪"""
             )]
@@ -1037,22 +1099,80 @@ Great work! 💪"""
             
             logger.info(f"Completing plan with {len(deviations)} deviations: {plan_id}")
             
-            result = neo4j_client.complete_workout_with_deviations(plan_id, deviations)
-            
-            if "error" in result:
+            # 1. Get the plan from Neo4j
+            plan = neo4j_client.get_planned_workout(plan_id)
+            if not plan:
                 return [types.TextContent(
                     type="text",
-                    text=f"❌ {result['error']}"
+                    text=f"❌ Plan not found: {plan_id}"
                 )]
+            
+            # 2. Build deviation lookup
+            deviation_map = {d['planned_set_id']: d for d in deviations}
+            
+            # 3. Transform plan to Postgres format with deviations
+            sets = []
+            for block in plan.get('blocks', []):
+                for s in block.get('sets', []):
+                    set_id = s.get('id')
+                    dev = deviation_map.get(set_id, {})
+                    
+                    sets.append({
+                        'exercise_id': dev.get('substitute_exercise_id') or s.get('exercise_id'),
+                        'exercise_name': s.get('exercise_name'),  # Will update if substituted
+                        'block_name': block.get('name'),
+                        'block_type': block.get('block_type'),
+                        'set_order': s.get('order'),
+                        'prescribed_reps': s.get('prescribed_reps'),
+                        'prescribed_load_lbs': s.get('prescribed_load_lbs'),
+                        'prescribed_rpe': s.get('prescribed_rpe'),
+                        'actual_reps': dev.get('actual_reps') or s.get('prescribed_reps'),
+                        'actual_load_lbs': dev.get('actual_load_lbs') or s.get('prescribed_load_lbs'),
+                        'actual_rpe': dev.get('actual_rpe') or s.get('prescribed_rpe'),
+                        'is_deviation': bool(dev),
+                        'deviation_reason': dev.get('reason'),
+                        'notes': dev.get('notes')
+                    })
+            
+            # 4. Write to Postgres
+            result = postgres_client.log_strength_session(
+                session_date=plan['date'],
+                name=plan.get('goal', 'Workout'),
+                sets=sets,
+                duration_minutes=plan.get('estimated_duration_minutes'),
+                notes=plan.get('notes'),
+                source='from_plan',
+                plan_id=plan_id
+            )
+            
+            # 5. Create Neo4j reference node
+            neo4j_ref = neo4j_client.create_strength_workout_ref(
+                postgres_id=result['session_id'],
+                date=plan['date'],
+                name=plan.get('goal', 'Workout'),
+                plan_id=plan_id,
+                person_id=person_id
+            )
+            
+            # 6. Update Postgres with Neo4j ID
+            if neo4j_ref:
+                postgres_client.update_session_neo4j_id(
+                    result['session_id'], 
+                    neo4j_ref.get('id')
+                )
+            
+            # 7. Update plan status
+            neo4j_client.update_plan_status(plan_id, "completed")
             
             return [types.TextContent(
                 type="text",
                 text=f"""✅ Workout completed with deviations recorded!
 
-**Workout ID:** {result['workout_id']}
-**From Plan:** {result['plan_id']}
-**Compliance:** {result['compliance']}
-**Deviations:** {result['deviations_recorded']}
+**Session ID:** {result['session_id']} (Postgres)
+**Neo4j Ref:** {neo4j_ref.get('id') if neo4j_ref else 'N/A'}
+**From Plan:** {plan_id}
+**Sets:** {result['set_count']}
+**Deviations:** {len(deviations)}
 
 Deviations tracked for coaching adjustments."""
             )]
@@ -1089,30 +1209,76 @@ Rest is part of training too."""
         try:
             workout_data = arguments["workout_data"]
             
-            # Parse if string
             if isinstance(workout_data, str):
                 workout_data = json.loads(workout_data)
             
             logger.info(f"Logging ad-hoc workout for {workout_data.get('date')}")
             
-            # Add IDs
-            workout_data["person_id"] = person_id
-            workout_data["workout_id"] = str(uuid.uuid4())
+            # Transform to Postgres format
+            sets = []
+            set_order = 1
             
-            result = neo4j_client.log_adhoc_workout(workout_data)
+            for exercise in workout_data.get("exercises", []):
+                exercise_id = exercise.get("exercise_id")
+                exercise_name = exercise.get("exercise_name")
+                
+                # If no ID, try to resolve or create custom
+                if not exercise_id and exercise_name:
+                    # Try to find existing
+                    results = neo4j_client.search_exercises(exercise_name, limit=1)
+                    if results and results[0]['score'] > 5:
+                        exercise_id = results[0]['exercise_id']
+                    else:
+                        # Create custom exercise
+                        exercise_id = 'CUSTOM:' + exercise_name.replace(' ', '_')
+                        neo4j_client.create_custom_exercise(exercise_id, exercise_name)
+                
+                for s in exercise.get("sets", []):
+                    sets.append({
+                        'exercise_id': exercise_id,
+                        'exercise_name': exercise_name,
+                        'block_name': 'Main',
+                        'block_type': 'main',
+                        'set_order': set_order,
+                        'actual_reps': s.get('reps'),
+                        'actual_load_lbs': s.get('load_lbs'),
+                        'actual_rpe': s.get('rpe'),
+                        'notes': s.get('notes')
+                    })
+                    set_order += 1
             
-            # Format summary
-            mapping_note = ""
-            if result.get("exercises_needing_mapping"):
-                mapping_note = f"\n\n⚠️ **{len(result['exercises_needing_mapping'])} new exercise(s)** need muscle mapping."
+            # Write to Postgres
+            result = postgres_client.log_strength_session(
+                session_date=workout_data['date'],
+                name=workout_data.get('name', 'Ad-hoc Workout'),
+                sets=sets,
+                duration_minutes=workout_data.get('duration_minutes'),
+                notes=workout_data.get('notes'),
+                source='adhoc'
+            )
+            
+            # Create Neo4j reference
+            neo4j_ref = neo4j_client.create_strength_workout_ref(
+                postgres_id=result['session_id'],
+                date=workout_data['date'],
+                name=workout_data.get('name', 'Ad-hoc Workout'),
+                person_id=person_id
+            )
+            
+            if neo4j_ref:
+                postgres_client.update_session_neo4j_id(
+                    result['session_id'],
+                    neo4j_ref.get('id')
+                )
             
             return [types.TextContent(
                 type="text",
                 text=f"""✅ Workout logged!
 
-**Date:** {result['date']}
-**Workout ID:** {result['workout_id']}
-**Exercises:** {result['exercises_logged']}{mapping_note}"""
+**Date:** {workout_data['date']}
+**Session ID:** {result['session_id']} (Postgres)
+**Neo4j Ref:** {neo4j_ref.get('id') if neo4j_ref else 'N/A'}
+**Sets:** {result['set_count']}"""
             )]
             
         except Exception as e:
@@ -1120,7 +1286,7 @@ Rest is part of training too."""
             return [types.TextContent(type="text", text=f"❌ Error: {str(e)}")]
 
     # =========================================================================
-    # HISTORY TOOLS
+    # HISTORY TOOLS (Postgres - facts, per ADR-002)
     # =========================================================================
     
     elif name == "get_workout_by_date":
@@ -1128,7 +1294,7 @@ Rest is part of training too."""
             workout_date = arguments["date"]
             logger.info(f"Getting workout for {workout_date}")
             
-            workout = neo4j_client.get_workout_by_date(person_id, workout_date)
+            workout = postgres_client.get_session_by_date(workout_date)
             
             if not workout:
                 return [types.TextContent(
@@ -1150,7 +1316,7 @@ Rest is part of training too."""
             days = arguments.get("days", 7)
             logger.info(f"Getting workouts for last {days} days")
             
-            workouts = neo4j_client.get_recent_workouts(person_id, days)
+            workouts = postgres_client.get_recent_sessions(days)
             
             if not workouts:
                 return [types.TextContent(
@@ -1158,13 +1324,11 @@ Rest is part of training too."""
                     text=f"No workouts in the last {days} days."
                 )]
             
-            # Format summary
             summary = []
             for w in workouts:
-                patterns_str = ", ".join(w.get("patterns", [])[:3]) or "N/A"
                 summary.append(
-                    f"• **{w['date']}**: {w.get('type', 'workout')} - "
-                    f"{w['set_count']} sets ({patterns_str})"
+                    f"• **{w['session_date']}**: {w.get('name', 'workout')} - "
+                    f"{w['total_sets']} sets, {w['total_volume_lbs']:.0f} lbs"
                 )
             
             return [types.TextContent(
@@ -1185,7 +1349,7 @@ Rest is part of training too."""
 
 async def main():
     """Run the MCP server."""
-    logger.info("Starting Arnold Training Coach MCP Server")
+    logger.info("Starting Arnold Training Coach MCP Server (ADR-002 compliant)")
 
     try:
         async with stdio_server() as (read_stream, write_stream):
@@ -1199,6 +1363,7 @@ async def main():
         raise
     finally:
         neo4j_client.close()
+        postgres_client.close()
         logger.info("Arnold Training Coach MCP Server stopped")
 
 

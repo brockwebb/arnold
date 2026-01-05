@@ -1,7 +1,7 @@
 # Arnold Data Dictionary
 
 > **Purpose**: Comprehensive reference for the Arnold analytics data lake. Describes all data sources, schemas, relationships, and fitness for use.
-> **Last Updated**: January 4, 2026 (ADR-001: Data Layer Separation)
+> **Last Updated**: January 5, 2026 (ADR-002: Strength Migration Complete)
 > **Location**: `/arnold/data/`
 
 ---
@@ -43,6 +43,7 @@ Postgres: arnold_analytics   # Primary analytics database
 
 | Source | Tables | Rows | Date Range | Status |
 |--------|--------|------|------------|--------|
+| **Strength Workouts** | **2** | **2,647** | **Apr 2024 → Jan 2026** | **✅ NEW: ADR-002** |
 | FIT Files (Suunto/Garmin) | 2 | TBD | Jan 2026 → | ✅ NEW: Postgres-first |
 | Apple Health | 8 | 20,227 | May 2025 → Dec 2025 | ✅ Staged + Postgres |
 | Polar HR | 2 | 167,731 | May 2025 → Jan 2026 | ✅ Postgres |
@@ -57,7 +58,77 @@ Postgres: arnold_analytics   # Primary analytics database
 
 The primary analytics database. Connect via `postgres-mcp` or `psql -d arnold_analytics`.
 
-### workout_summaries
+### strength_sessions (ADR-002)
+**Executed strength training sessions - PRIMARY SOURCE OF TRUTH**
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | SERIAL PK | Auto-increment ID |
+| session_date | DATE NOT NULL | Workout date |
+| session_time | TIME | Start time if known |
+| name | VARCHAR(255) | Workout name (e.g., "The Fifty") |
+| block_id | VARCHAR(100) | FK to Neo4j Block (training phase) |
+| plan_id | VARCHAR(100) | FK to Neo4j PlannedWorkout (if from plan) |
+| duration_minutes | INT | Session duration |
+| total_volume_lbs | DECIMAL | Sum of load × reps |
+| total_sets | INT | Number of sets |
+| total_reps | INT | Total repetitions |
+| session_rpe | DECIMAL | Overall session RPE (1-10) |
+| avg_rpe | DECIMAL | Average RPE across sets |
+| max_rpe | DECIMAL | Highest RPE in session |
+| notes | TEXT | Session notes |
+| tags | JSONB | Tags for categorization |
+| status | VARCHAR(20) | completed, partial, skipped |
+| source | VARCHAR(50) | migrated, logged, planned |
+| neo4j_id | VARCHAR(100) | FK to Neo4j StrengthWorkout ref |
+
+- **Rows**: 165
+- **Date Range**: April 2024 → January 2026
+- **Migrated**: January 5, 2026 (ADR-002)
+
+---
+
+### strength_sets (ADR-002)
+**Individual sets within strength sessions - FULL DETAIL**
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | SERIAL PK | Auto-increment ID |
+| session_id | INT FK | References strength_sessions.id |
+| set_order | INT | Order within session (1-indexed) |
+| block_name | VARCHAR(100) | Workout block (Warm-Up, Main, Finisher) |
+| block_type | VARCHAR(50) | warmup, main, accessory, finisher, cooldown |
+| exercise_id | VARCHAR(100) | Exercise ID (EXERCISE:, CANONICAL:, CUSTOM:) |
+| exercise_name | VARCHAR(255) | Human-readable name |
+| reps | INT | Actual reps performed |
+| load_lbs | DECIMAL | Load in pounds |
+| rpe | DECIMAL | Rate of Perceived Exertion (1-10) |
+| volume_lbs | DECIMAL | Computed: reps × load |
+| prescribed_reps | INT | Planned reps (if from plan) |
+| prescribed_load_lbs | DECIMAL | Planned load (if from plan) |
+| prescribed_rpe | DECIMAL | Target RPE (if from plan) |
+| is_deviation | BOOLEAN | Did this deviate from plan? |
+| deviation_reason | VARCHAR(50) | fatigue, pain, equipment, time, technique |
+| notes | TEXT | Set-specific notes |
+
+- **Rows**: 2,482
+- **Migrated**: January 5, 2026 (ADR-002)
+
+**Helper Functions:**
+```sql
+-- Exercise progression history
+SELECT * FROM exercise_history('EXERCISE:Barbell_Deadlift', 365);
+
+-- Personal records
+SELECT * FROM exercise_pr('EXERCISE:Barbell_Deadlift');
+
+-- Weekly volume aggregates
+SELECT * FROM weekly_strength_volume;
+```
+
+---
+
+### workout_summaries (DEPRECATED)
 **Denormalized workout data synced from Neo4j**
 
 | Column | Type | Description |

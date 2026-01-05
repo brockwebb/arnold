@@ -2,7 +2,7 @@
 
 > **Purpose**: This document tells the story of where Arnold is going and why it matters. For technical architecture details, see ARCHITECTURE.md.
 
-> **Last Updated**: January 2, 2026 (DuckDB Analytics Layer Complete)
+> **Last Updated**: January 5, 2026 (ADR-002 Strength Migration Complete)
 
 ---
 
@@ -55,8 +55,24 @@ Arnold bridges this gap. Not by simplifying the analysis, but by making sophisti
 - ✅ Created MCP tools for planning, tracking, coaching
 - ✅ Implemented semantic memory (context survives across conversations)
 - ✅ Proved Claude can reason about training effectively
+- ✅ **ADR-001: Data Layer Separation** - Postgres for facts, Neo4j for relationships
+- ✅ **ADR-002: Strength Workout Migration** - 165 sessions, 2,482 sets to Postgres
+- ✅ **Journal System** - 17 MCP tools for subjective data capture
+- ✅ **Endurance Sessions** - FIT imports to Postgres
 
 **Key Learning:** Claude + Graph + MCP = surprisingly capable coaching. The LLM-native approach works.
+
+**Architecture Established:**
+```
+POSTGRES (Facts)                    NEO4J (Relationships)
+────────────────────────────────    ─────────────────────────
+• strength_sessions (165)          • Goals → Modalities → Blocks
+• strength_sets (2,482)            • Exercises → MovementPatterns
+• endurance_sessions               • PlannedWorkout → PlannedSets
+• biometric_readings               • Injuries → Constraints
+• log_entries (journal)            • StrengthWorkout refs (FK)
+• race_history                     • LogEntry → EXPLAINS → Workout
+```
 
 ### Phase 1: Core Coaching Loop (Current)
 *"Can we run a real training program?"*

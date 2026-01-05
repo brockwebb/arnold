@@ -1,9 +1,18 @@
 # ADR-002: Migrate Strength Workouts to Postgres-First Architecture
 
 **Date:** January 5, 2026  
-**Status:** Accepted (Implementation Pending)  
+**Status:** ✅ Implemented  
 **Deciders:** Brock Webb, Claude (Arnold development)  
 **Depends On:** ADR-001 (Data Layer Separation)
+
+## Implementation Summary (January 5, 2026)
+
+Migration completed with:
+- **165 sessions** migrated to `strength_sessions`
+- **2,482 sets** migrated to `strength_sets`
+- **165 StrengthWorkout** reference nodes created in Neo4j
+- **arnold-training-mcp** refactored to read/write Postgres for executed workouts
+- Neo4j retained for plans, exercises, and relationship queries
 
 ## Context
 

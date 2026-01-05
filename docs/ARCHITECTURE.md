@@ -2,7 +2,7 @@
 
 > **Purpose**: This document is the authoritative reference for Arnold's architecture. It serves as context handoff between conversation threads and the north star for development decisions.
 
-> **Last Updated**: January 5, 2026 (Journal System Complete)
+> **Last Updated**: January 5, 2026 (ADR-002 Strength Migration Complete)
 
 ---
 
@@ -302,14 +302,14 @@ Arnold uses a hybrid database architecture where each system handles what it doe
 │                    POSTGRES (Left Brain)                     │
 │              Measurements, Facts, Time-Series                │
 │                                                              │
-│  biometric_readings    - HRV, RHR, sleep, temp              │
+│  strength_sessions     - Executed strength workouts (165)   │
+│  strength_sets         - Individual sets (2,482)            │
 │  endurance_sessions    - FIT imports (runs, rides)          │
 │  endurance_laps        - Per-lap splits                     │
+│  biometric_readings    - HRV, RHR, sleep, temp              │
 │  hr_samples            - Beat-by-beat (optional)            │
-│  lab_results           - Blood panels, clinical data        │
-│  medications           - Current and historical             │
-│  race_history          - Competition results                │
 │  log_entries           - Journal/subjective data            │
+│  race_history          - Competition results                │
 │  data_annotations      - Time-series context                │
 │                                                              │
 │  SQL, aggregations, materialized views, analytics           │
@@ -326,7 +326,8 @@ Arnold uses a hybrid database architecture where each system handles what it doe
 │  Exercise, MovementPattern, Muscle - Knowledge base         │
 │  Injury, Constraint, Protocol      - Medical context        │
 │  Annotation (relationships)        - Explanatory links      │
-│  WorkoutRef, EnduranceWorkoutRef   - FK to Postgres         │
+│  StrengthWorkout, EnduranceWorkout - FK refs to Postgres    │
+│  PlannedWorkout, PlannedBlock      - Intentions (pre-exec)  │
 │                                                              │
 │  Graph traversals, pattern matching, "why" queries          │
 └─────────────────────────────────────────────────────────────┘
@@ -342,12 +343,20 @@ Arnold uses a hybrid database architecture where each system handles what it doe
 | "TSS trend by week?" | Postgres | Analytical rollup |
 | "Why did my performance drop Jan 3?" | Neo4j | Annotation → Workout explanation |
 
-**The Bridge Pattern:**
+**The Bridge Pattern (ADR-002):**
 
 When data needs to exist in both systems, Postgres holds the detail and Neo4j holds a lightweight reference:
 
 ```
 Postgres                              Neo4j
+┌──────────────────────┐            ┌──────────────────────┐
+│ strength_sessions    │            │ (:StrengthWorkout)   │
+│ id: 165              │◄──── FK ───►│ postgres_id: 165     │
+│ date, name, volume   │            │ date (for queries)   │
+│ total_sets, reps     │            │ [:PERFORMED]->Person │
+│ + strength_sets (det)│            │ [:EXECUTED_FROM]->Plan│
+└──────────────────────┘            └──────────────────────┘
+
 ┌──────────────────────┐            ┌──────────────────────┐
 │ endurance_sessions   │            │ (:EnduranceWorkout)  │
 │ id: 12345            │◄──── FK ───►│ postgres_id: 12345   │
@@ -357,7 +366,15 @@ Postgres                              Neo4j
 └──────────────────────┘            └──────────────────────┘
 ```
 
-See **[ADR-001: Data Layer Separation](./adr/001-data-layer-separation.md)** for full rationale.
+**Execution Flow (ADR-002):**
+```
+PlannedWorkout (Neo4j)  ───complete_as_written───►  strength_sessions (Postgres)
+       │                                                     │
+       │                                                     │
+       └─────────────[:EXECUTED_FROM]───────────── StrengthWorkout ref
+```
+
+See **[ADR-001: Data Layer Separation](./adr/001-data-layer-separation.md)** and **[ADR-002: Strength Workout Migration](./adr/002-strength-workout-migration.md)** for full rationale.
 
 ---
 
@@ -1596,22 +1613,29 @@ record_observation
 find_canonical_exercise
 ```
 
-**arnold-training-mcp**
+**arnold-training-mcp** (ADR-002 Compliant)
 ```
-// Context
-get_coach_briefing, get_training_context, get_active_constraints
+// Context (Hybrid: Neo4j context + Postgres workouts)
+get_coach_briefing      # Goals/block from Neo4j, recent workouts from Postgres
+get_training_context    # Injuries/equipment from Neo4j, workouts from Postgres
+get_active_constraints  # Neo4j
 
-// Exercise Selection
+// Exercise Selection (Neo4j)
 suggest_exercises, check_exercise_safety, find_substitutes
 
-// Planning
+// Planning (Neo4j - intentions)
 create_workout_plan, get_plan_for_date, get_planned_workout, confirm_plan
+get_upcoming_plans, get_planning_status
 
-// Execution
-complete_as_written, complete_with_deviations, skip_workout, log_workout
+// Execution (Postgres - facts, creates Neo4j refs)
+complete_as_written     # Read Neo4j plan → Write Postgres + Neo4j ref
+complete_with_deviations # Read Neo4j plan → Write Postgres with deviations
+log_workout             # Write Postgres + create Neo4j ref
+skip_workout            # Update Neo4j plan status
 
-// History
-get_workout_by_date, get_recent_workouts
+// History (Postgres - facts)
+get_workout_by_date     # Read from strength_sessions + sets
+get_recent_workouts     # Read from strength_sessions
 ```
 
 **arnold-memory-mcp**
@@ -1635,13 +1659,13 @@ get_checkin_history  # What we discussed, decisions made
 
 ## Data Model Summary
 
-### Graph Health (as of Jan 4, 2026)
+### Graph Health (as of Jan 5, 2026)
 
-| Node Type | Count |
-|-----------|-------|
-| Exercise | 4,242 |
-| Workout | 165 |
-| Set | 2,500+ |
+| Node Type | Count | Notes |
+|-----------|-------|-------|
+| Exercise | 4,242 | Knowledge base |
+| StrengthWorkout | 165 | **Refs to Postgres (ADR-002)** |
+| EnduranceWorkout | 1 | Refs to Postgres |
 | MovementPattern | 28 |
 | Modality | 14 |
 | Goal | 4 |
@@ -1747,6 +1771,16 @@ Block 3: DELOAD (Feb 17)
 11. ✅ MobilityLimitation tracking for shoulder
 12. ✅ **arnold-memory-mcp Phase 2: Semantic Search** - Neo4j vector index + OpenAI embeddings
 13. ✅ **Training Metrics Specification** - TRAINING_METRICS.md with full citations
+
+### Completed (Jan 4-5, 2026)
+14. ✅ **ADR-001 Data Layer Separation** - Postgres (facts) / Neo4j (relationships)
+15. ✅ **Migration 008: Endurance Sessions** - FIT imports to Postgres
+16. ✅ **Migration 009: Journal System** - 17 MCP tools, dual-storage
+17. ✅ **ADR-002: Strength Workout Migration** - 165 sessions, 2,482 sets migrated
+    - Created `strength_sessions` and `strength_sets` tables
+    - Created `postgres_client.py` for Postgres operations  
+    - Refactored `server.py` for hybrid Neo4j/Postgres routing
+    - 100% bidirectional links between Postgres and Neo4j refs
 
 ### Phase 1: Core Coaching Loop (Current)
 

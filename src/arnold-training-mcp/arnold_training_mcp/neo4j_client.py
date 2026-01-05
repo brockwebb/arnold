@@ -1404,6 +1404,101 @@ class Neo4jTrainingClient:
                 "recent_training_dates": recent_dates
             }
 
+    # =========================================================================
+    # ADR-002: STRENGTH WORKOUT REFERENCES
+    # =========================================================================
+
+    def create_strength_workout_ref(
+        self,
+        postgres_id: int,
+        date: str,
+        name: str,
+        person_id: str,
+        plan_id: str = None,
+        total_volume_lbs: float = None,
+        total_sets: int = None
+    ) -> dict:
+        """
+        Create lightweight StrengthWorkout reference node in Neo4j.
+        
+        Per ADR-002: Facts live in Postgres, but we need Neo4j references
+        for relationship queries (goals, blocks, injuries, etc.)
+        
+        Args:
+            postgres_id: The strength_sessions.id from Postgres
+            date: Workout date YYYY-MM-DD
+            name: Workout name/goal
+            person_id: Person ID for PERFORMED relationship
+            plan_id: Optional PlannedWorkout ID if from plan
+            total_volume_lbs: Optional volume for quick queries
+            total_sets: Optional set count
+            
+        Returns:
+            Dict with id (Neo4j UUID)
+        """
+        with self.driver.session(database=self.database) as session:
+            result = session.run("""
+                MATCH (p:Person {id: $person_id})
+                
+                // Create StrengthWorkout reference node
+                CREATE (sw:StrengthWorkout {
+                    id: randomUUID(),
+                    postgres_id: $postgres_id,
+                    date: date($date),
+                    name: $name,
+                    total_volume_lbs: $total_volume_lbs,
+                    total_sets: $total_sets,
+                    created_at: datetime()
+                })
+                
+                // Link to person
+                CREATE (p)-[:PERFORMED]->(sw)
+                
+                // Link to plan if provided
+                WITH sw
+                OPTIONAL MATCH (pw:PlannedWorkout)
+                WHERE pw.plan_id = $plan_id OR pw.id = $plan_id
+                FOREACH (_ IN CASE WHEN pw IS NOT NULL THEN [1] ELSE [] END |
+                    CREATE (sw)-[:EXECUTED_FROM]->(pw)
+                )
+                
+                RETURN sw.id as id
+            """,
+                person_id=person_id,
+                postgres_id=postgres_id,
+                date=date,
+                name=name,
+                plan_id=plan_id,
+                total_volume_lbs=total_volume_lbs,
+                total_sets=total_sets
+            )
+            
+            record = result.single()
+            if record:
+                return {"id": record["id"]}
+            return None
+
+    def create_custom_exercise(self, exercise_id: str, name: str) -> dict:
+        """
+        Create a custom exercise node for user-logged exercises.
+        
+        Used when logging ad-hoc workouts with exercises not in the database.
+        """
+        with self.driver.session(database=self.database) as session:
+            result = session.run("""
+                MERGE (e:Exercise {id: $id})
+                ON CREATE SET 
+                    e.name = $name,
+                    e.source = 'user_custom',
+                    e.created_at = datetime()
+                RETURN e.id as id, e.name as name
+            """, id=exercise_id, name=name)
+            
+            record = result.single()
+            if record:
+                return {"id": record["id"], "name": record["name"]}
+            return None
+
     def close(self):
         """Close Neo4j driver connection."""
         self.driver.close()
