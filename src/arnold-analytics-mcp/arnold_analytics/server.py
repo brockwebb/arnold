@@ -176,6 +176,39 @@ problematic patterns.""",
                     }
                 }
             }
+        ),
+        Tool(
+            name="run_sync",
+            description="""Run the data sync pipeline to pull latest data from all sources.
+            
+Triggers sync from Ultrahuman, Polar, FIT files, etc. Returns sync status and any errors.
+Use when user asks to refresh data or when data seems stale.""",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "steps": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Specific steps to run (default: all). Options: polar, ultrahuman, fit, apple, neo4j, annotations, clean, refresh"
+                    }
+                }
+            }
+        ),
+        Tool(
+            name="get_sync_history",
+            description="""Get recent sync history to check for data pipeline issues.
+            
+Returns last N sync runs with status, steps run, and any errors.""",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "limit": {
+                        "type": "integer",
+                        "description": "Number of recent syncs to return (default: 5)",
+                        "default": 5
+                    }
+                }
+            }
         )
     ]
 
@@ -201,6 +234,12 @@ async def call_tool(name: str, arguments: dict):
     
     elif name == "get_sleep_analysis":
         return await get_sleep_analysis(arguments.get("days", 14))
+    
+    elif name == "run_sync":
+        return await run_sync(arguments.get("steps"))
+    
+    elif name == "get_sync_history":
+        return await get_sync_history(arguments.get("limit", 5))
     
     else:
         return [TextContent(type="text", text=f"Unknown tool: {name}")]
@@ -878,6 +917,118 @@ async def get_sleep_analysis(days: int):
             "quality_pct": float(worst['sleep_quality_pct']) if worst['sleep_quality_pct'] else None
         } if worst else None,
         "coaching_notes": coaching_notes
+    }
+    
+    return [TextContent(type="text", text=json.dumps(result, indent=2, default=decimal_default))]
+
+
+async def run_sync(steps: list = None):
+    """Run the data sync pipeline."""
+    import subprocess
+    from pathlib import Path
+    
+    # Find the sync pipeline script
+    # MCP server runs from src/arnold-analytics-mcp, so go up to project root
+    script_path = Path(__file__).parent.parent.parent.parent / "scripts" / "sync_pipeline.py"
+    
+    if not script_path.exists():
+        return [TextContent(type="text", text=json.dumps({
+            "error": f"Sync pipeline not found at {script_path}",
+            "status": "failed"
+        }, indent=2))]
+    
+    # Build command
+    cmd = ["python", str(script_path), "--trigger", "mcp"]
+    if steps:
+        for step in steps:
+            cmd.extend(["--step", step])
+    
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=300,  # 5 minute timeout
+            cwd=script_path.parent.parent  # Project root
+        )
+        
+        output = {
+            "status": "success" if result.returncode == 0 else "failed",
+            "return_code": result.returncode,
+            "output": result.stdout[-2000:] if result.stdout else None,  # Last 2000 chars
+            "errors": result.stderr[-1000:] if result.stderr else None
+        }
+        
+        return [TextContent(type="text", text=json.dumps(output, indent=2))]
+        
+    except subprocess.TimeoutExpired:
+        return [TextContent(type="text", text=json.dumps({
+            "status": "timeout",
+            "error": "Pipeline timed out after 5 minutes"
+        }, indent=2))]
+    except Exception as e:
+        return [TextContent(type="text", text=json.dumps({
+            "status": "error",
+            "error": str(e)
+        }, indent=2))]
+
+
+async def get_sync_history(limit: int = 5):
+    """Get recent sync history."""
+    conn = get_db()
+    cur = conn.cursor()
+    
+    cur.execute("""
+        SELECT 
+            id,
+            started_at,
+            completed_at,
+            status,
+            steps_run,
+            records_synced,
+            error_message,
+            triggered_by,
+            EXTRACT(EPOCH FROM (completed_at - started_at))::int as duration_seconds
+        FROM sync_history
+        ORDER BY started_at DESC
+        LIMIT %s
+    """, [limit])
+    
+    rows = cur.fetchall()
+    conn.close()
+    
+    if not rows:
+        return [TextContent(type="text", text=json.dumps({
+            "message": "No sync history found",
+            "syncs": []
+        }, indent=2))]
+    
+    syncs = []
+    for r in rows:
+        syncs.append({
+            "id": r['id'],
+            "started_at": r['started_at'].isoformat() if r['started_at'] else None,
+            "completed_at": r['completed_at'].isoformat() if r['completed_at'] else None,
+            "duration_seconds": r['duration_seconds'],
+            "status": r['status'],
+            "triggered_by": r['triggered_by'],
+            "steps": r['steps_run'],
+            "records_synced": r['records_synced'],
+            "error": r['error_message']
+        })
+    
+    # Summary stats
+    successful = sum(1 for s in syncs if s['status'] == 'success')
+    failed = sum(1 for s in syncs if s['status'] == 'failed')
+    
+    result = {
+        "recent_syncs": syncs,
+        "summary": {
+            "total": len(syncs),
+            "successful": successful,
+            "failed": failed,
+            "last_success": next((s['started_at'] for s in syncs if s['status'] == 'success'), None)
+        }
     }
     
     return [TextContent(type="text", text=json.dumps(result, indent=2, default=decimal_default))]

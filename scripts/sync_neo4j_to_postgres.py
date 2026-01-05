@@ -166,10 +166,10 @@ def load_to_postgres(workouts):
     
     print(f"Synced {len(rows)} workouts to Postgres")
     
-    # Refresh materialized views
+    # Refresh materialized views that depend on workout_summaries
     print("Refreshing materialized views...")
-    cur.execute("REFRESH MATERIALIZED VIEW training_load_daily;")
-    cur.execute("REFRESH MATERIALIZED VIEW readiness_daily;")
+    cur.execute("REFRESH MATERIALIZED VIEW biometric_trends;")
+    cur.execute("REFRESH MATERIALIZED VIEW training_trends;")
     conn.commit()
     
     cur.close()

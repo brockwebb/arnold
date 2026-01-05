@@ -25,11 +25,14 @@ Run via cron:
 
 import os
 import sys
+import json
 import argparse
 import subprocess
 from datetime import datetime
 from pathlib import Path
 from dotenv import load_dotenv
+import psycopg2
+from psycopg2.extras import Json
 
 # Load .env from project root
 PROJECT_ROOT = Path(__file__).parent.parent
@@ -116,7 +119,7 @@ def step_polar(dry_run: bool = False) -> bool:
 
 
 def step_ultrahuman(dry_run: bool = False) -> bool:
-    """Fetch new data from Ultrahuman API."""
+    """Fetch new data from Ultrahuman API and write directly to Postgres."""
     log("=== Step: Ultrahuman API Sync ===")
     
     api_key = os.environ.get("ULTRAHUMAN_AUTH_TOKEN")
@@ -124,12 +127,12 @@ def step_ultrahuman(dry_run: bool = False) -> bool:
         log("ULTRAHUMAN_AUTH_TOKEN not set, skipping", "WARN")
         return True
     
-    script_path = SCRIPTS / "sync_ultrahuman.py"
+    script_path = SCRIPTS / "sync" / "ultrahuman_to_postgres.py"
     if not script_path.exists():
-        log("sync_ultrahuman.py not implemented yet, skipping", "WARN")
+        log("sync/ultrahuman_to_postgres.py not found, skipping", "WARN")
         return True
     
-    return run_script("sync_ultrahuman.py", dry_run=dry_run)
+    return run_script("sync/ultrahuman_to_postgres.py", dry_run=dry_run)
 
 
 def step_fit(dry_run: bool = False) -> bool:
@@ -179,13 +182,10 @@ def step_refresh(dry_run: bool = False) -> bool:
     """Refresh Postgres materialized views."""
     log("=== Step: Refresh Materialized Views ===")
     
-    # Order matters: base views first, then dependent views
+    # Only actual materialized views (not regular views)
     views_to_refresh = [
-        "training_load_daily",    # Base view: training load with ACWR
-        "readiness_daily",        # Base view: daily readiness metrics
-        "biometric_trends",       # Dependent: rolling averages for biometrics
-        "training_trends",        # Dependent: weekly training comparisons
-        "coach_brief_snapshot",   # Dependent: single-row snapshot for reports
+        "biometric_trends",
+        "training_trends",
     ]
     
     if dry_run:
@@ -203,7 +203,7 @@ def step_refresh(dry_run: bool = False) -> bool:
         
         conn.commit()
         conn.close()
-        log(f"All {len(views_to_refresh)} views refreshed")
+        log(f"Refreshed {len(views_to_refresh)} materialized views")
         return True
     except Exception as e:
         log(f"Failed to refresh views: {e}", "ERROR")
@@ -224,12 +224,66 @@ STEPS = {
 
 STEP_ORDER = ["polar", "ultrahuman", "fit", "apple", "neo4j", "annotations", "clean", "refresh"]
 
+# Database connection
+PG_URI = os.environ.get("DATABASE_URI", "postgresql://brock@localhost:5432/arnold_analytics")
+
+
+def log_sync_start(triggered_by: str) -> int:
+    """Log sync start to history table, return sync_id."""
+    try:
+        conn = psycopg2.connect(PG_URI)
+        cur = conn.cursor()
+        cur.execute(
+            "INSERT INTO sync_history (triggered_by) VALUES (%s) RETURNING id",
+            [triggered_by]
+        )
+        sync_id = cur.fetchone()[0]
+        conn.commit()
+        conn.close()
+        return sync_id
+    except Exception as e:
+        log(f"Failed to log sync start: {e}", "WARN")
+        return None
+
+
+def log_sync_end(sync_id: int, results: dict, error_message: str = None):
+    """Log sync completion to history table."""
+    if sync_id is None:
+        return
+    
+    # Determine overall status
+    statuses = list(results.values())
+    if all(s == "success" or s == "skipped" for s in statuses):
+        status = "success"
+    elif any(s == "success" for s in statuses):
+        status = "partial"
+    else:
+        status = "failed"
+    
+    try:
+        conn = psycopg2.connect(PG_URI)
+        cur = conn.cursor()
+        cur.execute(
+            """UPDATE sync_history 
+               SET completed_at = NOW(), 
+                   status = %s, 
+                   steps_run = %s,
+                   error_message = %s
+               WHERE id = %s""",
+            [status, Json(results), error_message, sync_id]
+        )
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        log(f"Failed to log sync end: {e}", "WARN")
+
 
 def main():
     parser = argparse.ArgumentParser(description="Arnold Data Sync Pipeline")
     parser.add_argument("--step", choices=STEPS.keys(), help="Run specific step only")
     parser.add_argument("--dry-run", action="store_true", help="Show what would run without executing")
     parser.add_argument("--skip", nargs="+", choices=STEPS.keys(), default=[], help="Skip specific steps")
+    parser.add_argument("--trigger", choices=["scheduled", "manual", "mcp"], default="manual", help="What triggered this sync")
     args = parser.parse_args()
     
     log("=" * 60)
@@ -239,21 +293,43 @@ def main():
     if args.dry_run:
         log("DRY RUN MODE - no changes will be made", "WARN")
     
+    # Log sync start (skip for dry runs)
+    sync_id = None
+    if not args.dry_run:
+        sync_id = log_sync_start(args.trigger)
+        if sync_id:
+            log(f"Sync #{sync_id} started (triggered by: {args.trigger})")
+    
     steps_to_run = [args.step] if args.step else STEP_ORDER
     steps_to_run = [s for s in steps_to_run if s not in args.skip]
     
     results = {}
-    for step_name in steps_to_run:
-        step_fn = STEPS[step_name]
-        success = step_fn(dry_run=args.dry_run)
-        results[step_name] = "✓" if success else "✗"
+    error_message = None
+    
+    try:
+        for step_name in steps_to_run:
+            step_fn = STEPS[step_name]
+            success = step_fn(dry_run=args.dry_run)
+            results[step_name] = "success" if success else "failed"
+    except Exception as e:
+        error_message = str(e)
+        log(f"Pipeline error: {e}", "ERROR")
+    
+    # Mark skipped steps
+    for step_name in args.skip:
+        results[step_name] = "skipped"
     
     log("=" * 60)
     log("Summary:")
     for step_name, status in results.items():
-        log(f"  {status} {step_name}")
+        icon = "✓" if status == "success" else "✗" if status == "failed" else "-"
+        log(f"  {icon} {step_name}: {status}")
     
-    failed = [s for s, r in results.items() if r == "✗"]
+    # Log sync end
+    if not args.dry_run:
+        log_sync_end(sync_id, results, error_message)
+    
+    failed = [s for s, r in results.items() if r == "failed"]
     if failed:
         log(f"Pipeline completed with {len(failed)} failures", "WARN")
         sys.exit(1)

@@ -44,7 +44,7 @@ def import_resting_hr(conn, cur):
             'reading_date': row['date'].date() if hasattr(row['date'], 'date') else row['date'],
             'metric_type': 'resting_hr',
             'value': float(row['resting_hr']),
-            'source': row['source_name']
+            'source': row['source_name'].lower()  # Normalize to lowercase
         })
     
     # Upsert
@@ -94,7 +94,7 @@ def import_hrv(conn, cur):
             'reading_date': row['date'],
             'metric_type': 'hrv_morning',
             'value': round(float(row['hrv_ms']), 1),
-            'source': row['source_name']
+            'source': row['source_name'].lower()  # Normalize to lowercase
         })
     
     execute_batch(
@@ -150,7 +150,7 @@ def import_sleep(conn, cur):
     records = []
     for _, row in pivot.iterrows():
         date = row['date'].date() if hasattr(row['date'], 'date') else row['date']
-        source = row['source_name']
+        source = row['source_name'].lower()  # Normalize to lowercase
         
         # Total sleep (excluding awake)
         total_sleep = row.get('light', 0) + row.get('deep', 0) + row.get('rem', 0)
