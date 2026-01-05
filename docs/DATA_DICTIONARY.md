@@ -1,14 +1,19 @@
 # Arnold Data Dictionary
 
 > **Purpose**: Comprehensive reference for the Arnold analytics data lake. Describes all data sources, schemas, relationships, and fitness for use.
-> **Last Updated**: January 4, 2026
+> **Last Updated**: January 4, 2026 (ADR-001: Data Layer Separation)
 > **Location**: `/arnold/data/`
 
 ---
 
 ## Overview
 
-Arnold's analytics layer uses a **hybrid architecture**:
+Arnold's analytics layer uses a **hybrid architecture** per **ADR-001: Data Layer Separation**:
+
+- **Postgres (Left Brain)**: Measurements, facts, time-series data
+- **Neo4j (Right Brain)**: Relationships, semantics, knowledge graph
+
+See `/docs/adr/001-data-layer-separation.md` for full rationale.
 
 ```
 /data/
@@ -38,6 +43,7 @@ Postgres: arnold_analytics   # Primary analytics database
 
 | Source | Tables | Rows | Date Range | Status |
 |--------|--------|------|------------|--------|
+| FIT Files (Suunto/Garmin) | 2 | TBD | Jan 2026 → | ✅ NEW: Postgres-first |
 | Apple Health | 8 | 20,227 | May 2025 → Dec 2025 | ✅ Staged + Postgres |
 | Polar HR | 2 | 167,731 | May 2025 → Jan 2026 | ✅ Postgres |
 | Clinical (FHIR) | 4 | 584 | Various | ✅ Staged |
@@ -146,6 +152,55 @@ The primary analytics database. Connect via `postgres-mcp` or `psql -d arnold_an
   - sleep_deep_min: 181
   - sleep_rem_min: 176
 - **Import**: `python scripts/import_apple_health.py`
+
+---
+
+### endurance_sessions
+**Source of truth for FIT file imports (Suunto, Garmin, Wahoo) per ADR-001**
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | SERIAL PK | Auto-increment |
+| session_date | DATE | Workout date |
+| session_time | TIME | Start time of day |
+| name | VARCHAR | "Long Run - Odenton Loop" |
+| sport | VARCHAR | 'running', 'cycling', 'swimming' |
+| source | VARCHAR | 'suunto', 'garmin', 'polar', 'wahoo' |
+| source_file | VARCHAR | Original filename |
+| distance_miles | DECIMAL | Total distance |
+| duration_seconds | INT | Total time |
+| duration_minutes | DECIMAL | Generated column |
+| avg_pace | VARCHAR | "11:13/mi" |
+| avg_hr / max_hr / min_hr | INT | Heart rate metrics |
+| elevation_gain_m | INT | Elevation gain |
+| tss | DECIMAL | Training Stress Score |
+| training_effect | DECIMAL | Aerobic training effect |
+| recovery_time_hours | DECIMAL | Suggested recovery |
+| rpe | INT | Subjective effort (1-10) |
+| notes | TEXT | Rich notes from athlete |
+| tags | TEXT[] | ['long_run', 'post_surgery'] |
+| neo4j_id | VARCHAR | Cross-ref to Neo4j EnduranceWorkout |
+
+- **Import**: `python scripts/import_fit_workouts.py`
+- **Architecture**: Postgres = source of truth, Neo4j = lightweight reference
+- **Migration**: `scripts/migrations/008_endurance_sessions.sql`
+
+---
+
+### endurance_laps
+**Per-lap splits from endurance sessions**
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | SERIAL PK | Auto-increment |
+| session_id | INT FK | Reference to endurance_sessions |
+| lap_number | INT | Lap sequence |
+| distance_miles | DECIMAL | Lap distance |
+| duration_seconds | INT | Lap time |
+| pace | VARCHAR | "10:32/mi" |
+| avg_hr / max_hr | INT | Lap HR |
+
+- **Use Cases**: Split analysis, pacing strategy, HR drift
 
 ---
 
@@ -297,6 +352,7 @@ Standard FHIR resources. See staging parquet files for schema details.
 
 | Source | Target | Script | Frequency |
 |--------|--------|--------|-----------|
+| FIT files | Postgres + Neo4j ref | `python scripts/import_fit_workouts.py` | After runs/rides |
 | Neo4j workouts | Postgres | `python scripts/sync_neo4j_to_postgres.py` | After workouts |
 | Polar HR | Postgres | `python scripts/import_polar_sessions.py <folder>` | Weekly |
 | Apple Health biometrics | Postgres | `python scripts/import_apple_health.py` | Weekly/Monthly |
@@ -344,12 +400,67 @@ Standard FHIR resources. See staging parquet files for schema details.
 
 | Script | Purpose | Usage |
 |--------|---------|-------|
+| `import_fit_workouts.py` | Import FIT files (Postgres-first) | `python scripts/import_fit_workouts.py` |
 | `sync_neo4j_to_postgres.py` | Sync workouts from Neo4j to Postgres | `python scripts/sync_neo4j_to_postgres.py` |
 | `import_polar_sessions.py` | Import Polar HR data to Postgres | `python scripts/import_polar_sessions.py data/raw/<polar-folder>` |
 | `import_apple_health.py` | Import biometrics (HRV, sleep, RHR) to Postgres | `python scripts/import_apple_health.py` |
 | `export_to_analytics.py` | Export Neo4j to Parquet staging | `python scripts/export_to_analytics.py` |
 | `stage_ultrahuman.py` | Stage Ultrahuman CSV to Parquet | `python scripts/stage_ultrahuman.py` |
 | `create_analytics_db.py` | Build DuckDB from staging (legacy) | `python scripts/create_analytics_db.py` |
+
+---
+
+## data_annotations
+**Context and explanations for data gaps, outliers, and anomalies**
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | SERIAL PK | Auto-increment |
+| annotation_date | DATE | Start date of annotation |
+| date_range_end | DATE | End date (NULL = ongoing or single day) |
+| target_type | VARCHAR(50) | 'biometric', 'workout', 'training', 'general' |
+| target_metric | VARCHAR(50) | 'hrv', 'sleep', 'rhr', 'volume', 'all', etc. |
+| target_id | VARCHAR(100) | Optional: specific record ID (e.g., 'Workout:uuid') |
+| reason_code | VARCHAR(50) | Categorization (see below) |
+| explanation | TEXT | Human-readable context |
+| tags | TEXT[] | For retrieval: ['ring', 'sleep', 'gap'] |
+| created_at | TIMESTAMP | When annotation was created |
+| created_by | VARCHAR(50) | 'user', 'neo4j', 'postgres_only' |
+| is_active | BOOLEAN | Soft delete flag |
+
+**Reason Codes:**
+- `device_issue` - Sensor malfunction, app not syncing, battery dead
+- `travel` - Away from home, different timezone, equipment unavailable
+- `illness` - Sick, recovery from illness
+- `surgery` - Medical procedure, post-op recovery
+- `injury` - Active injury affecting training
+- `event` - Race, competition, special occasion
+- `expected` - Normal/expected variation (e.g., HRV drop after hard workout)
+- `data_quality` - Known data issue, source confusion, cleanup note
+- `deload` - Planned recovery week
+- `life` - Work stress, family, schedule disruption
+
+**Architecture:**
+- **Neo4j = Source of Truth** - Rich relationships to Workout, Injury, PlannedWorkout nodes
+- **Postgres = Analytics Layer** - Time-series queries, materialized views
+- **Sync**: `python scripts/sync_annotations.py` (runs in pipeline)
+
+**Helper Functions:**
+```sql
+-- Get annotations for a specific date
+SELECT * FROM annotations_for_date('2026-01-04');
+
+-- Get active issues (ongoing or current)
+SELECT * FROM active_data_issues;
+```
+
+**Current Annotations:**
+| Date | Metric | Reason | Status |
+|------|--------|--------|--------|
+| Jan 3-5, 2026 | hrv | expected | bounded (The Fifty workout) |
+| Dec 7, 2025 → | sleep | device_issue | **ongoing** (ring app closed) |
+| Nov 8-21, 2025 | all | surgery | bounded (knee surgery) |
+| May 14 - Dec 6, 2025 | hrv | data_quality | bounded (source cleanup) |
 
 ---
 

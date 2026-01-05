@@ -54,6 +54,10 @@ data/staging/**
 data/exports/**
 !data/exports/.gitkeep
 
+# Generated reports (coach brief PDFs, etc.)
+data/reports/**
+!data/reports/.gitkeep
+
 # Cache (temporary processing files)
 data/cache/**
 !data/cache/.gitkeep

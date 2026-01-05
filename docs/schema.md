@@ -1,6 +1,6 @@
 # Arnold Neo4j Schema Reference
 
-> **Last Updated:** January 3, 2026
+> **Last Updated:** January 4, 2026 (Added Annotation node)
 
 This document describes the complete graph schema for the Arnold knowledge graph.
 
@@ -24,6 +24,7 @@ This document describes the complete graph schema for the Arnold knowledge graph
 | `EXERCISE:` | `Exercise` | `EXERCISE:Trap_Bar_Deadlift` |
 | `CANONICAL:FFDB:` | `Exercise` | `CANONICAL:FFDB:846` |
 | `CUSTOM:` | `Exercise` | `CUSTOM:Boxing` |
+| `ann-` | `Annotation` | `ann-ef0421e4-b6a2-4aa7-9123-fbbf82b1f19b` |
 | *(no prefix)* | `Workout`, `WorkoutBlock`, `Set` | Raw UUID |
 
 **Note:** Executed workouts (`Workout`, `WorkoutBlock`, `Set`) use raw UUIDs without prefixes. Planned items use prefixes to distinguish them at a glance.
@@ -571,6 +572,63 @@ RETURN DISTINCT mp.name
 
 ---
 
+## Annotation Layer
+
+Annotations provide context for data gaps, outliers, and expected variations. They are the **source of truth in Neo4j** and sync to Postgres for analytics.
+
+### Annotation
+
+```cypher
+(:Annotation {
+  id: string,                    // 'ann-' + uuid
+  annotation_date: date,         // Start date
+  date_range_end: date | null,   // End date (null = ongoing)
+  target_type: string,           // 'biometric', 'workout', 'training', 'general'
+  target_metric: string,         // 'hrv', 'sleep', 'rhr', 'all', etc.
+  reason_code: string,           // See codes below
+  explanation: string,           // Human-readable context
+  tags: [string],                // For retrieval
+  created_at: datetime,
+  created_by: string,            // 'user', 'system'
+  is_active: boolean
+})
+```
+
+**Reason Codes:**
+- `device_issue` — Sensor malfunction, app not syncing, battery dead
+- `travel` — Away from home, different timezone, equipment unavailable
+- `illness` — Sick, recovery from illness
+- `surgery` — Medical procedure, post-op recovery
+- `injury` — Active injury affecting training
+- `event` — Race, competition, special occasion
+- `expected` — Normal variation (e.g., HRV drop after hard workout)
+- `data_quality` — Known data issue, source confusion, cleanup note
+- `deload` — Planned recovery week
+- `life` — Work stress, family, schedule disruption
+
+**Relationships:**
+```cypher
+(:Person)-[:HAS_ANNOTATION]->(:Annotation)
+(:Annotation)-[:EXPLAINS {relationship_type}]->(:Workout)      // e.g., "caused_by"
+(:Annotation)-[:EXPLAINS {relationship_type}]->(:Injury)       // e.g., "documents"
+(:Annotation)-[:EXPLAINS {relationship_type}]->(:PlannedWorkout)
+```
+
+**Current Annotations (4):**
+| Date Range | Metric | Reason | Explains |
+|------------|--------|--------|----------|
+| Jan 3-5, 2026 | hrv | expected | Workout: "The Fifty" |
+| Dec 7 → ongoing | sleep | device_issue | (gap explanation) |
+| Nov 8-21, 2025 | all | surgery | Injury: "Knee Surgery" |
+| May 14 - Dec 6, 2025 | hrv | data_quality | (source cleanup note) |
+
+**Sync to Postgres:**
+```bash
+python scripts/sync_annotations.py  # Part of sync_pipeline.py
+```
+
+---
+
 ## Equipment Layer
 
 ### EquipmentInventory
@@ -614,6 +672,7 @@ CREATE CONSTRAINT training_level_id FOR (tl:TrainingLevel) REQUIRE tl.id IS UNIQ
 CREATE CONSTRAINT block_id FOR (b:Block) REQUIRE b.id IS UNIQUE;
 CREATE CONSTRAINT workout_id FOR (w:Workout) REQUIRE w.id IS UNIQUE;
 CREATE CONSTRAINT injury_id FOR (i:Injury) REQUIRE i.id IS UNIQUE;
+CREATE CONSTRAINT annotation_id FOR (a:Annotation) REQUIRE a.id IS UNIQUE;
 
 // Indexes
 CREATE INDEX exercise_name FOR (e:Exercise) ON (e.name);

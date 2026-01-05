@@ -10,12 +10,14 @@ Usage:
     python scripts/sync_pipeline.py --dry-run    # Show what would run
 
 Steps (in order):
-    1. polar     - Import new Polar HR exports from data/raw/
-    2. ultrahuman - Fetch new data from Ultrahuman API (if configured)
-    3. apple     - Import Apple Health exports from data/staging/
-    4. neo4j     - Sync workouts from Neo4j to Postgres
-    5. clean     - Run outlier detection on biometrics
-    6. refresh   - Refresh Postgres materialized views
+    1. polar       - Import new Polar HR exports from data/raw/
+    2. ultrahuman  - Fetch new data from Ultrahuman API (if configured)
+    3. fit         - Import FIT files (Suunto/Garmin/Wahoo) from data/raw/
+    4. apple       - Import Apple Health exports from data/staging/
+    5. neo4j       - Sync workouts from Neo4j to Postgres
+    6. annotations - Sync annotations from Neo4j to Postgres  
+    7. clean       - Run outlier detection on biometrics
+    8. refresh     - Refresh Postgres materialized views
 
 Run via cron:
     0 6 * * * cd ~/Documents/GitHub/arnold && /opt/anaconda3/envs/arnold/bin/python scripts/sync_pipeline.py >> logs/sync.log 2>&1
@@ -130,6 +132,19 @@ def step_ultrahuman(dry_run: bool = False) -> bool:
     return run_script("sync_ultrahuman.py", dry_run=dry_run)
 
 
+def step_fit(dry_run: bool = False) -> bool:
+    """Import FIT files (Suunto/Garmin/Wahoo)."""
+    log("=== Step: FIT File Import ===")
+    
+    script_path = SCRIPTS / "import_fit_workouts.py"
+    if not script_path.exists():
+        log("import_fit_workouts.py not found, skipping", "WARN")
+        return True
+    
+    args = ["--dry-run"] if dry_run else []
+    return run_script("import_fit_workouts.py", args, dry_run=False)  # Script handles its own dry-run
+
+
 def step_apple(dry_run: bool = False) -> bool:
     """Import Apple Health exports."""
     log("=== Step: Apple Health Import ===")
@@ -148,6 +163,12 @@ def step_neo4j(dry_run: bool = False) -> bool:
     return run_script("sync_neo4j_to_postgres.py", dry_run=dry_run)
 
 
+def step_annotations(dry_run: bool = False) -> bool:
+    """Sync annotations from Neo4j to Postgres."""
+    log("=== Step: Annotations Neo4j → Postgres ===")
+    return run_script("sync_annotations.py", dry_run=dry_run)
+
+
 def step_clean(dry_run: bool = False) -> bool:
     """Run outlier detection on biometrics."""
     log("=== Step: Biometric Outlier Detection ===")
@@ -158,8 +179,17 @@ def step_refresh(dry_run: bool = False) -> bool:
     """Refresh Postgres materialized views."""
     log("=== Step: Refresh Materialized Views ===")
     
+    # Order matters: base views first, then dependent views
+    views_to_refresh = [
+        "training_load_daily",    # Base view: training load with ACWR
+        "readiness_daily",        # Base view: daily readiness metrics
+        "biometric_trends",       # Dependent: rolling averages for biometrics
+        "training_trends",        # Dependent: weekly training comparisons
+        "coach_brief_snapshot",   # Dependent: single-row snapshot for reports
+    ]
+    
     if dry_run:
-        log("Would refresh: training_load_daily, readiness_daily", "DRY-RUN")
+        log(f"Would refresh: {', '.join(views_to_refresh)}", "DRY-RUN")
         return True
     
     try:
@@ -167,15 +197,13 @@ def step_refresh(dry_run: bool = False) -> bool:
         conn = psycopg2.connect("postgresql://brock@localhost:5432/arnold_analytics")
         cur = conn.cursor()
         
-        log("Refreshing training_load_daily...")
-        cur.execute("REFRESH MATERIALIZED VIEW training_load_daily;")
-        
-        log("Refreshing readiness_daily...")
-        cur.execute("REFRESH MATERIALIZED VIEW readiness_daily;")
+        for view in views_to_refresh:
+            log(f"Refreshing {view}...")
+            cur.execute(f"REFRESH MATERIALIZED VIEW {view};")
         
         conn.commit()
         conn.close()
-        log("Views refreshed")
+        log(f"All {len(views_to_refresh)} views refreshed")
         return True
     except Exception as e:
         log(f"Failed to refresh views: {e}", "ERROR")
@@ -186,13 +214,15 @@ def step_refresh(dry_run: bool = False) -> bool:
 STEPS = {
     "polar": step_polar,
     "ultrahuman": step_ultrahuman,
+    "fit": step_fit,
     "apple": step_apple,
     "neo4j": step_neo4j,
+    "annotations": step_annotations,
     "clean": step_clean,
     "refresh": step_refresh,
 }
 
-STEP_ORDER = ["polar", "ultrahuman", "apple", "neo4j", "clean", "refresh"]
+STEP_ORDER = ["polar", "ultrahuman", "fit", "apple", "neo4j", "annotations", "clean", "refresh"]
 
 
 def main():

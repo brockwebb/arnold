@@ -203,8 +203,14 @@ def extract_biometrics(api_response: dict, date_str: str) -> list:
     if "Sleep" in metrics:
         obj = metrics["Sleep"]
         
+        # Helper to safely get numeric value
+        def safe_numeric(val):
+            if isinstance(val, (int, float)) and not isinstance(val, bool):
+                return val
+            return None
+        
         # Total sleep time
-        total_min = obj.get("total_sleep_minutes") or obj.get("total_sleep") or obj.get("duration_minutes")
+        total_min = safe_numeric(obj.get("total_sleep_minutes") or obj.get("total_sleep") or obj.get("duration_minutes"))
         if total_min is not None:
             readings.append({
                 "date": date_str,
@@ -213,7 +219,7 @@ def extract_biometrics(api_response: dict, date_str: str) -> list:
             })
         
         # Deep sleep
-        deep_min = obj.get("deep_sleep_minutes") or obj.get("deep_sleep")
+        deep_min = safe_numeric(obj.get("deep_sleep_minutes") or obj.get("deep_sleep"))
         if deep_min is not None:
             readings.append({
                 "date": date_str,
@@ -222,7 +228,7 @@ def extract_biometrics(api_response: dict, date_str: str) -> list:
             })
         
         # REM sleep
-        rem_min = obj.get("rem_sleep_minutes") or obj.get("rem_sleep")
+        rem_min = safe_numeric(obj.get("rem_sleep_minutes") or obj.get("rem_sleep"))
         if rem_min is not None:
             readings.append({
                 "date": date_str,
@@ -231,7 +237,7 @@ def extract_biometrics(api_response: dict, date_str: str) -> list:
             })
         
         # Sleep score
-        sleep_score = obj.get("sleep_score") or obj.get("score")
+        sleep_score = safe_numeric(obj.get("sleep_score") or obj.get("score"))
         if sleep_score is not None:
             readings.append({
                 "date": date_str,
@@ -278,7 +284,14 @@ def upsert_biometrics(readings: list):
     cur = conn.cursor()
     
     # Prepare rows: (reading_date, metric_type, value, source)
-    rows = [(r['date'], r['metric_type'], float(r['value']), 'ultrahuman') for r in readings]
+    # Filter out any readings where value is not a number
+    rows = []
+    for r in readings:
+        val = r['value']
+        if isinstance(val, (int, float)) and not isinstance(val, bool):
+            rows.append((r['date'], r['metric_type'], float(val), 'ultrahuman'))
+        else:
+            print(f"  Skipping {r['metric_type']} on {r['date']}: value is {type(val).__name__}, not number")
     
     # Upsert
     sql = """

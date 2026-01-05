@@ -2,7 +2,7 @@
 
 > **Purpose**: This document is the authoritative reference for Arnold's architecture. It serves as context handoff between conversation threads and the north star for development decisions.
 
-> **Last Updated**: January 2, 2026 (Exercise Matching Architecture Complete)
+> **Last Updated**: January 5, 2026 (Journal System Complete)
 
 ---
 
@@ -48,19 +48,15 @@ Claude orchestrates specialist agents, each with domain expertise:
 
 Arnold (Coach) is the first specialist. Others follow the same pattern: MCP tools + Neo4j storage + Claude reasoning.
 
-### Data Sources (Future)
+### Data Sources (Current)
 
-| Source | Data Type | Priority |
-|--------|-----------|----------|
-| Apple Health | Sleep, HRV, resting HR, steps, activity | High |
-| Garmin/Strava | Runs, rides, GPS, training load | High |
-| Blood work | Biomarkers, panels, trends | High |
-| Medical records | Diagnoses, procedures, medications | Medium |
-| Nutrition | Macros, micros, meal timing | Medium |
-| Body composition | Weight, body fat, measurements | Medium |
-| Subjective | Energy, mood, stress, notes | Medium |
-| Genome | 23andMe, ancestry, health risks | Low |
-| Wearables | Continuous glucose, Oura, Whoop | Low |
+| Source | Data Type | Method | Status |
+|--------|-----------|--------|--------|
+| Ultrahuman API | Sleep, HRV, resting HR, temp, recovery | Automated daily | ✅ Live |
+| Polar Export | HR sessions, TRIMP, zones | Manual weekly | ✅ Live |
+| Apple Health | Medical records, labs, BP, meds | Manual monthly | ✅ Live |
+| Race History | Historical performance (114 races, 2005-2023) | One-time import | ✅ Done |
+| Neo4j Workouts | Training structure, exercises | Automated sync | ✅ Live |
 
 ### Why This Matters
 
@@ -177,6 +173,80 @@ Arnold works with what he has. Data gaps are expected (ring left on charger, sen
 
 The `data_completeness` field in daily_metrics (0-4) signals how much Arnold knows about any given day.
 
+### Data Annotation System
+
+Data gaps and anomalies need context. The annotation system provides explanations that:
+1. **Reduce false positives** — Don't alarm on explained gaps
+2. **Preserve institutional knowledge** — "Why does the data look like this?"
+3. **Enable graph relationships** — Link explanations to actual workouts, injuries, plans
+
+**Architecture:**
+```
+┌─────────────────────────────────────────────────────────────┐
+│                         NEO4J                                │
+│                   (Source of Truth)                          │
+│                                                              │
+│  (Person)──[:HAS_ANNOTATION]──>(Annotation)                 │
+│                                      │                       │
+│                              [:EXPLAINS]                     │
+│                                      │                       │
+│                    ┌─────────────────┼─────────────────┐    │
+│                    ▼                 ▼                 ▼    │
+│               (Workout)         (Injury)        (PlannedWorkout)│
+└─────────────────────────────────────────────────────────────┘
+                          │
+                    sync_annotations.py
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│                       POSTGRES                               │
+│                   (Analytics Layer)                          │
+│                                                              │
+│  data_annotations table                                      │
+│  ├── annotations_for_date() function                        │
+│  ├── active_data_issues view                                │
+│  └── Coach Brief report integration                         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Neo4j Annotation Schema:**
+```cypher
+(:Annotation {
+    id: STRING,                    // 'ann-' + uuid
+    annotation_date: DATE,
+    date_range_end: DATE | null,   // null = ongoing
+    target_type: STRING,           // 'biometric', 'workout', 'training', 'general'
+    target_metric: STRING,         // 'hrv', 'sleep', 'all', etc.
+    reason_code: STRING,           // device_issue, surgery, expected, etc.
+    explanation: STRING,
+    tags: [STRING],
+    is_active: BOOLEAN
+})
+
+// Relationships
+(Person)-[:HAS_ANNOTATION]->(Annotation)
+(Annotation)-[:EXPLAINS {relationship_type}]->(Workout|Injury|PlannedWorkout)
+```
+
+**Reason Codes:**
+- `device_issue` — Sensor malfunction, app not syncing
+- `surgery` — Medical procedure, post-op recovery  
+- `injury` — Active injury affecting training
+- `expected` — Normal variation (e.g., HRV drop after hard workout)
+- `data_quality` — Known data issue, source confusion
+- `travel`, `illness`, `deload`, `life` — Other common reasons
+
+**Usage:**
+```sql
+-- Get annotations for today
+SELECT * FROM annotations_for_date(CURRENT_DATE);
+
+-- Active issues for coach brief
+SELECT * FROM active_data_issues;
+```
+
+See **[DATA_DICTIONARY.md](./DATA_DICTIONARY.md)** for full schema details.
+
 ### The Coach Proactively Assesses
 
 Before any planning or response, Arnold should internally:
@@ -216,6 +286,177 @@ The athlete didn't ask about their HRV. Arnold checked anyway. That's coaching.
 - "Why?" → reasoning layer
 - "Show me the data" → full derivation
 - "How confident are you?" → uncertainty quantification
+
+---
+
+## System Architecture
+
+### Data Layer Separation: The Right Brain / Left Brain Model
+
+> **Key Insight (ADR-001):** Neo4j stores *relationships and meaning*. Postgres stores *measurements and facts*.
+
+Arnold uses a hybrid database architecture where each system handles what it does best:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    POSTGRES (Left Brain)                     │
+│              Measurements, Facts, Time-Series                │
+│                                                              │
+│  biometric_readings    - HRV, RHR, sleep, temp              │
+│  endurance_sessions    - FIT imports (runs, rides)          │
+│  endurance_laps        - Per-lap splits                     │
+│  hr_samples            - Beat-by-beat (optional)            │
+│  lab_results           - Blood panels, clinical data        │
+│  medications           - Current and historical             │
+│  race_history          - Competition results                │
+│  log_entries           - Journal/subjective data            │
+│  data_annotations      - Time-series context                │
+│                                                              │
+│  SQL, aggregations, materialized views, analytics           │
+└─────────────────────────────┬───────────────────────────────┘
+                              │
+                         FK references
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                     NEO4J (Right Brain)                      │
+│              Relationships, Semantics, Knowledge             │
+│                                                              │
+│  Person, Goal, Modality, Block    - Training structure      │
+│  Exercise, MovementPattern, Muscle - Knowledge base         │
+│  Injury, Constraint, Protocol      - Medical context        │
+│  Annotation (relationships)        - Explanatory links      │
+│  WorkoutRef, EnduranceWorkoutRef   - FK to Postgres         │
+│                                                              │
+│  Graph traversals, pattern matching, "why" queries          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Query Pattern Examples:**
+
+| Question | Database | Why |
+|----------|----------|-----|
+| "Average HRV last 30 days?" | Postgres | Time-series aggregation |
+| "What modalities does this goal require?" | Neo4j | Relationship traversal |
+| "All workouts affected by knee injury?" | Neo4j → Postgres | Graph query, then fetch details |
+| "TSS trend by week?" | Postgres | Analytical rollup |
+| "Why did my performance drop Jan 3?" | Neo4j | Annotation → Workout explanation |
+
+**The Bridge Pattern:**
+
+When data needs to exist in both systems, Postgres holds the detail and Neo4j holds a lightweight reference:
+
+```
+Postgres                              Neo4j
+┌──────────────────────┐            ┌──────────────────────┐
+│ endurance_sessions   │            │ (:EnduranceWorkout)  │
+│ id: 12345            │◄──── FK ───►│ postgres_id: 12345   │
+│ date, distance, tss  │            │ date (for queries)   │
+│ duration, hr, pace   │            │ [:PERFORMED]->Person │
+│ ALL the detail       │            │ [:EXPLAINS]<-Annot   │
+└──────────────────────┘            └──────────────────────┘
+```
+
+See **[ADR-001: Data Layer Separation](./adr/001-data-layer-separation.md)** for full rationale.
+
+---
+
+## Journal System (Subjective Data Capture)
+
+The journal captures **what sensors can't measure** — the subjective experience that completes the Digital Twin.
+
+### What It Captures
+
+| Category | Examples |
+|----------|----------|
+| Recovery | Fatigue levels, soreness, energy |
+| Physical | Symptoms, pain, stiffness, numbness |
+| Mental | Mood, stress, motivation |
+| Nutrition | Food, hydration, caffeine |
+| Medical | Supplements, medications, side effects |
+| Training | Workout feedback, form issues, RPE |
+
+### Architecture (ADR-001 Compliant)
+
+```
+User: "My right knee feels stiff from yesterday's run"
+                    │
+                    ▼
+            Claude extracts:
+            • symptom: stiffness
+            • location: right knee
+            • cause: running
+            • severity: notable
+                    │
+    ┌───────────────┴───────────────┐
+    ▼                               ▼
+POSTGRES (facts)              NEO4J (relationships)
+log_entries                   (:LogEntry)
+  id: 2                         │
+  raw_text: "..."           ─[:EXPLAINS]─▶ (:EnduranceWorkout)
+  extracted: {...}          ─[:RELATED_TO]─▶ (:Injury {right_knee_meniscus})
+  severity: notable
+```
+
+**Key Insight**: The graph *knows* about the knee surgery. When the user mentions "right knee" + "stiffness", the relationship to the injury is automatic — no rules, no keywords, just graph traversal.
+
+### Relationship Types
+
+| Relationship | Direction | Meaning |
+|--------------|-----------|--------|
+| `EXPLAINS` | LogEntry → Workout | Entry explains workout performance |
+| `AFFECTS` | LogEntry → PlannedWorkout | Entry should influence future plan |
+| `RELATED_TO` | LogEntry → Injury | Entry relates to injury |
+| `INFORMS` | LogEntry → Goal | Entry provides goal insight |
+| `DOCUMENTS` | LogEntry → Symptom | Entry documents symptom pattern |
+| `MENTIONS` | LogEntry → Supplement | Entry mentions supplement |
+
+### MCP Tools (arnold-journal-mcp)
+
+**Entry Creation**:
+- `log_entry` — Create entry with Claude-extracted structured data
+
+**Relationship Creation**:
+- `link_to_workout` — EXPLAINS a past workout
+- `link_to_plan` — AFFECTS a future plan  
+- `link_to_injury` — RELATED_TO an injury
+- `link_to_goal` — INFORMS a goal
+
+**Retrieval (Postgres)**:
+- `get_recent_entries` — Last N days
+- `get_unreviewed_entries` — For coach/doc briefings
+- `get_entries_by_severity` — Notable/concerning/urgent
+- `search_entries` — Filter by tags, type, category
+
+**Retrieval (Neo4j)**:
+- `get_entries_for_workout` — All entries explaining a workout
+- `get_entries_for_injury` — All entries related to an injury
+- `get_entries_with_relationships` — Entries with all their links
+
+**Discovery**:
+- `find_workouts_for_date` — Find workouts to link
+- `get_active_injuries` — Find injuries to link
+- `get_active_goals` — Find goals to link
+
+### Severity Levels
+
+| Level | Meaning | Action |
+|-------|---------|--------|
+| `info` | Routine observation | Log only |
+| `notable` | Worth tracking | Include in briefings |
+| `concerning` | Needs attention | Flag for review |
+| `urgent` | Immediate action | Alert |
+
+### Usage Flow
+
+1. User shares observation naturally: *"Legs are toast from yesterday's run"*
+2. Claude extracts structured data (fatigue level, body part, cause)
+3. `log_entry` creates Postgres record + Neo4j node
+4. Claude finds related entities (yesterday's workout, any injuries)
+5. `link_to_*` tools create graph relationships
+6. Entry appears in future briefings with full context
+
+See `/src/arnold-journal-mcp/README.md` for full documentation.
 
 ---
 
@@ -1305,22 +1546,46 @@ The coach must answer:
 
 | MCP | Role | Status |
 |-----|------|--------|
+| **arnold-journal-mcp** | Subjective data capture, relationship linking | ✅ Operational |
 | **arnold-profile-mcp** | Person, equipment, observations, activities | ✅ Operational |
 | **arnold-training-mcp** | Planning, exercise selection, workout logging | ✅ Operational |
-| **arnold-memory-mcp** | Context management, briefings, observations | ✅ **Operational** |
+| **arnold-memory-mcp** | Context management, briefings, observations | ✅ Operational |
+| **arnold-analytics-mcp** | Metrics, trends, readiness, red flags | ✅ Operational |
 | **neo4j-mcp** | Direct graph queries | ✅ External |
+| **postgres-mcp** | Analytics queries, index tuning | ✅ External |
 
 ### To Build (The Team)
 
 | MCP | Persona | Role | Priority |
 |-----|---------|------|----------|
-| **arnold-analytics-mcp** | Analyst | Metrics, trends, reports, visualizations | 🔴 High |
 | **arnold-medical-mcp** | Doc | Health tracking, symptoms, labs, rehab | 🟡 Medium |
 | **arnold-checkin-mcp** | Coach | Structured check-ins, progress reviews | 🟡 Medium |
 | **arnold-research-mcp** | Researcher | Literature search, protocol recommendations | 🟢 Low |
 | **arnold-scribe-mcp** | Scribe | Journaling, reflection, thought capture | 🟢 Low |
 
 ### Tool Distribution
+
+**arnold-journal-mcp**
+```
+// Entry Creation
+log_entry
+
+// Relationship Creation  
+link_to_workout, link_to_plan, link_to_injury, link_to_goal
+
+// Retrieval (Postgres - Facts)
+get_recent_entries, get_unreviewed_entries, get_entries_by_severity
+get_entries_for_date, search_entries
+
+// Retrieval (Neo4j - Relationships)
+get_entries_for_workout, get_entries_for_injury, get_entries_with_relationships
+
+// Discovery
+find_workouts_for_date, get_active_injuries, get_active_goals
+
+// Management
+update_entry, mark_reviewed
+```
 
 **arnold-profile-mcp**
 ```
@@ -1370,13 +1635,13 @@ get_checkin_history  # What we discussed, decisions made
 
 ## Data Model Summary
 
-### Graph Health (as of Dec 30, 2025)
+### Graph Health (as of Jan 4, 2026)
 
 | Node Type | Count |
 |-----------|-------|
 | Exercise | 4,242 |
-| Workout | 163 |
-| Set | 2,445 |
+| Workout | 165 |
+| Set | 2,500+ |
 | MovementPattern | 28 |
 | Modality | 14 |
 | Goal | 4 |
@@ -1388,6 +1653,7 @@ get_checkin_history  # What we discussed, decisions made
 | Injury | 2 |
 | MobilityLimitation | 1 |
 | Protocol | 10 |
+| **Annotation** | **4** |
 | Person | 1 |
 
 ### Key Relationships
@@ -1405,6 +1671,8 @@ get_checkin_history  # What we discussed, decisions made
 | (Person)-[:HAS_BLOCK]->(Block) | Person's training blocks |
 | (Block)-[:SERVES]->(Goal) | Block serves goal(s) |
 | (Block)-[:HAS_SESSION]->(PlannedWorkout) | Sessions in block |
+| (Person)-[:HAS_ANNOTATION]->(Annotation) | Data context/explanations |
+| (Annotation)-[:EXPLAINS]->(Workout\|Injury) | What the annotation documents |
 
 ---
 
@@ -1623,10 +1891,11 @@ The system advises; the human decides. Coach makes recommendations, athlete has 
 │   ├── schema.md                # Detailed Neo4j schema
 │   └── ...
 ├── src/
+│   ├── arnold-journal-mcp/      # Subjective data capture + relationships
 │   ├── arnold-profile-mcp/      # Profile management
 │   ├── arnold-training-mcp/     # Training/coaching
 │   ├── arnold-memory-mcp/       # Context management + semantic search
-│   └── arnold-analytics-mcp/    # (Future) Analytics + reporting
+│   └── arnold-analytics-mcp/    # Analytics + reporting
 ├── data/                        # .gitignored, PII
 │   ├── staging/                 # Raw imports (Parquet)
 │   │   ├── neo4j_export/

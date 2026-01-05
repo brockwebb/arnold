@@ -1,379 +1,269 @@
 # Arnold Project - Thread Handoff
 
-> **Last Updated**: January 4, 2026 (Unified Sync Pipeline + Ultrahuman API)
-> **Previous Thread**: Data Quality Pipeline + Ultrahuman Integration
-> **Compactions in Previous Thread**: 2
+> **Last Updated**: January 4, 2026 (Journal System Complete)
+> **Previous Thread**: ADR-001 Data Layer Separation + Journal System
+> **Compactions in Previous Thread**: 0
 
 ---
 
 ## New Thread Start Here
 
-**Context**: You're continuing development of Arnold, an AI-native fitness coaching system. The analytics layer is now fully operational with Postgres backend, automated sync pipeline, and Ultrahuman API integration. Data quality infrastructure (sensor error detection, flag overrides) is in place.
+**Context**: Arnold is an AI-native fitness coaching system with a dual-database architecture. The **Journal System** was just completed, enabling subjective data capture with automatic graph-based relationship linking.
 
 **Quick Start**:
 ```
 1. Read this file (you're doing it)
 2. Call arnold-memory:load_briefing (gets athlete context, goals, current block)
-3. Run sync pipeline: python scripts/sync_pipeline.py
+3. Check recent journal entries: arnold-journal:get_recent_entries
 4. Check red flags: arnold-analytics:check_red_flags
 ```
 
-**If you need more context**: Read `/docs/ARCHITECTURE.md` and `/docs/issues/003-postgres-analytics-layer.md`
+**If you need more context**: Read `/docs/ARCHITECTURE.md` and the ADRs in `/docs/adr/`
 
 ---
 
 ## Current System State
 
-### Data Pipeline (Operational)
+### Architecture: Dual-Database (ADR-001)
 
-```bash
-# Single command to sync all data sources
-python scripts/sync_pipeline.py
-
-# Steps executed:
-# 1. polar      - Import new Polar HR exports
-# 2. ultrahuman - Fetch from Ultrahuman API (daily)
-# 3. apple      - Import Apple Health exports (periodic)
-# 4. neo4j      - Sync workouts Neo4j → Postgres
-# 5. clean      - Run sensor error detection on biometrics
-# 6. refresh    - Refresh Postgres materialized views
+```
+POSTGRES (Left Brain)                NEO4J (Right Brain)
+Facts, Measurements, Time-series     Relationships, Semantics, Knowledge
+─────────────────────────────────    ─────────────────────────────────
+• biometric_readings                 • Exercises → MovementPatterns → Muscles
+• endurance_sessions                 • Goals → Modalities → Blocks
+• log_entries (journal)              • Injuries → Constraints
+• strength_sets (future ADR-002)     • LogEntry → EXPLAINS → Workout
+• race_history                       • LogEntry → RELATED_TO → Injury
 ```
 
-### Data Sources & Priority
-
-| Source | Method | Data | Frequency | Priority |
-|--------|--------|------|-----------|----------|
-| **Ultrahuman API** | Automated | Ring biometrics (HRV, RHR, sleep, temp) | Daily | Primary for ring data |
-| **Polar Export** | Manual | HR sessions, TRIMP, zones | Weekly | Primary for workout HR |
-| **Race History** | One-time | Historical performance | Done | Reference |
-| **Apple Health** | Manual | Medical records, labs, BP, meds | Monthly | Secondary/archival |
-
-**Key Decision**: Ultrahuman API wins over Apple Health for ring metrics. Same underlying data, but API is automated and we control the import.
-
-### Database State
-
-**Postgres (`arnold_analytics`)**:
-| Table/View | Rows | Purpose |
-|------------|------|---------|
-| `workout_summaries` | 165 | Denormalized from Neo4j |
-| `polar_sessions` | 61 | HR monitor data |
-| `hr_samples` | 167K | Second-by-second HR |
-| `biometric_readings` | 2,852 | HRV, RHR, sleep, temp, etc. |
-| `race_history` | (new) | Historical race results |
-| `flag_overrides` | 1 | Acknowledged issues (post-surgery ACWR) |
-| `readiness_daily` | view | Aggregated readiness by date |
-| `daily_status` | view | Everything combined |
-| `trimp_acwr` | view | HR-based training load |
-
-**Neo4j (`arnold`)**:
-- 4,242 exercises with movement patterns
-- 165 workouts with full block/set structure
-- Training plans, observations, coaching context
+**Key Insight**: Plans are intentions (Neo4j). Executions are facts (Postgres).
 
 ### MCP Roster (All Operational)
 
 | MCP | Status | Purpose |
 |-----|--------|---------|
-| arnold-profile-mcp | ✅ | Profile, equipment, activities |
-| arnold-training-mcp | ✅ | Planning, logging, execution, exercise search |
-| arnold-memory-mcp | ✅ | Context, observations, semantic search |
-| arnold-analytics-mcp | ✅ | Readiness, training load, red flags (Postgres backend) |
+| **arnold-journal** | ✅ NEW | Subjective data capture + relationship linking |
+| arnold-profile | ✅ | Profile, equipment, activities |
+| arnold-training | ✅ | Planning, logging, execution |
+| arnold-memory | ✅ | Context, observations, semantic search |
+| arnold-analytics | ✅ | Readiness, training load, red flags |
 | neo4j-mcp | ✅ | Direct graph queries |
-| postgres-mcp | ✅ | Direct SQL, index tuning, health checks |
+| postgres-mcp | ✅ | Direct SQL, health checks |
+| github | ✅ | Issue tracking, repo management |
+
+### Database Inventory
+
+**Postgres (`arnold_analytics`)**:
+| Table | Rows | Description |
+|-------|------|-------------|
+| `log_entries` | 2 | **NEW: Journal entries (facts)** |
+| `endurance_sessions` | 1 | FIT imports (runs, rides) |
+| `endurance_laps` | 10 | Per-lap splits |
+| `biometric_readings` | 2,885 | HRV, RHR, sleep, temp |
+| `workout_summaries` | 165 | Denormalized strength workouts |
+| `race_history` | 114 | 18 years of races |
+| `hr_samples` | 167,670 | Beat-by-beat HR |
+| `data_annotations` | 4 | Context for data gaps |
+
+**Neo4j (`arnold`)**:
+- 4,242 exercises with movement patterns
+- 165+ workouts with block/set structure  
+- LogEntry nodes with relationship links
+- Training plans, goals, injuries, constraints
 
 ---
 
-## Recent Completions
+## Today's Session (January 4-5, 2026)
 
-### Unified Sync Pipeline (Jan 4, 2026)
+### Completed ✅
 
-**Problem**: Multiple import scripts, manual execution, error-prone.
+1. **ADR-001: Data Layer Separation**
+   - Postgres = measurements, facts, time-series (LEFT BRAIN)
+   - Neo4j = relationships, semantics, knowledge (RIGHT BRAIN)
+   - See `/docs/adr/001-data-layer-separation.md`
 
-**Solution**: Single orchestration script with modular connectors.
+2. **ADR-002: Strength Workout Migration** (documented, pending implementation)
+   - Plans stay in Neo4j (prescriptive)
+   - Executed sets move to Postgres (descriptive)
+   - See `/docs/adr/002-strength-workout-migration.md`
 
-**Files**:
-- `scripts/sync_pipeline.py` — Orchestrator
-- `scripts/sync_ultrahuman.py` — Ultrahuman API connector
-- `scripts/import_polar_sessions.py` — Polar export parser
-- `scripts/import_apple_health.py` — Apple Health parser
-- `scripts/clean_biometrics.py` — Sensor error detection
+3. **Migration 008: Endurance Sessions**
+   - `endurance_sessions` and `endurance_laps` tables
+   - FIT importer refactored to Postgres-first
+   - Lightweight `EnduranceWorkout` reference nodes in Neo4j
 
-**Usage**:
-```bash
-python scripts/sync_pipeline.py              # Full sync
-python scripts/sync_pipeline.py --step polar # Single step
-python scripts/sync_pipeline.py --skip apple # Skip step
-python scripts/sync_pipeline.py --dry-run    # Preview
-```
+4. **Migration 009: Journal System** 🎉
+   - `log_entries` table in Postgres (facts)
+   - `LogEntry` nodes in Neo4j (relationships)
+   - 17 MCP tools for full CRUD + relationship management
+   - **Automatic linking**: Mention "right knee" → links to knee surgery injury
 
-**Cron** (recommended):
-```bash
-0 6 * * * cd ~/Documents/GitHub/arnold && python scripts/sync_pipeline.py >> logs/sync.log 2>&1
-```
+5. **Logged 10.01mi run** (2026-01-04)
+   - Postgres: `endurance_sessions.id = 1`
+   - Neo4j: `EnduranceWorkout` with postgres_id reference
 
-### Ultrahuman API Integration (Jan 4, 2026)
+6. **First journal entries**
+   - Entry #1: Leg soreness (DOMS) → EXPLAINS workout
+   - Entry #2: Right knee stiffness → EXPLAINS workout + RELATED_TO injury
 
-**API**: `https://partner.ultrahuman.com/api/v1/metrics`
+### Key Files Created This Session
 
-**Credentials** (in `.env`):
-```
-ULTRAHUMAN_AUTH_TOKEN=eyJhbGciOiJIUzI1NiJ9...
-ULTRAHUMAN_USER_EMAIL=brockwebb45@gmail.com
-```
-
-**Data extracted**: HRV, resting HR, sleep stages, temperature, recovery score, VO2 max, steps, movement index.
-
-**Manual fetch**:
-```bash
-python scripts/sync_ultrahuman.py --days 7 --dry-run
-python scripts/sync_ultrahuman.py --test  # API connection test
-```
-
-### Data Quality Infrastructure (Jan 4, 2026)
-
-**Sensor Error Detection** (`clean_biometrics.py`):
-- Uses physiological bounds, NOT statistical outliers
-- Only flags values outside human possibility (sensor errors)
-- Preserves natural variance (HRV 50-167 is normal for endurance athlete)
-
-| Metric | Bounds | Rationale |
-|--------|--------|-----------|
-| HRV | 15-250 ms | Below 15 = sensor failure |
-| Resting HR | 35-100 bpm | Below 35 = bad contact |
-| Temperature | 28-40°C | Outside = ambient/sensor |
-
-**Schema additions**:
-```sql
--- biometric_readings columns
-is_outlier BOOLEAN DEFAULT FALSE
-cleaned_value NUMERIC           -- Imputed value (original preserved in `value`)
-imputation_method VARCHAR(50)
-imputation_note TEXT
-```
-
-**Current sensor errors**: 7 flagged (out of 2,852 readings)
-
-**Flag Overrides** (`flag_overrides` table):
-```sql
--- Suppress expected warnings
-INSERT INTO flag_overrides (flag_type, context, reason, expires_at)
-VALUES ('acwr', 'post_surgery_ramp', 'Expected high ACWR during post-surgery rebuild', '2026-03-01');
-```
-
-### Source Deduplication (Jan 4, 2026)
-
-**Problem**: Same data coming through two paths (Ultrahuman API + Apple Health import via Ultrahuman sync). Case mismatch: `'ultrahuman'` vs `'Ultrahuman'`.
-
-**Solution**: Normalized all to lowercase, deleted duplicates, Ultrahuman API is canonical source for ring data.
-
-**Result**: Single clean source (`ultrahuman`) with 2,852 readings.
-
-### Analytics MCP Migration (Jan 4, 2026)
-
-**Completed**: All 5 tools now query Postgres instead of DuckDB.
-
-| Tool | Status |
-|------|--------|
-| `get_readiness_snapshot` | ✅ Postgres |
-| `get_training_load` | ✅ Postgres |
-| `get_exercise_history` | ✅ Postgres |
-| `check_red_flags` | ✅ Postgres (respects flag_overrides) |
-| `get_sleep_analysis` | ✅ Postgres |
+| File | Purpose |
+|------|---------|
+| `docs/adr/001-data-layer-separation.md` | Postgres vs Neo4j responsibilities |
+| `docs/adr/002-strength-workout-migration.md` | Planned migration for strength data |
+| `scripts/migrations/008_endurance_sessions.sql` | Endurance tables |
+| `scripts/migrations/009_journal_system.sql` | Journal tables |
+| `src/arnold-journal-mcp/` | Complete MCP with 17 tools |
 
 ---
 
-## Data Lake Structure
+## Journal System Overview
+
+The journal captures **subjective data that sensors can't measure**:
+- Fatigue, soreness, energy levels
+- Symptoms (pain, dizziness, numbness)
+- Nutrition, hydration, caffeine
+- Supplements, medications
+- Workout feedback
+- Mood, stress, mental state
+
+### Architecture
 
 ```
-data/
-├── raw/                          # Device exports (git-ignored)
-│   ├── polar/                    # YYYYMMDD--export/
-│   ├── ultrahuman/               # manual_export_*.csv
-│   └── apple_health/             # YYYYMMDD--export.xml
-├── staging/                      # Parsed/cleaned, pre-Postgres
-├── exports/                      # Generated reports
-└── cache/                        # Temporary processing
+User: "My right knee feels stiff from yesterday's run"
+                    ↓
+            Claude extracts:
+            - symptom: stiffness
+            - location: right knee  
+            - cause: running
+            - severity: notable
+                    ↓
+    ┌───────────────┴───────────────┐
+    ↓                               ↓
+POSTGRES (facts)              NEO4J (relationships)
+log_entries                   (:LogEntry)
+  id: 2                         ↓
+  raw_text: "..."           -[:EXPLAINS]→ (:EnduranceWorkout)
+  extracted: {...}          -[:RELATED_TO]→ (:Injury {name: "right_knee_meniscus"})
+  severity: notable
 ```
 
-**Naming convention**: `YYYYMMDD--source-description`
+### Key Tools
+
+| Tool | Purpose |
+|------|---------|
+| `log_entry` | Create entry (Postgres + Neo4j) |
+| `link_to_workout` | Entry EXPLAINS a workout |
+| `link_to_injury` | Entry RELATED_TO an injury |
+| `link_to_plan` | Entry AFFECTS a future plan |
+| `link_to_goal` | Entry INFORMS a goal |
+| `get_recent_entries` | Last N days of entries |
+| `get_entries_for_workout` | All entries explaining a workout |
+
+---
+
+## Next Priorities
+
+| Priority | Item | Notes |
+|----------|------|-------|
+| 1 | **ADR-002 Implementation** | Migrate strength sets to Postgres |
+| 2 | Daily cron (#2) | Automate sync pipeline |
+| 3 | Plan Templates (#8) | Library of workout templates |
+| 4 | Email Integration (#9) | Journal entries via email |
+
+---
+
+## Open GitHub Issues
+
+| # | Title | Priority |
+|---|-------|----------|
+| [#2](https://github.com/brockwebb/arnold/issues/2) | Set up daily cron for sync pipeline | Medium |
+| [#3](https://github.com/brockwebb/arnold/issues/3) | Apple Health: skip Ultrahuman metrics | Low |
+| [#8](https://github.com/brockwebb/arnold/issues/8) | Plan Templates Library | Medium |
+| [#9](https://github.com/brockwebb/arnold/issues/9) | Email Integration (Future) | Low |
+
+**Recently Closed:**
+- #4 ✅ HRV algorithm discrepancy
+- #5 ✅ Coach Brief Report System
+- #6 ✅ Data Annotation System
+- #7 ✅ **Journal System** (just completed!)
 
 ---
 
 ## Athlete Context (Brock)
 
 - **Age**: 50 (turned 50 January 2, 2026)
-- **Background**: 35 years martial arts, 18 years ultrarunning, desk job
+- **Background**: 35 years martial arts, 18 years ultrarunning
 - **Recent**: Knee surgery November 2025, cleared for normal activity
-- **Goals**: Deadlift 405x5, Hellgate 100k, 10 pain-free ring dips by June 2026
-- **Race history**: 40+ ultras including 100-milers (Old Dominion, Massanutten, Grindstone)
-- **Training philosophy**: Evidence-based, prefers substance over engagement
-
----
-
-## Architecture Summary
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                     DATA SOURCES                                │
-├─────────────────────────────────────────────────────────────────┤
-│ Ultrahuman API │ Polar Export │ Apple Health │ Race History    │
-│    (daily)     │   (weekly)   │  (monthly)   │   (one-time)    │
-└───────┬────────┴──────┬───────┴──────┬───────┴────────┬────────┘
-        │               │              │                │
-        └───────────────┴──────────────┴────────────────┘
-                                │
-                    ┌───────────▼───────────┐
-                    │   sync_pipeline.py    │
-                    │   (orchestrator)      │
-                    └───────────┬───────────┘
-                                │
-        ┌───────────────────────┼───────────────────────┐
-        │                       │                       │
-        ▼                       ▼                       ▼
-┌───────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Neo4j       │    │    Postgres      │    │ Materialized    │
-│ (structure)   │    │  (time-series)   │    │    Views        │
-├───────────────┤    ├──────────────────┤    ├─────────────────┤
-│ • Exercises   │    │ • biometrics     │    │ • readiness     │
-│ • Workouts    │    │ • HR samples     │    │ • training_load │
-│ • Plans       │    │ • Polar sessions │    │ • daily_status  │
-│ • Observations│    │ • workout_summaries│   │ • trimp_acwr    │
-└───────────────┘    └──────────────────┘    └─────────────────┘
-        │                       │                       │
-        └───────────────────────┼───────────────────────┘
-                                │
-                    ┌───────────▼───────────┐
-                    │    MCP Servers        │
-                    │ (domain logic layer)  │
-                    └───────────┬───────────┘
-                                │
-                    ┌───────────▼───────────┐
-                    │   Claude Desktop      │
-                    │   (orchestrator)      │
-                    └───────────────────────┘
-```
-
----
-
-## Reference: Core Documents
-
-```
-/docs/
-├── ARCHITECTURE.md              # System architecture (master reference)
-├── HANDOFF.md                   # This file (thread continuity)
-├── DATA_DICTIONARY.md           # Data lake reference
-├── TRAINING_METRICS.md          # Evidence-based metrics
-├── PLANNING.md                  # Planning system design
-├── schema.md                    # Neo4j schema reference
-├── mcps/                        # MCP documentation
-│   ├── README.md               # MCP boundaries and patterns
-│   ├── arnold-training.md      
-│   ├── arnold-profile.md       
-│   ├── arnold-analytics.md     
-│   └── arnold-memory.md        
-└── issues/                      # Architecture decisions
-    ├── 001-planning-tool-integrity.md   → RESOLVED
-    ├── 002-exercise-lookup-efficiency.md → RESOLVED  
-    └── 003-postgres-analytics-layer.md  → Phase 4 (pipeline operational)
-```
-
----
-
-## Common Commands
-
-### Daily Operations
-```bash
-# Full sync (run daily or after new data)
-python scripts/sync_pipeline.py
-
-# Test Ultrahuman API
-python scripts/sync_ultrahuman.py --test
-
-# Check database health
-psql arnold_analytics -c "SELECT * FROM daily_status ORDER BY date DESC LIMIT 5;"
-```
-
-### Data Import
-```bash
-# Import new Polar export
-python scripts/import_polar_sessions.py data/raw/polar/YYYYMMDD--export/
-
-# Import Ultrahuman CSV (manual export)
-python scripts/import_ultrahuman_csv.py data/raw/ultrahuman/*.csv
-
-# Import race history
-python scripts/import_race_history.py data/raw/old_race_info/brock_webb_race_history.csv
-
-# Refresh materialized views
-psql arnold_analytics -c "REFRESH MATERIALIZED VIEW readiness_daily; REFRESH MATERIALIZED VIEW training_load_daily;"
-```
-
-### Debugging
-```bash
-# Check biometric readings
-psql arnold_analytics -c "SELECT metric_type, COUNT(*), MIN(reading_date), MAX(reading_date) FROM biometric_readings GROUP BY metric_type;"
-
-# Check sensor errors
-psql arnold_analytics -c "SELECT * FROM biometric_readings WHERE is_outlier = TRUE;"
-
-# Check flag overrides
-psql arnold_analytics -c "SELECT * FROM flag_overrides WHERE expires_at IS NULL OR expires_at > CURRENT_DATE;"
-```
+- **Goals**: Deadlift 405x5, Hellgate 100k, 10 ring dips by June 2026
+- **Race history**: 114 races including 13 hundred-milers
+- **Philosophy**: Evidence-based, substance over engagement, Digital Twin vision
 
 ---
 
 ## Critical Notes for Future Claude
 
-1. **Sync pipeline is the single entry point** - Don't run individual import scripts unless debugging. Use `python scripts/sync_pipeline.py`.
+1. **ADR-001 is law** - Postgres stores facts, Neo4j stores relationships. Read the ADR before architectural decisions.
 
-2. **Ultrahuman API > Apple Health for ring data** - Same underlying source, but API is automated and we control import. Apple Health is for medical/other data.
+2. **Journal entries are dual-stored** - Facts in Postgres (`log_entries`), relationships in Neo4j (`LogEntry` nodes). Always create both.
 
-3. **Sensor error detection uses physiological bounds** - NOT statistical outliers. High variance in HRV/steps is normal. Only flag impossible values.
+3. **Graph linking is automatic** - When user mentions body parts, symptoms, or workouts, check for existing entities to link.
 
-4. **Flag overrides suppress expected warnings** - Post-surgery high ACWR is expected through March 2026. Check `flag_overrides` table before adding new warnings.
+4. **Plans vs Executions** - Plans are prescriptive (Neo4j), executions are descriptive (Postgres). Different databases.
 
-5. **Race history available** - 40+ ultras in `race_history` table. Useful context for goal-setting and performance discussions.
+5. **Post-surgery monitoring** - Knee surgery Nov 2025. Any knee-related journal entries should link to the injury.
 
-6. **Materialized views need refresh** - After biometric imports, run `REFRESH MATERIALIZED VIEW readiness_daily`. Pipeline does this automatically.
+6. **Ultrahuman is primary** for ring biometrics. Apple Health HRV uses different algorithm — not comparable.
 
-7. **Source normalization** - All biometric sources are lowercase (`ultrahuman`, `polar`, `apple_health`). Don't introduce case variants.
-
-8. **Post-surgery context** - Knee surgery November 2025, cleared for normal activity. High ACWR during ramp-up is expected, not a red flag.
+7. **Sync pipeline** - Use `python scripts/sync_pipeline.py`, not individual scripts.
 
 ---
 
-## Next Steps (Optional)
+## Common Commands
 
-### Short-term
-- [ ] Set up cron for daily sync pipeline
-- [ ] Import race history to Postgres
-- [ ] Add more flag override types as needed
+```bash
+# Daily sync
+python scripts/sync_pipeline.py
 
-### Medium-term
-- [ ] Apple Health importer: skip Ultrahuman metrics, focus on medical/other
-- [ ] Incremental Ultrahuman sync (track last sync date, fetch only new)
-- [ ] Suunto bulk dump import when available
+# Journal queries
+psql arnold_analytics -c "SELECT * FROM recent_log_entries(7);"
+psql arnold_analytics -c "SELECT * FROM unreviewed_entries();"
+psql arnold_analytics -c "SELECT * FROM entries_by_severity('notable');"
 
-### Long-term
-- [ ] HRV algorithm investigation (why Ultrahuman ≠ Apple Health values?)
-- [ ] Bayesian evidence framework for individualized pattern detection
-- [ ] Integration with additional data sources (CGM, etc.)
+# Endurance queries  
+psql arnold_analytics -c "SELECT * FROM recent_endurance_sessions(14);"
+
+# Import FIT files
+python scripts/import_fit_workouts.py
+
+# Generate coach brief
+python scripts/reports/generate_coach_brief.py
+
+# Check system health
+psql arnold_analytics -c "SELECT * FROM daily_status ORDER BY date DESC LIMIT 5;"
+```
 
 ---
 
-## FAQ
+## Reference Documents
 
-**Q: Why both Neo4j and Postgres?**
-A: Neo4j excels at relationships (exercise→muscle graphs, coaching). Postgres excels at time-series (ACWR, trends, aggregations).
+```
+/docs/
+├── ARCHITECTURE.md              # System architecture (update pending)
+├── HANDOFF.md                   # This file
+├── adr/
+│   ├── 001-data-layer-separation.md   # Postgres vs Neo4j
+│   └── 002-strength-workout-migration.md  # Planned migration
+├── issues/
+│   └── 003-postgres-analytics-layer.md
+└── mcps/
 
-**Q: Why Ultrahuman API instead of Apple Health?**
-A: Same data (ring syncs to Health), but API is automated daily. Apple Health requires manual XML export.
-
-**Q: What if ACWR is high?**
-A: Check `flag_overrides` first. Post-surgery ramp-up means high ACWR is expected through March 2026.
-
-**Q: How to add a new data source?**
-A: Create connector in `scripts/`, add step to `sync_pipeline.py`, update this doc.
-
-**Q: What if sensor error detection is wrong?**
-A: Adjust bounds in `clean_biometrics.py`. Current bounds are conservative.
+/src/
+├── arnold-journal-mcp/          # NEW: Journal system
+├── arnold-profile-mcp/
+├── arnold-training-mcp/
+├── arnold-memory-mcp/
+└── arnold-analytics-mcp/
+```
