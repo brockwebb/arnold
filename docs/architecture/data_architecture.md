@@ -274,3 +274,21 @@ The analytics MCP tools are Arnold's "left brain" — they crunch numbers, detec
 ├── sources.json                # Source registry
 └── exports/                    # Generated reports, charts
 ```
+
+---
+
+## Data Quality
+
+The `data_quality_audit.py` script validates database health:
+
+```bash
+python scripts/data_quality_audit.py          # Full audit
+python scripts/data_quality_audit.py --quick  # Skip slow checks
+```
+
+**Checks performed:**
+- Postgres: duplicates, anomalies, gaps, sync history
+- Neo4j: orphan exercises, dangling refs, coverage stats
+- Cross-database: workout count alignment
+
+See [DATA_QUALITY_AUDIT.md](../automation/DATA_QUALITY_AUDIT.md) for details.

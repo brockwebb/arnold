@@ -80,6 +80,11 @@ The system advises; the human decides.
 - [HANDOFF.md](../HANDOFF.md) — Thread handoff quick reference
 - [STANDARDS_AND_ONTOLOGIES.md](../STANDARDS_AND_ONTOLOGIES.md) — Medical ontology references
 
+## Automation & Operations
+
+- [LAUNCHD_SYNC.md](../automation/LAUNCHD_SYNC.md) — Daily sync scheduling (macOS)
+- [DATA_QUALITY_AUDIT.md](../automation/DATA_QUALITY_AUDIT.md) — Database health checks
+
 ---
 
 ## Codenames (Internal)
