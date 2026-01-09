@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.arnold.sync-daily</string>
+    
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/anaconda3/envs/arnold/bin/python</string>
+        <string>/Users/brock/Documents/GitHub/arnold/scripts/sync_pipeline.py</string>
+        <string>--skip</string>
+        <string>relationships</string>
+        <string>--trigger</string>
+        <string>scheduled</string>
+    </array>
+    
+    <key>WorkingDirectory</key>
+    <string>/Users/brock/Documents/GitHub/arnold</string>
+    
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>6</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+    
+    <key>StandardOutPath</key>
+    <string>/Users/brock/Documents/GitHub/arnold/logs/sync-daily.log</string>
+    
+    <key>StandardErrorPath</key>
+    <string>/Users/brock/Documents/GitHub/arnold/logs/sync-daily-error.log</string>
+    
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/anaconda3/envs/arnold/bin:/usr/local/bin:/usr/bin:/bin</string>
+    </dict>
+    
+    <key>RunAtLoad</key>
+    <false/>
+</dict>
+</plist>

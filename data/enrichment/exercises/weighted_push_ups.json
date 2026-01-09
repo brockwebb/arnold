@@ -1,0 +1,45 @@
+{
+  "exercise_id": "CUSTOM:Weighted_Push-Ups",
+  "exercise_name": "Weighted Push-Ups",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "weighted push-up muscles worked",
+    "retrieved_at": "Weighted",
+    "raw_text": "Weighted push-ups are a compound movement primarily targeting the chest (pectoralis major), shoulders (anterior deltoids), and triceps, while also heavily engaging core stabilizers (abs, obliques, erector spinae), serratus anterior, glutes, and back muscles for stability and full-body tension, using a pushing motion (concentric) and lowering (eccentric) to build upper body pushing strength. [1, 2, 3, 4, 5]  \nMuscles Worked \n\n\u2022 Primary Movers (Pushing): \n\n    \u2022 Pectoralis Major (Chest): Main muscle for pushing the body up. \n    \u2022 Triceps Brachii (Back of Arms): Extends the elbow to push up. \n    \u2022 Anterior Deltoids (Front Shoulders): Assist in lifting the arm forward and stabilizing the shoulder. \n\n\u2022 Stabilizers & Secondary Muscles (Throughout the movement): \n\n    \u2022 Serratus Anterior: Moves and stabilizes the shoulder blade (scapula). \n    \u2022 Core (Rectus Abdominis, Obliques, Transverse Abdominis): Keeps the torso rigid and prevents sagging. \n    \u2022 Glutes & Lower Back (Erector Spinae): Maintain a straight line and prevent hip sagging. \n    \u2022 Latissimus Dorsi & Trapezius (Back): Help with shoulder stability. [1, 2, 3, 4, 5, 6, 7]  \n\nMovement Pattern (Concentric & Eccentric) \n\n1. Starting Position (Plank): Body in a straight line from head to heels, hands slightly wider than shoulder-width apart, core braced, glutes tight, weight distributed evenly. \n2. Eccentric Phase (Lowering): Slowly bend elbows, lowering your chest towards the floor, keeping your body straight and shoulder blades stable. \n3. Concentric Phase (Pushing): Press powerfully through your hands to extend your elbows, returning to the starting plank position, focusing on driving through the chest, shoulders, and triceps. \n4. Key Technique: Maintain a tight core and glutes throughout to prevent your lower back from arching or hips from dropping, ensuring the movement is a full-body effort. [1, 3, 4, 8, 9]  \n\n**Citations:**\n\n[1]\u00a0https://dieringe.com/exercises/weighted-push-ups\n[2]\u00a0https://www.masterclass.com/articles/weighted-push-ups-guide\n[3]\u00a0https://www.hevyapp.com/exercises/weighted-push-ups/\n[4]\u00a0https://theprehabguys.com/push-up-exercise-variations/\n[5]\u00a0https://www.nike.com/il/a/what-muscles-do-push-ups-work-out\n[6]\u00a0https://www.onepeloton.com/blog/what-muscles-do-push-ups-work\n[7]\u00a0https://www.fitbarstrong.com/blog/muscles-worked-doing-pushups\n[8]\u00a0https://www.endomondo.com/exercise/weighted-push-up\n[9]\u00a0https://www.physio-pedia.com/Pushups\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Horizontal Push",
+      "confidence": 1.0
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Elbow Extension",
+      "confidence": 0.9
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Pectoralis Major",
+      "Triceps Brachii",
+      "Deltoid (Anterior)"
+    ],
+    "secondary": [
+      "Serratus Anterior",
+      "Rectus Abdominis",
+      "External Obliques",
+      "Internal Obliques",
+      "Transverse Abdominis",
+      "Gluteus Maximus",
+      "Erector Spinae",
+      "Latissimus Dorsi",
+      "Trapezius"
+    ]
+  },
+  "processed_at": "2026-01-07T22:05:17.775596"
+}

@@ -37,6 +37,30 @@
 
 ---
 
+### HRV Coefficient of Variation (HRV CV)
+
+| Property | Value |
+|----------|-------|
+| **Field** | `hrv_cv_7d` (computed) |
+| **Unit** | percentage (%) |
+| **Calculation** | (SD(HRV over 7 days) / Mean(HRV over 7 days)) × 100 |
+| **Source** | Derived from daily HRV readings |
+
+**Interpretation:**
+- < 3%: Suppressed autonomic flexibility → possible overreaching
+- 3-10%: Normal healthy variation
+- 10-15%: Elevated → inconsistent recovery or lifestyle stress
+- > 15%: Very high → investigate sleep, stress, alcohol, etc.
+
+**Key insight**: CV is more predictive than absolute HRV because it normalizes for individual differences and detects autonomic saturation during heavy training.
+
+**Limitations:**
+- Requires 7+ days of consistent data
+- Affected by measurement timing consistency
+- Single outlier can skew 7-day window
+
+---
+
 ### Resting Heart Rate (RHR)
 
 | Property | Value |
@@ -83,6 +107,31 @@
 - Consumer devices overestimate sleep time
 - Stage classification has ~70% accuracy vs. polysomnography
 - Doesn't capture sleep quality subjectively
+
+---
+
+### Sleep Debt
+
+| Property | Value |
+|----------|-------|
+| **Field** | `sleep_debt_7d` (computed) |
+| **Unit** | hours |
+| **Calculation** | Σ(Target - Actual) over 7 days |
+| **Target** | 7.5 hours (configurable) |
+
+**Interpretation:**
+- < 0: Sleep surplus (well-rested)
+- 0-3 hrs: Minor deficit, easily recovered
+- 3-5 hrs: Moderate → performance impact likely
+- 5-10 hrs: Significant → cognitive/physical impairment
+- > 10 hrs: Critical → may take weeks to recover
+
+**Key insight**: Sleep debt is cumulative. Five nights of 6.5 hours creates a 5-hour debt that doesn't disappear with one good night.
+
+**Limitations:**
+- Consumer devices overestimate sleep time
+- Doesn't account for sleep quality
+- Recovery from debt is non-linear (takes longer than debt accumulated)
 
 ---
 
@@ -182,6 +231,48 @@
 
 ---
 
+### Training Monotony
+
+| Property | Value |
+|----------|-------|
+| **Field** | `monotony_7d` (computed) |
+| **Unit** | ratio (dimensionless) |
+| **Calculation** | Mean(daily load, 7d) / SD(daily load, 7d) |
+| **Source** | Daily training volume |
+
+**Interpretation:**
+- < 1.5: Good variation in training
+- 1.5 - 2.0: Monitor → getting repetitive
+- > 2.0: High monotony → staleness/overtraining risk
+
+**Key insight**: Same load every day = high monotony. Varied load = low monotony. The body adapts better to varied stimuli.
+
+**Limitations:**
+- Rest days count as zero → can artificially lower monotony
+- Different training types (strength vs cardio) should ideally be tracked separately
+
+---
+
+### Training Strain
+
+| Property | Value |
+|----------|-------|
+| **Field** | `strain_7d` (computed) |
+| **Unit** | arbitrary units |
+| **Calculation** | Weekly Load × Monotony |
+| **Source** | Derived from volume and monotony |
+
+**Interpretation:**
+- < 3000: Low strain → well tolerated
+- 3000 - 6000: Moderate → productive training
+- > 6000: High strain → elevated illness/injury risk
+
+**Key insight**: Strain combines HOW MUCH you trained with HOW REPETITIVE it was. High volume with high monotony = danger zone.
+
+**Citation**: Foster, C. (1998). Monitoring training in athletes with reference to overtraining syndrome.
+
+---
+
 ## Data Quality Indicators
 
 ### Completeness
@@ -218,13 +309,74 @@
 
 ---
 
-## Future Metrics (Not Yet Implemented)
+## Future Metrics
 
-- **Training Monotony**: Consistency vs variety of load
-- **Training Strain**: Week load / monotony
-- **Readiness Index**: Composite of HRV, sleep, subjective
+See [TRAINING_METRICS.md](./TRAINING_METRICS.md) for full specifications.
+
+**Implemented (Migration 011):**
+- **Training Monotony**: `training_monotony_strain.monotony`
+- **Training Strain**: `training_monotony_strain.strain`
+- **HRV CV**: `biometric_derived.hrv_cv_7d`
+- **Sleep Debt**: `biometric_derived.sleep_debt_hours_7d`
+- **Readiness Composite**: `readiness_composite` view with `get_readiness()` function
+
+**Implemented (Jan 2026):**
+- **Pattern Last Trained**: `pattern_last_trained` view — days since each movement pattern
+- **Muscle Volume Weekly**: `muscle_volume_weekly` view — sets/reps/volume per muscle per week
+- **Exercise Relationship Cache**: `neo4j_cache_exercise_patterns`, `neo4j_cache_exercise_muscles`
+
+**Not Yet Implemented:**
+- **hrTSS / ATL / CTL / TSB**: Needs HR-workout linkage
 - **Pattern Balance Score**: How evenly movement patterns are trained
 - **Race Performance Index**: Normalized race times for longitudinal comparison
+
+---
+
+## Coaching Feedback Loop (Design Pattern)
+
+A good coach doesn't just observe — they *probe*. When objective metrics indicate something worth investigating, Coach should prompt for subjective feedback to close the control loop.
+
+### Trigger → Prompt Pattern
+
+| Objective Trigger | Subjective Prompt |
+|------------------|-------------------|
+| HRV -15% from baseline | "How are your energy levels today? Feeling recovered?" |
+| HRV CV < 3% (suppressed) | "Have you been feeling flat or stale in training lately?" |
+| Sleep debt > 5 hrs | "How's your sleep been? Any trouble falling or staying asleep?" |
+| ACWR > 1.3 | "How do your legs feel? Any unusual soreness or tightness?" |
+| Monotony > 2.0 | "Is training feeling repetitive? Ready for some variety?" |
+| Pattern gap > 10d | "Any reason you've been avoiding [pattern]? Discomfort?" |
+| Missed planned workout | "What got in the way yesterday?" |
+
+### Feedback Integration
+
+Subjective responses should be captured as journal entries with:
+1. **Link to triggering metric** (so we can correlate)
+2. **Extracted structured data** (fatigue: 7/10, soreness: legs)
+3. **Tags for retrieval** (fatigue, legs, post-workout)
+
+### Control Loop Closure
+
+```
+Objective Data (sensors)      Subjective Data (journal)
+        │                              │
+        └─────────────┬──────────────┘
+                      │
+              ┌───────┴───────┐
+              │   Coach AI    │
+              │  (synthesis)  │
+              └───────┬───────┘
+                      │
+              ┌───────┴───────┐
+              │   Decision    │
+              │ (program adj) │
+              └───────────────┘
+```
+
+Without subjective feedback, it's an open-loop system — Coach can observe but can't verify. With feedback, Coach can:
+- Validate that sensor anomalies reflect actual state
+- Detect issues sensors can't measure (mood, motivation, pain)
+- Build athlete-specific response profiles over time
 
 ---
 

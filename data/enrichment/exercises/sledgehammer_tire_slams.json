@@ -1,0 +1,60 @@
+{
+  "exercise_id": "CUSTOM:Sledgehammer_Tire_Slams",
+  "exercise_name": "Sledgehammer Tire Slams",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "sledgehammer tire slam muscles worked",
+    "retrieved_at": "Sledgehammer",
+    "raw_text": "Sledgehammer tire slams are a full-body power and conditioning exercise, engaging the shoulders, back (lats, traps), core (abs, obliques), arms (biceps, triceps), glutes, and legs (hamstrings, quads), working in a dynamic, explosive vertical/diagonal swinging motion that transfers power from the hips through the core and arms, improving functional strength, endurance, and coordination across multiple planes of motion. [1, 2, 3, 4, 5, 6]  \nThis video demonstrates how to perform a sledgehammer tire slam: \nMuscles Worked \n\n\u2022 Upper Body: Deltoids (shoulders), Traps, Lats, Biceps, Triceps, Forearms, Grip. \n\u2022 Core: Abdominals (abs) and Obliques. \n\u2022 Lower Body: Glutes, Hamstrings, Quads (especially in initiating the swing). [1, 2, 3, 6, 7, 8]  \n\nMovement Patterns & Key Mechanics \n\n1. Power Generation: The movement starts from the ground up, using the legs and hips to drive power, similar to a kettlebell swing or hang clean. \n2. Explosive Swing: A fluid, arc-like motion brings the hammer overhead, engaging the entire posterior chain and shoulders. \n3. Core Stabilization: The core rapidly stabilizes the torso as the weight moves overhead and drives down. \n4. Rotational Strength: Slams involve movement in multiple planes, enhancing rotational power, especially with variations like one-handed \"Tomahawks\" or diagonal swings. \n5. Full-Body Coordination: Requires synchronizing upper body, core, and lower body for efficient power transfer and impact absorption. [2, 3, 5, 6, 8, 9, 10]  \n\nYou can also watch this video to see the power of the tire slam: \nKey Benefits \n\n\u2022 Full-Body Conditioning: Works almost every muscle for overall strength and endurance. \n\u2022 Power & Explosiveness: Develops explosive power and athletic performance. \n\u2022 Muscular Endurance: Repetitive motion builds endurance in key areas. \n\u2022 Functional Strength: Mimics real-world power transfer needed in many sports. [1, 2, 4, 5, 9]  \n\n**Citations:**\n\n[1]\u00a0https://www.athsport.co/blogs/learn/sledgehammer-training\n[2]\u00a0https://www.setforset.com/blogs/news/benefits-of-tire-slams-and-7-reasons-why-the-steel-mace-is-best-tool-for-it\n[3]\u00a0https://www.kettlebellkings.com/blogs/default-blog/does-hammering-build-muscle\n[4]\u00a0https://www.kettlebellkings.com/blogs/default-blog/introduction-to-sledgehammer-workouts\n[5]\u00a0https://www.advancedhumanperformance.com/blog/master-the-sledgehammer-for-strength-and-performance\n[6]\u00a0https://t-nation.com/t/sledgehammer-conditioning/191210\n[7]\u00a0https://www.setforset.com/blogs/news/1000-tire-slam-macebell-challenge\n[8]\u00a0https://www.kettlebellkings.com/blogs/default-blog/what-muscles-does-swinging-a-sledgehammer-work\n[9]\u00a0https://www.onnit.com/blogs/the-edge/how-to-develop-power-with-sledgehammer-workouts\n[10]\u00a0https://us.myprotein.com/thezone/training/sledgehammer-workout-become-powerhouse/\n\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Conditioning",
+      "confidence": 0.95
+    },
+    {
+      "name": "Hip Hinge",
+      "confidence": 0.85
+    },
+    {
+      "name": "Vertical Push",
+      "confidence": 0.75
+    },
+    {
+      "name": "Trunk Rotation",
+      "confidence": 0.7
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.65
+    },
+    {
+      "name": "Hip Extension",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Deltoid (Anterior)",
+      "Deltoid (Lateral)",
+      "Latissimus Dorsi",
+      "Rectus Abdominis",
+      "External Obliques",
+      "Gluteus Maximus",
+      "Rectus Femoris"
+    ],
+    "secondary": [
+      "Trapezius (Upper)",
+      "Trapezius (Middle)",
+      "Biceps Brachii",
+      "Triceps Brachii",
+      "Forearm Flexors",
+      "Internal Obliques",
+      "Transverse Abdominis",
+      "Biceps Femoris",
+      "Erector Spinae"
+    ]
+  },
+  "processed_at": "2026-01-07T15:10:26.852570"
+}

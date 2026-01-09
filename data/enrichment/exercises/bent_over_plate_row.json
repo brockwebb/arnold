@@ -1,0 +1,54 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:BENT_OVER_PLATE_ROW",
+  "exercise_name": "Bent-Over Plate Row",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "bent over plate row muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Bent-Over Plate Row is a powerful compound pull targeting your back (lats, traps, rhomboids), posterior shoulders (rear delts), and assisting muscles like biceps, while requiring significant core and lower back stabilization to maintain the hinged posture. The movement pattern involves a hip hinge (bending at the hips with a flat back), pulling the weight towards your abdomen by squeezing your shoulder blades together, and controlled lowering, emphasizing scapular retraction and elbow flexion. [1, 2, 3, 4, 5]  \nThis video demonstrates the muscles worked and proper form for a bent-over row: \nMuscles Worked (Primary & Secondary) \n\n\u2022 Primary Movers (Back & Shoulders): \n\n    \u2022 Latissimus Dorsi (Lats): The main back muscles for pulling your arms toward your body. \n    \u2022 Trapezius (Traps): Middle and lower traps help retract and depress the shoulder blades. \n    \u2022 Rhomboids: Located between the shoulder blades, they pull the shoulder blades together (retraction). \n    \u2022 Posterior Deltoids: The back part of your shoulder muscles, involved in pulling motions. \n    \u2022 Teres Major/Minor: Assist with shoulder extension and stability. \n\n\u2022 Stabilizers & Assisters: \n\n    \u2022 Erector Spinae (Lower Back): Contract to keep your torso stable and prevent rounding. \n    \u2022 Core Muscles (Abs): Brace to maintain trunk stability. \n    \u2022 Biceps (Biceps Brachii, Brachialis): Assist with elbow flexion (bending the elbow). \n    \u2022 Forearms: Grip the weight. [1, 2, 3, 4, 5, 6, 7, 8]  \n\nWatch this video to see the correct execution of the bent-over row: \nMovement Pattern \n\n1. Setup: Stand with feet shoulder-width apart, holding a weight (plate, barbell, or dumbbells) with an overhand grip, hands slightly wider than shoulders. \n2. Hinge: Hinge at your hips (like sitting back), keeping your back flat and knees slightly bent, until your torso is angled forward (around 45 degrees). \n3. Pull (Concentric): Pull the weight towards your lower chest or belly button by driving your elbows back and squeezing your shoulder blades together. \n4. Hold: Pause briefly at the top, contracting the back muscles. \n5. Lower (Eccentric): Slowly lower the weight back to the starting position with extended arms, maintaining control. [1, 3, 7, 9]  \n\nThis video explains how to master the bent-over row technique: \nKey Cues \n\n\u2022 Keep your back straight and core tight. \n\u2022 Drive your elbows back, not just your hands. \n\u2022 Squeeze your shoulder blades at the top. \n\u2022 Control the weight on the way down. [1, 8]  \n\nThis video provides tips for effective bent-over rows: \n\n**Citations:**\n\n[1]\u00a0https://www.healthline.com/health/fitness/bent-over-row\n[2]\u00a0https://legionathletics.com/bent-over-row/\n[3]\u00a0https://www.hingehealth.com/resources/articles/bent-over-row/\n[4]\u00a0https://www.burnthefatinnercircle.com/public/Barbell-Bent-Over-Row-With-Plate-Grip.cfm\n[5]\u00a0https://www.youtube.com/watch?v=rD2hiRoV914\n[6]\u00a0https://barbend.com/bent-over-row/\n[7]\u00a0https://musclesquad.com/blogs/exercise-guides/bent-over-row\n[8]\u00a0https://www.shape.com/fitness/tips/dumbbell-bent-over-row-form-tips-targeted-muscles\n[9]\u00a0https://experiencelife.lifetime.life/article/break-it-down-the-bent-over-row/\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Horizontal Pull",
+      "confidence": 1.0
+    },
+    {
+      "name": "Hip Hinge",
+      "confidence": 0.9
+    },
+    {
+      "name": "Scapular Retraction",
+      "confidence": 0.9
+    },
+    {
+      "name": "Elbow Flexion",
+      "confidence": 0.7
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Latissimus Dorsi",
+      "Trapezius (Middle)",
+      "Trapezius (Lower)",
+      "Rhomboids",
+      "Deltoid (Posterior)"
+    ],
+    "secondary": [
+      "Biceps Brachii",
+      "Brachialis",
+      "Erector Spinae",
+      "Rectus Abdominis",
+      "External Obliques",
+      "Forearm Flexors",
+      "Teres Major",
+      "Teres Minor"
+    ]
+  },
+  "processed_at": "2026-01-08T08:33:27.247497"
+}

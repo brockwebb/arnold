@@ -1,0 +1,42 @@
+{
+  "exercise_id": "CUSTOM:Standing_Forward_Fold",
+  "exercise_name": "Standing Forward Fold",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "standing forward fold muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Standing Forward Fold (Uttanasana) primarily stretches the entire back of the body, heavily engaging the hamstrings, calves, glutes, and spinal erectors, while activating the core and quadriceps for support, with the movement pattern being a hip hinge (forward flexion at the hips) to lengthen the posterior chain from feet to head, controlling the descent with eccentric hamstring contraction. [1, 2, 3, 4]  \nMuscles Worked \n\n\u2022 Primary Stretch (Lengthened): \n\n    \u2022 Hamstrings: Back of the thighs. \n    \u2022 Calves: Gastrocnemius and soleus. \n    \u2022 Glutes: Gluteus maximus, medius, minimus (buttocks). \n    \u2022 Spinal Muscles: Erector spinae, multifidus, quadratus lumborum (lower back). \n    \u2022 Adductors: Inner thighs (especially adductor magnus). \n    \u2022 Neck & Shoulders: Back of the neck and shoulders (ligaments & tissues). \n\n\u2022 Active Engagement (Supporting/Stabilizing): \n\n    \u2022 Core: Abdominals, pelvic floor (to support the spine). \n    \u2022 Quadriceps: Muscles at the front of the thighs (to keep knees slightly lifted/engaged). [1, 2, 3, 5, 6]  \n\nMovement Pattern \n\n1. Hip Hinge: The movement initiates from the hips, not the lower back, by tilting the pelvis forward. \n2. Spinal Lengthening: The spine elongates, creating space along the entire back body. \n3. Controlled Descent: Hamstrings work eccentrically (lengthening while controlling) to lower the torso. \n4. Core Engagement: Abdominals pull in to support the lower back as you fold. \n5. Deepening the Fold: The head releases down, increasing the stretch through the neck and posterior chain. [1, 2, 3, 4, 6, 7, 8, 9]  \n\n**Citations:**\n\n[1]\u00a0https://www.hingehealth.com/resources/articles/standing-forward-bend/\n[2]\u00a0https://www.yoganatomy.com/standing-wide-legged-forward-bend/\n[3]\u00a0https://intouchyogabyronbay.com/bio-mechanics-of-forward-bends/\n[4]\u00a0https://www.youtube.com/watch?v=SpRQumfGudU\n[5]\u00a0https://montgomerysomatics.com/standing-forward-fold-yoga-pose-part-1/\n[6]\u00a0https://www.tummee.com/yoga-poses/undulation-movement-standing-forward-fold\n[7]\u00a0https://www.yoganatomy.com/adjusting-standing-forward-bend/\n[8]\u00a0https://yogamindyogabody.com/keep-your-back-safe-in-forward-bends/\n[9]\u00a0https://www.youtube.com/watch?v=2HRPbMObiBQ\n\n\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Hip Hinge",
+      "confidence": 1.0
+    },
+    {
+      "name": "Spinal Flexion",
+      "confidence": 0.8
+    },
+    {
+      "name": "Mobility",
+      "confidence": 0.9
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Hamstrings",
+      "Gastrocnemius",
+      "Soleus",
+      "Gluteus Maximus",
+      "Erector Spinae"
+    ],
+    "secondary": [
+      "Rectus Abdominis",
+      "Rectus Femoris",
+      "Hip Adductors",
+      "Quadratus Lumborum"
+    ]
+  },
+  "processed_at": "2026-01-07T22:06:19.823622"
+}

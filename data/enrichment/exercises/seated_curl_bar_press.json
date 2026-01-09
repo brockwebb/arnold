@@ -1,0 +1,35 @@
+{
+  "exercise_id": "CUSTOM:Seated_Curl-Bar_Press",
+  "exercise_name": "Seated Curl-Bar Press",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "seated shoulder press muscles worked",
+    "retrieved_at": "A",
+    "raw_text": "A Seated Curl-Bar Press (often called a Seated EZ-Bar Curl to Press) primarily targets the Biceps Brachii, Brachialis, and Forearms, with secondary involvement from Anterior Deltoids, combining elbow flexion (curling) with shoulder flexion/pressing. The movement pattern involves curling the bar up (like a standard bicep curl) and then continuing the upward motion to press it overhead, engaging shoulders at the top before slowly reversing the motion back down. [1, 2, 3, 4, 5]  \nMuscles Worked: \n\n\u2022 Primary Movers (Biceps & Forearms): \n\n    \u2022 Biceps Brachii: The main muscle on the front of your upper arm, responsible for flexing the elbow. \n    \u2022 Brachialis: A deeper elbow flexor that pushes the biceps up, adding arm size. \n    \u2022 Brachioradialis: A forearm muscle that assists with elbow flexion, especially in the lower part of the curl. \n\n\u2022 Secondary/Stabilizers: \n\n    \u2022 Anterior Deltoids (Front Shoulders): Engaged as the movement transitions from a curl to an overhead press. \n    \u2022 Core/Glutes: Braced to stabilize the torso and prevent swinging. [2, 3, 4, 6, 7, 8, 9]  \n\nThis video demonstrates the proper form for a seated curl-bar press: \nMovement Pattern: \n\n1. Starting Position: Sit on a bench, feet flat, holding the EZ-bar with an underhand grip (palms up or angled). \n2. The Curl Phase: Flex at the elbows, bringing the bar up towards your chest/nipple line, squeezing the biceps. \n3. The Press Phase (Transition): Continue the motion, pressing the bar overhead until your arms are extended. \n4. The Descent (Reverse): Control the weight as you lower it back to shoulder height (reverse of the press) and then continue lowering to the starting curl position, maintaining tension. \n5. Controlled Repetition: Perform in a smooth, controlled manner, avoiding momentum and focusing on the eccentric (lowering) phase for better muscle engagement. [2, 5, 6]  \n\nYou can also watch this video to learn how to perform the standard seated barbell curl: \nKey Considerations: \n\n\u2022 Grip: The EZ-bar's angles reduce wrist and elbow strain compared to a straight bar. \n\u2022 Focus: It combines bicep isolation with shoulder engagement, making it efficient but requiring control to avoid using momentum. \n\u2022 Weight: Start light to master the combined movement before increasing load. [1, 2, 10]  \n\n**Citations:**\n\n[1]\u00a0https://www.setforset.com/blogs/news/best-ez-bar-exercises\n[2]\u00a0https://www.youtube.com/watch?v=6cd9GoeQJwA\n[3]\u00a0https://row.gymshark.com/blog/article/how-to-barbell-bicep-curl-properly-tips-and-variations\n[4]\u00a0https://www.setforset.com/blogs/news/barbell-curls\n[5]\u00a0https://www.trainwell.net/exercises/seated-dumbbell-curl-to-press\n[6]\u00a0https://samsfitness.com.au/exercises-workouts/21-ez-curl-bar-exercises/\n[7]\u00a0https://fitnessvolt.com/barbell-curl-biceps/\n[8]\u00a0https://www.hevyapp.com/exercises/seated-overhead-barbell-press/\n[9]\u00a0https://gravitus.com/guides/exercises/ez-bar-curl/\n[10]\u00a0https://fitbod.me/blog/curl-bar-exercises/\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Elbow Flexion",
+      "confidence": 0.9
+    },
+    {
+      "name": "Vertical Push",
+      "confidence": 0.8
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Biceps Brachii",
+      "Brachialis",
+      "Deltoid (Anterior)"
+    ],
+    "secondary": [
+      "Forearm Flexors",
+      "Triceps Brachii",
+      "Core"
+    ]
+  },
+  "processed_at": "2026-01-07T22:05:13.261688"
+}

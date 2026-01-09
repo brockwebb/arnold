@@ -1,0 +1,45 @@
+{
+  "exercise_id": "CUSTOM:Shoulder_Dislocate",
+  "exercise_name": "Shoulder Dislocate",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "shoulder dislocate muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The \"shoulder dislocate\" (or shoulder dislocates) mobility exercise works periscapular muscles (traps, serratus anterior) and rotator cuff (supraspinatus, infraspinatus, teres minor, subscapularis) to improve overall shoulder range of motion (ROM) and stability, engaging scapular elevation, depression, protraction, retraction, and rotation through a wide overhead arc with straight arms, essential for joint health but should be avoided with active dislocations. [1, 2, 3, 4]  \nMuscles Worked \n\n\u2022 Rotator Cuff Muscles: supraspinatus, infraspinatus, teres minor, subscapularis (https://www.ncbi.nlm.nih.gov/books/NBK537148/) (dynamic stabilizers). \n\u2022 Periscapular Muscles: Trapezius, Serratus Anterior (scapular movement). \n\u2022 Deltoids & Triceps: Assist in lifting and stabilizing the arm. [1, 3, 4, 5, 6]  \n\nMovement Patterns (Scapulohumeral Rhythm) \n\n\u2022 Elevation & Depression: Lifting the shoulder blade up and down. \n\u2022 Protraction & Retraction: Moving the shoulder blade forward and backward. \n\u2022 Rotation (Scapular): Tilting and rotating the shoulder blade. \n\u2022 Glenohumeral Movement: Full overhead flexion/extension and rotation as the humerus moves in the socket. [2, 3, 7, 8, 9]  \n\nKey Points for the Exercise (with a dowel/band) \n\n\u2022 Goal: Lubricate the joint and move tissues through a full ROM. \n\u2022 Technique: Straight arms, moving hands from front to back in a controlled circular motion. \n\u2022 Caution: Stay within your comfortable range; avoid if you have a current injury or instability; consult a PT for rehab. [2, 7, 10]  \n\n**Citations:**\n\n[1]\u00a0https://www.massgeneralbrigham.org/en/about/newsroom/articles/rehabilitation-for-shoulder-instability-and-dislocation\n[2]\u00a0https://www.shmv.com.au/articles/shoulder-mobility\n[3]\u00a0https://www.ncbi.nlm.nih.gov/books/NBK537148/\n[4]\u00a0https://totalbodyphysio.com.au/blog/shoulder-dislocation/\n[5]\u00a0https://www.youtube.com/watch?v=AB1TWySCpVA\n[6]\u00a0https://www.gpoa.com/blog/is-my-shoulder-dislocated-5-signs-the-answer-is-yes\n[7]\u00a0https://www.everydayhealth.com/workouts-activities/shoulder-dislocates-exercise/\n[8]\u00a0https://www.pearson.com/channels/anp/asset/adf9e96c/shrugging-ones-shoulders-primarily-involves\n[9]\u00a0https://dieringe.com/exercises/elevation-depression\n[10]\u00a0https://www.mdorthospecialists.com/2025/11/07/dislocated-shoulder-recovery-for-athletes-real-expert-advice/\n\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Mobility",
+      "confidence": 1.0
+    },
+    {
+      "name": "Shoulder External Rotation",
+      "confidence": 0.8
+    },
+    {
+      "name": "Shoulder Internal Rotation",
+      "confidence": 0.8
+    },
+    {
+      "name": "Scapular Retraction",
+      "confidence": 0.7
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Supraspinatus",
+      "Infraspinatus",
+      "Teres Minor",
+      "Subscapularis"
+    ],
+    "secondary": [
+      "Trapezius",
+      "Serratus Anterior",
+      "Deltoid (Anterior)",
+      "Deltoid (Posterior)",
+      "Triceps Brachii"
+    ]
+  },
+  "processed_at": "2026-01-07T15:11:03.932987"
+}

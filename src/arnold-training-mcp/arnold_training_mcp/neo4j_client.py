@@ -656,12 +656,18 @@ class Neo4jTrainingClient:
             }
 
     def get_plan_for_date(self, person_id: str, plan_date: str) -> Optional[Dict[str, Any]]:
-        """Get planned workout for a specific date."""
+        """Get planned workout for a specific date.
+        
+        When multiple plans exist for the same date (e.g., after modifications),
+        returns the most recently created one.
+        """
         with self.driver.session(database=self.database) as session:
             result = session.run("""
                 MATCH (p:Person {id: $person_id})-[:HAS_PLANNED_WORKOUT]->(pw:PlannedWorkout)
                 WHERE pw.date = date($date)
                 RETURN COALESCE(pw.plan_id, pw.id) as plan_id
+                ORDER BY pw.created_at DESC
+                LIMIT 1
             """, person_id=person_id, date=plan_date)
             
             record = result.single()

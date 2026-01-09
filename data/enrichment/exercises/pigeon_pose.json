@@ -1,0 +1,46 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:PIGEON_POSE",
+  "exercise_name": "Pigeon Pose",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "pigeon pose muscles stretched worked",
+    "retrieved_at": "Pigeon",
+    "raw_text": "Pigeon Pose primarily stretches the hip flexors, glutes, and deep hip rotators (like the piriformis) on the front leg, while lengthening the psoas of the back leg, improving hip mobility and releasing lower back tension. The movement pattern involves hip flexion (front leg) and extension (back leg) with external rotation of the front hip, requiring core stability and spinal support, making it a powerful hip opener. [1, 2, 3, 4, 5, 6]  \nMuscles Worked/Stretched \n\n\u2022 Front Leg (Bent): \n\n    \u2022 Glutes (Maximus, Medius, Minimus): Stretches the buttock muscles, aiding in hip extension and stability. \n    \u2022 Piriformis & Deep Hip Rotators: Releases tension in these muscles that rotate the thigh outward. \n    \u2022 Inner Thighs (Adductors): Helps to stabilize the leg. \n\n\u2022 Back Leg (Extended): \n\n    \u2022 Hip Flexors (Iliacus, Psoas): Lengthens these muscles at the front of the hip, crucial for stability and flexibility, especially after sitting. \n    \u2022 Quadriceps: A gentle stretch in the front of the thigh. \n\n\u2022 Core & Back: \n\n    \u2022 Spinal Erectors: Engaged to support the spine, especially in deeper variations. \n    \u2022 Core Muscles: Provide stability for the torso. [2, 3, 4, 5, 7, 8]  \n\nMovement Pattern \n\n1. Hip Flexion & External Rotation (Front Leg): The front thigh bends and rotates outward in the hip socket. \n2. Hip Extension (Back Leg): The back leg extends straight behind you, lengthening the hip flexors. \n3. Spinal Stability & Flexion (Torso): The torso can remain upright (spinal extension) or fold forward (spinal flexion), requiring core engagement to maintain balance and support the lower back. [2, 5, 8, 9, 10, 11]  \n\nKey Takeaway \nPigeon Pose is a deep hip opener that targets flexibility and mobility in the glutes and hip flexors, making it excellent for relieving lower back pain and improving overall hip health, but it requires careful attention to knee and lower back alignment to avoid injury. [1, 2, 5, 6]  \n\n**Citations:**\n\n[1]\u00a0https://www.onepeloton.com/blog/pigeon-pose\n[2]\u00a0https://www.hingehealth.com/resources/articles/pigeon-pose/\n[3]\u00a0https://www.self.com/story/how-to-do-pigeon-pose\n[4]\u00a0https://sportydoctor.com/exercises/pigeon-stretch/\n[5]\u00a0https://www.youtube.com/watch?v=0NvqT1j3000\n[6]\u00a0https://www.issaonline.com/blog/post/pigeon-pose-muscles-worked-benefits-and-how-to-do-it\n[7]\u00a0https://www.webmd.com/fitness-exercise/how-to-do-pigeon-yoga-pose\n[8]\u00a0https://www.garagegymreviews.com/fundamental-movement-patterns\n[9]\u00a0https://fitbod.me/exercises/pigeon-pose\n[10]\u00a0https://www.yogajournal.com/practice/beginners/pigeon-pose/\n[11]\u00a0https://www.yogajournal.com/practice/yoga-sequences/feel-the-wheel/\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Hip Flexion",
+      "confidence": 0.9
+    },
+    {
+      "name": "Hip Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Mobility",
+      "confidence": 1.0
+    },
+    {
+      "name": "Spinal Flexion",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Gluteus Maximus",
+      "Gluteus Medius",
+      "Gluteus Minimus",
+      "Iliopsoas"
+    ],
+    "secondary": [
+      "Hip Adductors",
+      "Rectus Femoris",
+      "Erector Spinae",
+      "External Obliques",
+      "Internal Obliques"
+    ]
+  },
+  "processed_at": "2026-01-08T08:34:52.574832"
+}

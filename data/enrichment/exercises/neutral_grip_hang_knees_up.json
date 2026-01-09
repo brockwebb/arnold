@@ -1,0 +1,41 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:NEUTRAL_GRIP_HANG_KNEES_UP",
+  "exercise_name": "Neutral-Grip Hang Knees-Up",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "hanging knee raise muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Neutral-Grip Hang Knees-Up targets your abs (rectus abdominis, obliques), hip flexors, and builds grip/forearm strength, with your lats, shoulders, and serratus anterior stabilizing isometrically; the movement pattern involves controlled hip and spinal flexion (pulling knees up) while resisting momentum and arching the back, promoting full-body stability and core power through a functional, full-range motion. [1, 2, 3]  \nMuscles Worked \n\n\u2022 Primary Movers (Core): \n\n    \u2022 Rectus Abdominis: The \"six-pack\" muscle, responsible for spinal flexion (bringing torso towards legs). \n    \u2022 Obliques (Internal & External): Stabilize the torso and resist rotation, crucial for core stability. \n    \u2022 Hip Flexors (Iliopsoas): Lift the knees toward the chest. \n\n\u2022 Stabilizers & Support: \n\n    \u2022 Forearms & Hands: Maintain grip on the bar. \n    \u2022 Latissimus Dorsi (Lats): Engage to keep the body stable and prevent swinging. \n    \u2022 Serratus Anterior: Assists in shoulder girdle stability. \n    \u2022 Glutes & Lower Back: Engage to prevent arching and maintain a hollow body. [1, 2, 3, 4, 5]  \n\nMovement Pattern & Technique \n\n1. Starting Position (Active Hang): Hang from the bar with palms facing each other (neutral grip), shoulders engaged (not slumped), and feet off the floor, creating a stable \"hollow body\" position. \n2. Concentric (Upward) Phase: Exhale as you initiate the movement by flexing your hips and spine, driving your knees up towards your chest, aiming for 90 degrees at the hips. \n3. Peak Contraction: Squeeze your abs at the top; the higher you lift, the more lower abdominal/pelvic rotation engages the abs. \n4. Eccentric (Downward) Phase: Inhale as you slowly and with control lower your legs back to the starting position, resisting gravity to prevent swinging. \n5. Key Technique: Focus on pulling with your abs, not just your hip flexors, and avoid arching your lower back or using momentum. [1, 2, 5, 6, 7, 8, 9]  \n\n**Citations:**\n\n[1]\u00a0https://www.healthline.com/health/fitness/hanging-knee-raises\n[2]\u00a0https://www.muscleandfitness.com/workouts/abs-and-core-exercises/how-to-hanging-knee-raises-muscles-trained-benefits-mistakes-and-fixes/\n[3]\u00a0https://www.masterclass.com/articles/hanging-knee-raises-guide\n[4]\u00a0https://www.verywellfit.com/how-to-do-the-captains-chair-hanging-leg-raise-3498291\n[5]\u00a0https://zackhenderson.com/how-to-hanging-leg-raise-beginner-to-advanced-progressions/\n[6]\u00a0https://learn.athleanx.com/articles/abs-for-men/hanging-leg-raise-how-to\n[7]\u00a0https://www.youtube.com/watch?v=l7OroezzX9k\n[8]\u00a0https://www.instagram.com/reel/DF_gUFdAs55/\n[9]\u00a0https://fitbod.me/exercises/hanging-knee-raise\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Hip Flexion",
+      "confidence": 0.9
+    },
+    {
+      "name": "Spinal Flexion",
+      "confidence": 0.8
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.9
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Rectus Abdominis",
+      "Iliopsoas",
+      "External Obliques",
+      "Internal Obliques"
+    ],
+    "secondary": [
+      "Forearm Flexors",
+      "Latissimus Dorsi",
+      "Serratus Anterior",
+      "Gluteus Maximus"
+    ]
+  },
+  "processed_at": "2026-01-08T08:34:48.916708"
+}

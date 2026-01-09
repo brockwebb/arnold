@@ -1,0 +1,63 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:PUSH_UP_WITH_SANDBAG_DRAG",
+  "exercise_name": "Push-Up with Sandbag Drag",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "push up with sandbag drag muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Push-Up with Sandbag Drag is a compound, full-body exercise that blends pushing (chest, shoulders, triceps) with anti-rotation and core stabilization (abs, obliques, lower back) and hip/leg engagement (glutes, hamstrings) to build power, core strength, and stability, progressing towards single-arm push-ups by challenging the body to maintain a rigid plank while shifting load laterally. It combines a standard push-up (pushing pattern) with a plank lateral drag (stabilization/anti-rotation pattern), targeting chest, shoulders, triceps, core, lats, and hips. [1, 2, 3, 4, 5]  \nMuscles Worked \n\n\u2022 Primary Movers (Pushing): Chest (Pectorals), Shoulders (Deltoids), Triceps. \n\u2022 Stabilizers/Core: Core (Transverse Abdominis, Obliques), Lower Back, Serratus Anterior. \n\u2022 Dynamic Stabilizers (Drag): Glutes, Hamstrings, Lats, Forearms (for grip). [1, 2, 3, 6, 7, 8]  \n\nThis video demonstrates how to perform a sandbag lateral drag: \nMovement Patterns \n\n\u2022 Pushing: The standard push-up portion involves elbow flexion and extension (pushing) to move the body up and down. \n\u2022 Anti-Rotation/Stabilization: The drag requires significant anti-rotation, where the core and supporting shoulder/hip resist the bag's shifting weight, preventing hip or torso rotation. \n\u2022 Pulling/Scapular Movement (Drag): Reaching and pulling the bag engages the lats and challenges shoulder stability. \n\u2022 Full-Body Integration: Connects the core to the limbs, building functional strength for real-life movements by training the body to move as a unit, notes BrickHouse Nutrition (https://brickhousenutrition.com/blogs/articles/sandbag-training-101-is-this-the-ultimate-full-body-workout-tool) and Ultimate Sandbag Training (https://ultimatesandbagtraining.com/10-ultimate-sandbag-exercises-that-are-musts/). [1, 2, 3, 4, 6, 8, 9]  \n\nThis video shows a variation of the exercise with a dumbbell: \nHow It Works (The Drag) \n\n1. Start: Begin in a high plank with your feet wide and the sandbag beside one hand. \n2. Reach & Drag: Reach across your body with the opposite hand, grab the bag, and slowly drag it under your torso to the other side, keeping hips level and core tight. \n3. Push-Up: As the bag crosses, lower into a one-arm push-up, then press back up, maintaining tension. \n4. Alternate: Repeat the drag and push-up on the other side, creating a powerful, unstable workout. [1, 4, 9, 10]  \n\n**Citations:**\n\n[1]\u00a0https://titan.fitness/blogs/workouts/20-power-packed-sandbag-workouts-that-will-catapult-your-fitness-game\n[2]\u00a0https://brickhousenutrition.com/blogs/articles/sandbag-training-101-is-this-the-ultimate-full-body-workout-tool\n[3]\u00a0https://www.skimble.com/exercises/56-sandbag-drag-how-to-do-exercise\n[4]\u00a0https://ultimatesandbagtraining.com/10-ultimate-sandbag-exercises-that-are-musts/\n[5]\u00a0https://ultimatesandbagtraining.com/nailing-push-ups/\n[6]\u00a0https://gymbox.de/en/sandbag-exercise-push-up/\n[7]\u00a0https://www.dingosandbags.com.au/frequently-asked-questions/sandbag-weighted-push-ups/\n[8]\u00a0https://ultimatesandbagtraining.com/the-real-power-of-this-core-exercise/\n[9]\u00a0https://www.youtube.com/watch?v=low-AkEYIeU\n[10]\u00a0https://gymbox.de/en/sandbag-exercise-push-up-slide/\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Horizontal Push",
+      "confidence": 0.9
+    },
+    {
+      "name": "Anti-Rotation",
+      "confidence": 0.9
+    },
+    {
+      "name": "Elbow Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Elbow Flexion",
+      "confidence": 0.8
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.7
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.6
+    },
+    {
+      "name": "Scapular Retraction",
+      "confidence": 0.5
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Pectoralis Major",
+      "Deltoid (Anterior)",
+      "Triceps Brachii",
+      "Transverse Abdominis",
+      "External Obliques",
+      "Internal Obliques"
+    ],
+    "secondary": [
+      "Serratus Anterior",
+      "Erector Spinae",
+      "Latissimus Dorsi",
+      "Gluteus Maximus",
+      "Biceps Femoris",
+      "Forearm Flexors",
+      "Deltoid (Lateral)",
+      "Rectus Abdominis"
+    ]
+  },
+  "processed_at": "2026-01-08T08:35:05.085610"
+}

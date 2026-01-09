@@ -1,0 +1,48 @@
+{
+  "exercise_id": "CUSTOM:Gladiator_Dumbbell_Deadlifts",
+  "exercise_name": "Gladiator Dumbbell Deadlifts",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "single leg dumbbell deadlift muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Gladiator Dumbbell Deadlift is a rotational hip-hinge movement that builds posterior chain strength (glutes, hamstrings, back) and core stability, unlike standard deadlifts; it involves picking up one dumbbell with one hand while the other stays close to the back, creating anti-rotation and integrating hip extension with spinal stabilization, targeting forgotten muscles like the QL (quadratus lumborum) and deep core stabilizers for enhanced functional strength and injury resilience. [1, 2, 3]  \nThis video demonstrates the form for the Gladiator Dumbbell Deadlift: \nMuscles Worked \n\n\u2022 Primary Movers (Posterior Chain): Glutes, Hamstrings, Erector Spinae (lower back). \n\u2022 Stabilizers/Secondary Muscles: Obliques, Quadratus Lumborum (QL), Transverse Abdominis, Lats, Traps, Grip. \n\u2022 Legs: Quads (involved in knee extension during the lift). [1, 2, 4, 5, 6, 7]  \n\nMovement Pattern \n\n1. Starting Position: Stand between two dumbbells, feet hip-width apart. \n2. Initiation: Reach across with one hand to grab the dumbbell on the opposite side, keeping the other dumbbell close to your back/pocket. \n3. The Hinge: Hinge at your hips (pushing them back) with a slight bend in the knees, maintaining a flat back. \n4. The Lift: Drive through your hips and squeeze your glutes to return to standing, keeping the dumbbell close to your body. \n5. Controlled Descent: Lower the weight slowly, focusing on the hip hinge and feeling the stretch in your hamstrings. \n6. Key Difference: Unlike a traditional deadlift, this is a rotational hinge, emphasizing anti-rotation and core control throughout the movement. [1, 2, 3, 8]  \n\nYou can see the rotational aspect of the movement in this video: \n\n**Citations:**\n\n[1]\u00a0https://www.facebook.com/officialgymmemes/posts/this-gladiator-deadlift-is-a-lost-roman-exercise-revived-by-james-pat-rotation-e/1173709804897672/\n[2]\u00a0https://www.youtube.com/watch?v=mWlnQSVvw-8\n[3]\u00a0https://www.endomondo.com/exercise/dumbbell-romanian-deadlift\n[4]\u00a0https://www.puregym.com/exercises/legs/hamstring-exercises/deadlifts/dumbbell-deadlift/\n[5]\u00a0https://www.setforset.com/blogs/news/deadlift-with-dumbbells\n[6]\u00a0https://www.bulk.com/uk/the-core/deadlift-muscles-worked/\n[7]\u00a0https://gym-mikolo.com/blogs/home-gym/deadlift-muscles-worked-a-full-breakdown-of-the-king-of-lifts\n[8]\u00a0https://www.youtube.com/watch?v=hQgFixeXdZo\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Hip Hinge",
+      "confidence": 1.0
+    },
+    {
+      "name": "Anti-Rotation",
+      "confidence": 0.9
+    },
+    {
+      "name": "Hip Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.7
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Gluteus Maximus",
+      "Biceps Femoris",
+      "Erector Spinae"
+    ],
+    "secondary": [
+      "External Obliques",
+      "Internal Obliques",
+      "Quadratus Lumborum",
+      "Transverse Abdominis",
+      "Latissimus Dorsi",
+      "Trapezius",
+      "Rectus Femoris",
+      "Forearm Flexors"
+    ]
+  },
+  "processed_at": "2026-01-07T22:05:43.970902"
+}

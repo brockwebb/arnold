@@ -1,0 +1,28 @@
+{
+  "exercise_id": "CUSTOM:Quad_Extension",
+  "exercise_name": "Quad Extension",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "leg extension muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The quad extension is a single-joint isolation exercise primarily targeting the Quadriceps Femoris muscle group (Rectus Femoris, Vastus Lateralis, Vastus Medialis, Vastus Intermedius) through a knee extension movement, excellent for building thigh mass and definition, especially the \"teardrop\" (Vastus Medialis) at the top, but also effective for the rectus femoris due to the fixed hip flexion on machines. [1, 2, 3, 4]  \nMuscles Worked (Primary) \n\n\u2022 Rectus Femoris: The central quad muscle, heavily worked because it crosses both the hip and knee, and the machine keeps the hip flexed. \n\u2022 Vastus Lateralis: The outer quad muscle, important for knee extension and stability. \n\u2022 Vastus Medialis: The inner \"teardrop\" muscle, activated most at the top of the movement (full extension) for knee tracking. \n\u2022 Vastus Intermedius: The deepest quad muscle, working with the others to extend the knee. [1, 2, 4]  \n\nMovement Pattern \n\n\u2022 Type: Single-joint, open-chain isolation exercise. \n\u2022 Action: Knee extension (straightening the leg at the knee) against resistance, with the hip held in a flexed (bent) position. \n\u2022 Execution: Sitting on a machine, you lift a weighted pad by extending your lower legs until they are straight, squeezing at the top, then slowly lowering the weight back down. [3, 5, 6, 7, 8, 9]  \n\nWhy It's Effective \n\n\u2022 Isolation: Directly targets the quads without significant involvement from hips or back, unlike squats. \n\u2022 Definition: Great for building muscle size, improving definition, and enhancing the \"teardrop\" shape of the vastus medialis. \n\u2022 Knee Health: Strengthens muscles crucial for walking, running, jumping, and stabilizing the kneecap (patella). [3, 4, 10, 11]  \n\n**Citations:**\n\n[1]\u00a0https://www.reddit.com/r/naturalbodybuilding/comments/1juyhe5/does_leg_extension_work_the_the_entire_quad/\n[2]\u00a0https://strengthwarehouseusa.com/blogs/resources/leg-extension-muscles-worked\n[3]\u00a0https://gym-mikolo.com/blogs/home-gym/unlocking-lower-body-strength-a-complete-guide-to-the-leg-extension-machine\n[4]\u00a0https://gravitus.com/guides/exercises/single-leg-extension/\n[5]\u00a0https://kinxlearning.com/pages/knee-extension-leg-extension\n[6]\u00a0https://www.mdc.edu/northfitness/get-fit/legs/\n[7]\u00a0https://au.myprotein.com/blog/training/leg-quad-extension-exercise-technique-common-mistakes/\n[8]\u00a0https://strengthwarehouseusa.com/blogs/resources/leg-extension-machine-benefits\n[9]\u00a0https://blog.pre-script.com/maximize-quad-development-by-applying-length-tension-principles/\n[10]\u00a0https://barbend.com/leg-extension/\n[11]\u00a0https://www.physio-pedia.com/Quadriceps_Muscle\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Knee Extension",
+      "confidence": 1.0
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Rectus Femoris",
+      "Vastus Lateralis",
+      "Vastus Medialis",
+      "Vastus Intermedius"
+    ],
+    "secondary": []
+  },
+  "processed_at": "2026-01-07T22:03:28.507335"
+}

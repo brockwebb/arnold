@@ -1,0 +1,45 @@
+{
+  "exercise_id": "CUSTOM:Suitcase_Carry",
+  "exercise_name": "Suitcase Carry",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "suitcase carry muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Suitcase Carry is a unilateral loaded carry that trains anti-lateral flexion, strengthening your core (obliques, transverse abdominis, QL), grip, shoulders (deltoids, traps, rotator cuff), upper back (lats, rhomboids), and lower body stabilizers (glutes, quads, hips) to resist side-bending while walking. The core movement pattern involves maintaining a tall, upright posture and preventing the weight on one side from pulling you down, mimicking everyday tasks like carrying groceries or luggage, promoting balance, stability, and functional strength. [1, 2, 3, 4, 5, 6]  \nMuscles Worked \n\n\u2022 Core: Obliques, Transverse Abdominis, Quadratus Lumborum (QL) (primary stabilizers against side bending). \n\u2022 Upper Body: Forearms & Grip, Deltoids, Traps, Lats, Rhomboids (shoulder stability, arm strength). \n\u2022 Lower Body: Glutes, Hip Stabilizers, Quads, Hamstrings, Calves (balance and hip alignment). [1, 2, 3, 4, 5, 7, 8, 9, 10]  \n\nMovement Pattern \n\n1. Setup: Stand tall, shoulders back and down, chest out, holding a heavy dumbbell or kettlebell in one hand at your side, away from your body. \n2. Action: Walk slowly and deliberately, focusing on staying upright. \n3. Core Engagement (Anti-Lateral Flexion): Your core muscles (especially the obliques on the opposite side) contract isometrically to prevent your torso from tilting or bending towards the weight. \n4. Maintain Posture: Keep your hips level and avoid leaning away from the weight. \n5. Repetition: Walk a set distance or time, then switch hands. [1, 2, 4, 5, 6, 9, 10, 11]  \n\nWhy It's Effective \n\n\u2022 Functional Strength: Trains your body to handle uneven loads, like real-life tasks. \n\u2022 Core Stability: Excellent for developing strong, stable, and resilient core muscles. \n\u2022 Improves Posture: Strengthens back and core muscles to maintain an upright stance. \n\u2022 Unilateral Training: Addresses strength imbalances between sides, which often develop from daily activities. [1, 2, 3, 4, 10]  \n\n**Citations:**\n\n[1]\u00a0https://www.verywellfit.com/how-to-do-a-suitcase-carry-techniques-benefits-variations-4688381\n[2]\u00a0https://nfpt.com/suitcase-carries-how-to-do/\n[3]\u00a0https://fitnessdrum.com/suitcase-carry/\n[4]\u00a0https://www.youtube.com/watch?v=tNHdx7pmrGI\n[5]\u00a0https://www.youtube.com/watch?v=hQteWVkZuJE\n[6]\u00a0https://www.youtube.com/watch?v=N1gI1FuOxJg\n[7]\u00a0https://www.facebook.com/justinagustinFB/posts/the-suitcase-carry-exercise-strengthens-the-core-by-loading-one-side-of-the-body/861852099273834/\n[8]\u00a0https://www.muscleandstrength.com/exercises/dumbbell-suitcase-carry\n[9]\u00a0http://www.saptstrength.com/blog/2011/07/11/dumbbell-suitcase-carry-an-exercise-i-like-and-you-should-too\n[10]\u00a0https://www.youtube.com/watch?v=BzrnPp0TOlw\n[11]\u00a0https://www.youtube.com/watch?v=5LicSugR-Ow\n\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Anti-Lateral Flexion",
+      "confidence": 1.0
+    },
+    {
+      "name": "Loaded Carry",
+      "confidence": 1.0
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.8
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "External Obliques",
+      "Internal Obliques",
+      "Quadratus Lumborum",
+      "Transverse Abdominis"
+    ],
+    "secondary": [
+      "Forearm Flexors",
+      "Trapezius (Upper)",
+      "Trapezius (Middle)",
+      "Latissimus Dorsi",
+      "Rhomboids",
+      "Deltoid (Lateral)",
+      "Gluteus Medius",
+      "Rectus Femoris",
+      "Erector Spinae"
+    ]
+  },
+  "processed_at": "2026-01-07T15:10:22.303364"
+}

@@ -454,6 +454,108 @@ Use when reviewing a workout to see associated subjective notes.""",
                 "required": ["entry_id"]
             }
         ),
+        
+        # =====================================================================
+        # DATA ANNOTATIONS (Explaining data gaps/anomalies)
+        # =====================================================================
+        types.Tool(
+            name="create_annotation",
+            description="""Create a data annotation explaining a data gap or anomaly.
+
+Use when the user explains why data looks unusual:
+- "My HRV will be off for a few days after that birthday workout"
+- "Sleep data is missing because I forgot to wear my ring"
+- "ACWR is high because I just started training again post-surgery"
+
+Claude should:
+1. Parse the natural language to extract date range, target metric, and reason
+2. Determine appropriate reason_code
+3. Generate a clear explanation
+4. Call this tool to create the annotation
+
+Reason codes:
+- expected: Normal variation (hard workout, travel, life events)
+- device_issue: Sensor problem, app not syncing, forgot to wear device
+- surgery: Post-surgical recovery affecting metrics
+- injury: Active injury affecting training/metrics
+- illness: Sick, affecting all metrics
+- travel: Travel affecting sleep, training, routine
+- deload: Intentional reduced training
+- data_quality: Known data issue, bad import, etc.
+
+Target types: biometric, training, general
+Target metrics: hrv, sleep, recovery_score, rhr, acwr, all, etc.""",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "annotation_date": {
+                        "type": "string",
+                        "description": "Start date (YYYY-MM-DD, 'today', 'yesterday')"
+                    },
+                    "date_range_end": {
+                        "type": "string",
+                        "description": "End date if range (YYYY-MM-DD, optional)"
+                    },
+                    "target_type": {
+                        "type": "string",
+                        "enum": ["biometric", "training", "general"],
+                        "description": "Type of data being annotated"
+                    },
+                    "target_metric": {
+                        "type": "string",
+                        "description": "Specific metric (hrv, sleep, acwr, all, etc.)"
+                    },
+                    "reason_code": {
+                        "type": "string",
+                        "enum": ["expected", "device_issue", "surgery", "injury", "illness", "travel", "deload", "data_quality"],
+                        "description": "Reason category"
+                    },
+                    "explanation": {
+                        "type": "string",
+                        "description": "Human-readable explanation of why data looks this way"
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Tags for retrieval (optional)"
+                    }
+                },
+                "required": ["annotation_date", "target_type", "reason_code", "explanation"]
+            }
+        ),
+        
+        types.Tool(
+            name="get_active_annotations",
+            description="""Get active data annotations.
+
+Use to see what data explanations are currently in effect.""",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "days_back": {
+                        "type": "integer",
+                        "description": "How far back to look (default: 30)"
+                    }
+                }
+            }
+        ),
+        
+        types.Tool(
+            name="deactivate_annotation",
+            description="""Mark an annotation as resolved/inactive.
+
+Use when the condition being explained has passed.""",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "annotation_id": {
+                        "type": "integer",
+                        "description": "ID of the annotation to deactivate"
+                    }
+                },
+                "required": ["annotation_id"]
+            }
+        ),
     ]
 
 
@@ -655,6 +757,39 @@ async def _handle_tool(name: str, args: dict) -> Any:
     elif name == "mark_reviewed":
         success = pg_client.mark_reviewed(args["entry_id"], args.get("notes"))
         return {"status": "reviewed" if success else "not_found", "entry_id": args["entry_id"]}
+    
+    # =========================================================================
+    # DATA ANNOTATIONS
+    # =========================================================================
+    elif name == "create_annotation":
+        annotation_date = parse_date(args["annotation_date"])
+        date_range_end = parse_date(args["date_range_end"]) if args.get("date_range_end") else None
+        
+        result = pg_client.create_annotation(
+            annotation_date=annotation_date,
+            target_type=args["target_type"],
+            reason_code=args["reason_code"],
+            explanation=args["explanation"],
+            date_range_end=date_range_end,
+            target_metric=args.get("target_metric"),
+            tags=args.get("tags")
+        )
+        
+        return {
+            "status": "created",
+            "annotation": result,
+            "message": f"Created annotation for {args['target_type']}/{args.get('target_metric', 'all')} from {annotation_date}" + 
+                       (f" to {date_range_end}" if date_range_end else "")
+        }
+    
+    elif name == "get_active_annotations":
+        days = args.get("days_back", 30)
+        annotations = pg_client.get_active_annotations(days)
+        return {"count": len(annotations), "days_back": days, "annotations": annotations}
+    
+    elif name == "deactivate_annotation":
+        success = pg_client.deactivate_annotation(args["annotation_id"])
+        return {"status": "deactivated" if success else "failed", "annotation_id": args["annotation_id"]}
     
     else:
         raise ValueError(f"Unknown tool: {name}")

@@ -331,10 +331,10 @@
       "raw_path": "raw/apple_health_export/",
       "staging_table": "staging/apple_health_hr.parquet",
       "grain": "varies",
-      "row_count": 3892,
+      "row_count": 244,
       "date_range": [
-        "2025-05-15",
-        "2025-12-31"
+        "2025-12-05",
+        "2026-01-09"
       ],
       "columns": {
         "hour": {
@@ -366,16 +366,16 @@
           "nullable": false
         }
       },
-      "updated_at": "2026-01-01T16:59:46.383779"
+      "updated_at": "2026-01-09T13:18:23.082274"
     },
     "apple_health_hrv": {
       "raw_path": "raw/apple_health_export/",
       "staging_table": "staging/apple_health_hrv.parquet",
       "grain": "varies",
-      "row_count": 9912,
+      "row_count": 529,
       "date_range": [
-        "2025-05-15",
-        "2025-12-06"
+        "2025-12-05",
+        "2026-01-08"
       ],
       "columns": {
         "date": {
@@ -399,15 +399,15 @@
           "nullable": false
         }
       },
-      "updated_at": "2026-01-01T16:59:46.383779"
+      "updated_at": "2026-01-09T13:18:23.082274"
     },
     "apple_health_weight": {
       "raw_path": "raw/apple_health_export/",
       "staging_table": "staging/apple_health_weight.parquet",
       "grain": "varies",
-      "row_count": 3,
+      "row_count": 1,
       "date_range": [
-        "2024-01-28",
+        "2026-01-01",
         "2026-01-01"
       ],
       "columns": {
@@ -432,16 +432,16 @@
           "nullable": false
         }
       },
-      "updated_at": "2026-01-01T16:59:46.383779"
+      "updated_at": "2026-01-09T13:18:23.082274"
     },
     "apple_health_sleep": {
       "raw_path": "raw/apple_health_export/",
       "staging_table": "staging/apple_health_sleep.parquet",
       "grain": "varies",
-      "row_count": 4281,
+      "row_count": 210,
       "date_range": [
-        "2025-05-15",
-        "2025-12-06"
+        "2025-12-05",
+        "2026-01-08"
       ],
       "columns": {
         "date": {
@@ -469,16 +469,16 @@
           "nullable": false
         }
       },
-      "updated_at": "2026-01-01T16:59:46.383779"
+      "updated_at": "2026-01-09T13:18:23.082274"
     },
     "apple_health_steps": {
       "raw_path": "raw/apple_health_export/",
       "staging_table": "staging/apple_health_steps.parquet",
       "grain": "varies",
-      "row_count": 1672,
+      "row_count": 48,
       "date_range": [
-        "2021-12-13",
-        "2026-01-01"
+        "2025-12-05",
+        "2026-01-09"
       ],
       "columns": {
         "date": {
@@ -494,16 +494,16 @@
           "nullable": false
         }
       },
-      "updated_at": "2026-01-01T16:59:46.383779"
+      "updated_at": "2026-01-09T13:18:23.082274"
     },
     "apple_health_bp": {
       "raw_path": "raw/apple_health_export/",
       "staging_table": "staging/apple_health_bp.parquet",
       "grain": "varies",
-      "row_count": 2,
+      "row_count": 22,
       "date_range": [
         "2026-01-01",
-        "2026-01-01"
+        "2026-01-08"
       ],
       "columns": {
         "date": {
@@ -527,16 +527,16 @@
           "nullable": false
         }
       },
-      "updated_at": "2026-01-01T16:59:46.383779"
+      "updated_at": "2026-01-09T13:18:23.082274"
     },
     "apple_health_workouts": {
       "raw_path": "raw/apple_health_export/",
       "staging_table": "staging/apple_health_workouts.parquet",
       "grain": "varies",
-      "row_count": 197,
+      "row_count": 4,
       "date_range": [
-        "2024-04-15",
-        "2025-09-02"
+        "2026-01-03",
+        "2026-01-08"
       ],
       "columns": {
         "date": {
@@ -576,16 +576,16 @@
           "nullable": false
         }
       },
-      "updated_at": "2026-01-01T16:59:46.383779"
+      "updated_at": "2026-01-09T13:18:23.082274"
     },
     "apple_health_resting_hr": {
       "raw_path": "raw/apple_health_export/",
       "staging_table": "staging/apple_health_resting_hr.parquet",
       "grain": "varies",
-      "row_count": 168,
+      "row_count": 10,
       "date_range": [
-        "2025-05-16",
-        "2025-12-06"
+        "2025-12-05",
+        "2026-01-08"
       ],
       "columns": {
         "date": {
@@ -609,7 +609,7 @@
           "nullable": false
         }
       },
-      "updated_at": "2026-01-01T16:59:46.383779"
+      "updated_at": "2026-01-09T13:18:23.082274"
     },
     "clinical_labs": {
       "raw_path": "raw/apple_health_export/",
@@ -666,7 +666,7 @@
           "nullable": false
         }
       },
-      "updated_at": "2026-01-01T16:59:46.383779"
+      "updated_at": "2026-01-09T13:18:23.082274"
     },
     "clinical_conditions": {
       "raw_path": "raw/apple_health_export/",
@@ -707,7 +707,7 @@
           "nullable": false
         }
       },
-      "updated_at": "2026-01-01T16:59:46.383779"
+      "updated_at": "2026-01-09T13:18:23.082274"
     },
     "clinical_medications": {
       "raw_path": "raw/apple_health_export/",
@@ -744,7 +744,7 @@
           "nullable": false
         }
       },
-      "updated_at": "2026-01-01T16:59:46.383779"
+      "updated_at": "2026-01-09T13:18:23.082274"
     },
     "clinical_immunizations": {
       "raw_path": "raw/apple_health_export/",
@@ -781,7 +781,7 @@
           "nullable": false
         }
       },
-      "updated_at": "2026-01-01T16:59:46.383779"
+      "updated_at": "2026-01-09T13:18:23.082274"
     }
   },
   "link_strategies": {

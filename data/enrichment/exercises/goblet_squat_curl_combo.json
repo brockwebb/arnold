@@ -1,0 +1,54 @@
+{
+  "exercise_id": "CUSTOM:Goblet_Squat_Curl_Combo",
+  "exercise_name": "Goblet Squat Curl Combo",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "goblet squat curl muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Goblet Squat Curl Combo is a full-body exercise combining a goblet squat with bicep curls at the bottom, powerfully working lower body (glutes, quads, hamstrings, calves) and core for stability, while the curl adds biceps, forearms, and traps, with the movement pattern being a deep squat followed by a controlled curl and return, enhancing hip/ankle mobility and strength through a fluid motion. [1, 2, 3, 4]  \nMuscles Worked: \n\n\u2022 Primary Lower Body: Glutes, Quadriceps, Hamstrings, Calves (Gastrocnemius, Soleus). \n\u2022 Core & Stability: Rectus Abdominis, Erector Spinae, Obliques (isometric hold). \n\u2022 Upper Body (from holding/curling): Biceps, Forearms, Traps, Deltoids, Lats (to keep weight close). [1, 2, 5, 6, 7]  \n\nThis video demonstrates the muscles worked during the Goblet Squat Curl: \nMovement Pattern: \n\n1. Setup: Hold a kettlebell or dumbbell at chest height (goblet position). \n2. Descent: Squat down deeply, keeping your chest up, back straight, and elbows inside your knees to push them out. \n3. Curl: At the bottom, lower the weight straight down as you extend your arms, then curl it back up to the goblet position. \n4. Ascent: Drive up through your heels, squeezing your glutes, returning to standing. \n5. Repetition: This whole sequence (squat + curl) is one repetition, performed fluidly. [1, 2, 3, 4, 8, 9, 10]  \n\nWatch this video to see the correct form for the Goblet Squat Curl: \nKey Benefits: \n\n\u2022 Total Body Strength: Excellent compound exercise for legs, core, and arms. \n\u2022 Mobility: Deep squats improve hip, ankle, and thoracic spine mobility. \n\u2022 Form Correction: Front-loading and the curl help maintain an upright torso, preventing forward lean. [4, 5, 11, 12, 13]  \n\n**Citations:**\n\n[1]\u00a0https://www.issaonline.com/blog/post/goblet-squat-form-muscles-worked-benefits-variations\n[2]\u00a0https://www.gymshark.com/blog/article/goblet-squats\n[3]\u00a0https://www.youtube.com/watch?v=SmHdwb1zP_k\n[4]\u00a0https://www.youtube.com/watch?v=AVynA_iLAaE\n[5]\u00a0https://learn.athleanx.com/articles/legs-for-men/how-to-do-goblet-squats\n[6]\u00a0https://www.youtube.com/watch?v=xTM-e_Gj5sA\n[7]\u00a0https://www.youtube.com/watch?v=l3voU_8VALM\n[8]\u00a0https://www.health.com/fitness/goblet-squats\n[9]\u00a0https://www.verywellfit.com/how-to-goblet-squat-4589695\n[10]\u00a0https://www.youtube.com/watch?v=Y4NIfPIy_gQ\n[11]\u00a0https://www.coachweb.com/leg-exercises/3379/how-to-master-the-goblet-squat\n[12]\u00a0https://swolverine.com/blogs/blog/goblet-squat-exercise-mastering-form-benefits-and-variations\n[13]\u00a0https://barbend.com/goblet-squat/\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Squat",
+      "confidence": 0.9
+    },
+    {
+      "name": "Elbow Flexion",
+      "confidence": 0.8
+    },
+    {
+      "name": "Hip Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Knee Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Gluteus Maximus",
+      "Rectus Femoris",
+      "Biceps Femoris",
+      "Biceps Brachii"
+    ],
+    "secondary": [
+      "Gastrocnemius",
+      "Soleus",
+      "Rectus Abdominis",
+      "Erector Spinae",
+      "External Obliques",
+      "Forearm Flexors",
+      "Trapezius (Upper)",
+      "Deltoid (Anterior)",
+      "Latissimus Dorsi"
+    ]
+  },
+  "processed_at": "2026-01-07T22:05:52.292933"
+}

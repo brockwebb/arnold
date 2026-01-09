@@ -1,0 +1,39 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:HIP_HINGE",
+  "exercise_name": "Hip Hinge",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "hip hinge exercise muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The hip hinge is a fundamental movement pattern focusing on bending at the hips, keeping a neutral spine, and engaging the posterior chain: glutes, hamstrings, and lower back, with core stabilization. It involves pushing the hips back (like bowing) and returning by driving the hips forward, crucial for daily tasks and exercises like deadlifts, promoting strength and injury prevention by loading the glutes and hamstrings, not just the spine. [1, 2, 3, 4, 5, 6]  \nMuscles Worked (Posterior Chain) \n\n\u2022 Glutes (Gluteus Maximus): Primary movers for hip extension (driving back up). \n\u2022 Hamstrings: Key for hip flexion (bending forward) and extension, stretching and contracting. \n\u2022 Erector Spinae (Lower Back): Maintain spinal neutrality, preventing rounding. \n\u2022 Core (Abs, Obliques): Brace the torso, stabilizing the spine. \n\u2022 Lats & Grip (for weighted versions): Help keep the upper body stable and connected. [1, 3, 4, 5, 7, 8, 9, 10]  \n\nMovement Pattern \n\n1. Start: Stand tall, feet hip-width apart, slight bend in knees, core braced, spine neutral. \n2. Hinge (Forward): Initiate by pushing your hips backward (like a door hinge), keeping your back flat and knees soft but relatively still. \n3. Lower: Lower your torso until you feel a stretch in your hamstrings or reach a comfortable depth, maintaining spinal neutrality. \n4. Return (Up): Drive your hips forward, squeezing your glutes to return to the starting upright position. [1, 3, 4, 5, 7]  \n\nKey Concept \n\n\u2022 Hip-Driven vs. Knee-Driven: Unlike a squat (knee bend), the hinge moves primarily from the hip joint, loading the muscles on the back of your body. [1, 2]  \n\n**Citations:**\n\n[1]\u00a0https://instaphysique.com/how-to-hip-hinge-lunges/\n[2]\u00a0https://www.star-physicaltherapy.com/blog/The-Often-Neglected-Hip-Hinge~3530.html\n[3]\u00a0https://www.bsrphysicaltherapy.com/2018/04/15/hip-hinge-basics/\n[4]\u00a0https://www.issaonline.com/blog/post/essential-moves-how-to-perfect-your-hip-hinge\n[5]\u00a0https://thenoteninjas.com/blog/f/hip-hinge-a-critical-movement-pattern\n[6]\u00a0https://www.youtube.com/watch?v=JLBaBgDwjnQ\n[7]\u00a0https://fitbod.me/exercises/hip-hinge\n[8]\u00a0https://nakednutrition.com/blogs/fitness/hip-hinge-exercises\n[9]\u00a0https://www.instagram.com/reel/DKLCmFvxHqq/\n[10]\u00a0https://www.physio-pedia.com/Hip_Hinge\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Hip Hinge",
+      "confidence": 1.0
+    },
+    {
+      "name": "Hip Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Hip Flexion",
+      "confidence": 0.8
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Gluteus Maximus",
+      "Biceps Femoris"
+    ],
+    "secondary": [
+      "Erector Spinae",
+      "Rectus Abdominis",
+      "External Obliques",
+      "Latissimus Dorsi"
+    ]
+  },
+  "processed_at": "2026-01-08T08:34:23.944925"
+}

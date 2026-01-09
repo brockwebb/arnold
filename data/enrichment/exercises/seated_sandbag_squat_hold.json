@@ -1,0 +1,47 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:SEATED_SANDBAG_SQUAT_HOLD",
+  "exercise_name": "Seated Sandbag Squat Hold",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "seated squat hold isometric muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Seated Sandbag Squat Hold is a challenging isometric exercise primarily targeting the glutes, quads, hamstrings, and deep core stabilizers (abs, obliques), forcing them to work hard to maintain the squat position and handle the shifting weight, improving functional strength, balance, and posture through a controlled, multi-planar squatting pattern with high demands on core tension and spinal stability. [1, 2, 3]  \nMuscles Worked \n\n\u2022 Primary Movers (Legs): Quadriceps (front of thighs), Glutes (buttocks), Hamstrings (back of thighs). \n\u2022 Core/Stabilizers: Rectus Abdominis, Obliques, Transverse Abdominis, Erector Spinae (lower back) - essential for maintaining an upright torso and controlling the unstable load. \n\u2022 Upper Body (Stabilization): Lats, traps, and shoulder girdle muscles, especially when holding the bag in a front-rack or Zercher position. \n\u2022 Grip: Forearms and hands, due to the unstable nature of the sandbag. [1, 3, 4, 5, 6, 7, 8, 9]  \n\nMovement Pattern \n\n\u2022 Type: Isometric (static hold), isometric squat variation, functional strength, stability training. \n\u2022 Action: Bending at the hips and knees to lower into a squat, then holding that position, engaging the core and glutes to prevent the torso from collapsing forward. \n\u2022 Key Cues: \n\n    \u2022 Grab the ground: Imagine your feet gripping the floor to activate lower body chains. \n    \u2022 Chest tall: Maintain an upright torso to keep tension and engage the core. \n    \u2022 Squeeze the bag: Keep tension on the sandbag by pulling handles apart (if applicable) to engage lats and core. \n    \u2022 Controlled Breathing: Inhale to brace, hold tension, then exhale as you return to standing (if doing reps) or maintain steady breaths in the hold. \n\n\u2022 Benefits: Develops strength in dynamic stability, improves posture, and trains the body to work as an integrated unit. [1, 2, 3, 7, 10, 11, 12]  \n\n**Citations:**\n\n[1]\u00a0https://www.instagram.com/reel/CvNxrEugtzi/\n[2]\u00a0https://www.dingosandbags.com.au/frequently-asked-questions/sandbag-zercher-squat/\n[3]\u00a0https://hyperwear.com/blogs/blog/sandbag-training-workouts\n[4]\u00a0https://www.amoskeagfitnessconcord.com/sandbag-weight-training-a-no-nonsense-guide-to-getting-started\n[5]\u00a0https://gym-mikolo.com/blogs/home-gym/mastering-the-sandbag-zercher-squat-the-ultimate-strength-building-exercise\n[6]\u00a0https://dan.org/alert-diver/article/sandbag-training/\n[7]\u00a0https://ultimatesandbagtraining.com/muscles-made-smarter-ultimate-sandbag-exercises/\n[8]\u00a0https://en.wikipedia.org/wiki/Squat_(exercise)\n[9]\u00a0https://www.muscletech.com/blogs/journal/sandbag-workout\n[10]\u00a0https://brickhousenutrition.com/blogs/articles/sandbag-training-101-is-this-the-ultimate-full-body-workout-tool\n[11]\u00a0https://www.youtube.com/watch?v=qcCuCcV78X8\n[12]\u00a0https://godsofgrip.com/blogs/everything-else/all-about-sandbag-training-by-project-bear-mode\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Squat",
+      "confidence": 1.0
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Anti-Lateral Flexion",
+      "confidence": 0.8
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.7
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Rectus Femoris",
+      "Gluteus Maximus",
+      "Biceps Femoris"
+    ],
+    "secondary": [
+      "Rectus Abdominis",
+      "External Obliques",
+      "Transverse Abdominis",
+      "Erector Spinae",
+      "Latissimus Dorsi",
+      "Trapezius (Middle)",
+      "Forearm Flexors"
+    ]
+  },
+  "processed_at": "2026-01-08T08:35:43.590389"
+}

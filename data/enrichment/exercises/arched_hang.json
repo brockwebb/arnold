@@ -1,0 +1,48 @@
+{
+  "exercise_id": "CUSTOM:Arched_Hang",
+  "exercise_name": "Arched Hang",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "arched hang muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Arched Hang is a calisthenics movement that trains scapular control, upper back strength (lats, rhomboids, traps), posterior chain (glutes, hamstrings), and thoracic mobility, while stretching abs and hip flexors, improving posture, and building grip strength, used to prep for pull-ups and develop a strong, active hanging position with an arched spine and chest up. [1, 2, 3]  \nThis video demonstrates how to perform the arched hang: \nMuscles Worked \n\n\u2022 Upper Back & Shoulders: Latissimus Dorsi (lats), Rhomboids, Trapezius (traps), Posterior Deltoids, Rotator Cuff. \n\u2022 Grip & Forearms: Hand/wrist flexors, forearms. \n\u2022 Core: Abdominals, obliques (for stability and opposition). \n\u2022 Posterior Chain: Glutes, hamstrings (for squeezing and extension). [1, 2, 3, 4, 5]  \n\nMovement Pattern \n\n1. Start: Begin in a passive dead hang from a pull-up bar. \n2. Engage Scapulae: Pull your shoulder blades down and together (retraction and depression). \n3. Arch & Extend: Arch your upper back, pointing your chest up towards the bar, keeping elbows straight. \n4. Squeeze Glutes: Squeeze your glutes and keep legs extended behind you. \n5. Hold: Maintain this active, arched position to build strength and control. \n6. Return: Slowly release back to a passive hang. [1, 2, 3, 6]  \n\nYou can see the arched hang being performed in this video: \nKey Benefits & Purpose \n\n\u2022 Strengthens: Scapular control, straight-arm strength, grip, and entire posterior chain. \n\u2022 Improves: Thoracic spine mobility, posture, and overhead shoulder range. \n\u2022 Prepares For: Pull-ups, muscle-ups, and other pulling skills. [1, 2, 3]  \n\n**Citations:**\n\n[1]\u00a0https://www.precisionmovement.coach/arched-hang-shoulder-mobility-thoracic-kyphosis/\n[2]\u00a0https://calisthenics.com/exercise/arch-active-hang/\n[3]\u00a0https://www.jitsyfit.com/the-arched-hang-an-advanced-pull-up-progression/\n[4]\u00a0https://www.goodrx.com/well-being/movement-exercise/dead-hang-benefits\n[5]\u00a0https://www.goodrx.com/well-being/movement-exercise/dead-hang-benefits\n[6]\u00a0https://www.youtube.com/watch?v=KF1zYcyDXzo\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Grip / Hang",
+      "confidence": 1.0
+    },
+    {
+      "name": "Scapular Retraction",
+      "confidence": 0.9
+    },
+    {
+      "name": "Hip Extension",
+      "confidence": 0.7
+    },
+    {
+      "name": "Mobility",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Latissimus Dorsi",
+      "Rhomboids",
+      "Trapezius (Middle)",
+      "Trapezius (Lower)",
+      "Forearm Flexors"
+    ],
+    "secondary": [
+      "Deltoid (Posterior)",
+      "Rotator Cuff",
+      "Gluteus Maximus",
+      "Hamstrings",
+      "Rectus Abdominis",
+      "External Obliques"
+    ]
+  },
+  "processed_at": "2026-01-07T22:06:16.140577"
+}

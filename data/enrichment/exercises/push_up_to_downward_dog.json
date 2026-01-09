@@ -1,0 +1,60 @@
+{
+  "exercise_id": "CUSTOM:Push-Up_to_Downward_Dog",
+  "exercise_name": "Push-Up to Downward Dog",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "push-up to downward dog muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Push-Up to Downward Dog is a dynamic flow that builds upper body pushing strength (chest, shoulders, triceps) and core stability in the push-up, transitioning into a full-body stretch that lengthens the posterior chain (hamstrings, calves, back) and opens the shoulders/chest, combining strength with mobility and coordinating the diaphragm and deep abdominals for better trunk stability, as noted by Robertson Training Systems (https://robertsontrainingsystems.com/blog/rts-coaching-push-downward-dog/) and this YouTube video (https://www.youtube.com/watch?v=zlzmTx_l2Bk), improving coordination and revealing core weaknesses like rib flare. [1, 2, 3, 4]  \nMuscles Worked: \n\n\u2022 Push-Up Phase (Strength): Pectorals, Deltoids (shoulders), Triceps, Serratus Anterior, Core (abs, obliques), Glutes, Erector Spinae. \n\u2022 Downward Dog Phase (Stretch/Stability): Hamstrings, Calves (gastroc/soleus), Shoulders, Upper Back, Glutes, Feet, Chest (opening). \n\u2022 Transition (Coordination): Deep core (transverse abdominis), Diaphragm, Rhomboids, Traps (stabilization). [1, 3, 4, 5, 6, 7, 8]  \n\nMovement Patterns: \n\n1. Plank (Start): Body in a straight line, core braced, hips level. \n2. Elbow Bend/Lowering: Hips stay high, body moves as one unit down toward the floor (like a close-grip push-up). \n3. Press Up: Arms extend, pushing the body back up to a plank. \n4. Hinge & Extend (Plank to Downward Dog): From plank, send hips up and back, straightening legs as much as possible to form an inverted 'V' shape, heels driving down. \n5. Stretch/Hold: Hold the inverted 'V', stretching hamstrings and calves while opening the chest and shoulders. \n6. Return: Hips move forward, chest drops between hands, transitioning into a low push-up or upward dog, then back to plank to repeat or finish. [1, 4, 7, 9, 10, 11]  \n\nKey Benefits: \n\n\u2022 Full-Body Integration: Connects upper body pushing with lower body stretching and core control. \n\u2022 Shoulder Mobility: Opens tight shoulders and improves thoracic spine extension, notes Robertson Training Systems. \n\u2022 Core & Breath: Reveals and improves coordination between the diaphragm and deep abdominals, preventing rib flare, say this Medium article and this other article. \n\u2022 Posterior Chain Lengthening: Stretches tight hamstrings and calves, beneficial for squat/deadlift mechanics. [1, 2, 3, 4, 8, 11]  \n\n**Citations:**\n\n[1]\u00a0https://robertsontrainingsystems.com/blog/rts-coaching-push-downward-dog/\n[2]\u00a0https://www.youtube.com/watch?v=zlzmTx_l2Bk\n[3]\u00a0https://www.holistichottie.com/single-post/push-up-to-downward-dog-master-this-full-body-exercise-its-beginner-friendly-variation\n[4]\u00a0https://www.hingehealth.com/resources/articles/downward-dog/\n[5]\u00a0https://www.nike.com/a/what-muscles-do-pushups-work-out\n[6]\u00a0https://www.setforset.com/blogs/news/push-up-variations\n[7]\u00a0https://medium.com/in-fitness-and-in-health/the-anatomy-of-a-push-up-166587072a12\n[8]\u00a0https://fitnessvolt.com/downward-facing-dog/\n[9]\u00a0https://www.physio-pedia.com/Pushups\n[10]\u00a0https://fitbod.me/exercises/downward-dog-push-up\n[11]\u00a0https://www.bu.edu/wellness/six-reasons-to-practice-downward-dog/\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Horizontal Push",
+      "confidence": 0.9
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Hip Hinge",
+      "confidence": 0.7
+    },
+    {
+      "name": "Mobility",
+      "confidence": 0.8
+    },
+    {
+      "name": "Elbow Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Elbow Flexion",
+      "confidence": 0.8
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Pectoralis Major",
+      "Triceps Brachii",
+      "Deltoid (Anterior)",
+      "Rectus Abdominis",
+      "Hamstrings",
+      "Gastrocnemius"
+    ],
+    "secondary": [
+      "Serratus Anterior",
+      "Transverse Abdominis",
+      "External Obliques",
+      "Gluteus Maximus",
+      "Erector Spinae",
+      "Rhomboids",
+      "Trapezius (Middle)",
+      "Soleus",
+      "Deltoid (Posterior)"
+    ]
+  },
+  "processed_at": "2026-01-07T22:03:51.656062"
+}

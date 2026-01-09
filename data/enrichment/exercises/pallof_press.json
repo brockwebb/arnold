@@ -1,0 +1,39 @@
+{
+  "exercise_id": "CUSTOM:Pallof_Press",
+  "exercise_name": "Pallof Press",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "pallof press muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Pallof Press is an anti-rotation core exercise that primarily targets your obliques, transverse abdominis, rectus abdominis, and glutes to prevent your torso from twisting, working isometrically to resist the band's pull. The key movement pattern is resisting spinal rotation, teaching your core to stabilize the spine, with secondary muscles like deltoids, triceps, lats, traps, rhomboids, and erector spinae acting as stabilizers to maintain a rigid, upright posture as you press out and return the band. [1, 2, 3, 4, 5]  \nMuscles Worked \n\n\u2022 Primary Core: Obliques (internal & external), Transverse Abdominis, Rectus Abdominis (maintains core rigidity). \n\u2022 Stabilizers: Glutes (especially gluteus maximus), Erector Spinae, Lats, Scapular Stabilizers (traps, rhomboids). \n\u2022 Upper Body (Secondary): Deltoids, Triceps, Rotator Cuff muscles (shoulder stability). [1, 2, 3, 4, 5, 6]  \n\nMovement Pattern: Anti-Rotation \n\n\u2022 Goal: To actively resist unwanted rotation of the trunk. \n\u2022 Action: You press the band/cable straight out from your chest (or higher, depending on variation) while your core muscles contract powerfully to prevent your body from turning towards the anchor point. \n\u2022 Key: Maintain a stable spine, keeping hips and shoulders aligned, avoiding arching your back or shrugging. \n\u2022 How it Works: The resistance band creates a rotational force, and your core muscles work isometrically (without changing length) to counteract it, building functional strength for real-world movements. [1, 2, 5, 8, 9, 10, 11]  \n\nVariations (Changing the Challenge) \n\n\u2022 Half-Kneeling: Easier, good for beginners. \n\u2022 Standing: Harder, requires more core and glute engagement. \n\u2022 Staggered Stance (Split Stance): Increases stability demand. \n\u2022 Overhead: Adds shoulder stability and challenges core bracing under load. [1, 5, 10, 12, 13]  \n\n**Citations:**\n\n[1]\u00a0https://nfpt.com/how-to-do-the-pallof-press/\n[2]\u00a0https://learn.athleanx.com/articles/abs-for-men/how-to-do-the-pallof-press\n[3]\u00a0https://row.gymshark.com/blog/article/how-to-do-a-palloff-press\n[4]\u00a0https://www.hingehealth.com/resources/articles/pallof-press/\n[5]\u00a0https://www.youtube.com/watch?v=g5x2yvvrrYU\n[6]\u00a0https://barbell-logic.com/the-press-muscles-worked/\n[7]\u00a0https://www.themovementsystem.com/blog/the-pallof-press\n[8]\u00a0https://www.youtube.com/shorts/wt61QlTmzPM\n[9]\u00a0https://theprehabguys.com/master-the-pallof-press-exercises/\n[10]\u00a0https://www.muscleandfitness.com/workouts/full-body-exercises/pallof-press-exercise-how-to-benefits-and-variation/\n[11]\u00a0https://lifefitindia.com/pallof-press/\n[12]\u00a0https://www.youtube.com/watch?v=ywBp8G9jI_8\n[13]\u00a0https://mdurance.com/en/blog/pallof-press-use-this-trick-to-increase-external-oblique-activation-by-10/\n\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Anti-Rotation",
+      "confidence": 1.0
+    },
+    {
+      "name": "Horizontal Push",
+      "confidence": 0.3
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "External Obliques",
+      "Internal Obliques",
+      "Transverse Abdominis",
+      "Rectus Abdominis"
+    ],
+    "secondary": [
+      "Gluteus Maximus",
+      "Erector Spinae",
+      "Latissimus Dorsi",
+      "Deltoid (Anterior)",
+      "Triceps Brachii",
+      "Trapezius",
+      "Rhomboids"
+    ]
+  },
+  "processed_at": "2026-01-07T15:10:56.612423"
+}

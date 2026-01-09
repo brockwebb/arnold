@@ -81,6 +81,10 @@ POSTGRES (Facts)                    NEO4J (Relationships)
 - ⏳ Build coaching observations over time
 - ⏳ Test periodization across a full training block
 - ⏳ Validate the plan → execute → reflect cycle
+- 📋 **Requirement-gated progression** — auto-advance weight/reps only if previous week's targets met (from wger)
+- 📋 **Exercise type modeling** — dropset, myo-reps, TUT, iso-hold, AMRAP sets (from wger)
+- 📋 **RIR tracking** — Reps in Reserve alongside RPE for autoregulation (from wger)
+- 📋 **Workout day types** — EMOM, AMRAP, TABATA, HIIT, RFT templates (from wger)
 
 **Key Question:** Does the system actually improve training outcomes?
 
@@ -138,7 +142,7 @@ POSTGRES (Facts)                    NEO4J (Relationships)
 - ✅ Race history reconstruction (18 years consolidated)
 - 📋 Historical Garmin/Suunto .FIT import
 - 📋 Body composition tracking (sparse - needs regular weigh-ins)
-- 📋 Nutrition (if tracked)
+- 📋 **Nutrition tracking** — Open Food Facts API (2M+ foods, used by wger)
 - 📋 Workout deduplication (Apple Health vs Neo4j)
 
 **Key Question:** What's the complete picture?
@@ -312,6 +316,14 @@ Explainable recommendations build trust, enable debugging, and allow human overr
 - Architecture is replicable
 - Privacy is maintained
 - Value exceeds effort
+
+---
+
+## Research Notes
+
+### wger Workout Manager (Evaluated Jan 2026)
+
+Open-source fitness app (`research/wger/`). Patterns adopted into roadmap above. Not using their exercise database (691 vs our 4,000+), muscle model (16 flat vs our UBERON hierarchy), or Django architecture.
 
 ---
 

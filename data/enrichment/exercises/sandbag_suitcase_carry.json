@@ -1,0 +1,45 @@
+{
+  "exercise_id": "CUSTOM:Sandbag_Suitcase_Carry",
+  "exercise_name": "Sandbag Suitcase Carry",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "suitcase carry muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Sandbag Suitcase Carry targets your core (obliques, abdominals, lower back), grip (forearms), shoulders, and hip stabilizers, forcing them to work isometrically to counteract the uneven weight, enhancing balance, posture, and functional strength through anti-lateral flexion. This movement pattern emphasizes unilateral loading, engaging muscles on one side intensely to maintain an upright, stable posture while walking, mimicking real-life lifting and carrying. [1, 2, 3, 4]  \nMuscles Worked \n\n\u2022 Core: Obliques, transverse abdominis, rectus abdominis (bracing isometrically). \n\u2022 Grip & Forearms: Intense engagement to hold the bag. \n\u2022 Shoulders (Deltoids): Stabilize the weight. \n\u2022 Hip Stabilizers: Glutes and hip abductors on the loaded side. \n\u2022 Upper Back & Lower Back: To keep the spine neutral. \n\u2022 Legs: Quadriceps, hamstrings, and calves work to propel you forward. [1, 2, 3, 4, 5, 6]  \n\nThis video demonstrates the muscles worked during a sandbag carry: \nMovement Pattern \n\n\u2022 Anti-Lateral Flexion: The primary pattern, where core muscles contract isometrically to prevent your torso from bending toward the weighted side, says this article from the National Federation of Professional Trainers (https://nfpt.com/suitcase-carries-how-to-do/) and this Facebook post (https://www.facebook.com/justinagustinFB/posts/the-suitcase-carry-exercise-strengthens-the-core-by-loading-one-side-of-the-body/861852099273834/). \n\u2022 Unilateral Loading: Weight is on one side, challenging balance and stability more than bilateral carries (like Farmer's Walks). \n\u2022 Isometric Core Engagement: Muscles hold tension to resist the weight's pull, building deep core strength and endurance. \n\u2022 Dynamic Stability: As you walk, your body constantly adjusts to the shifting load, improving coordination and balance. [1, 2, 3, 4, 7, 8]  \n\nWatch this video to see the suitcase carry in action and learn how to perform it correctly: \n\n**Citations:**\n\n[1]\u00a0https://nfpt.com/suitcase-carries-how-to-do/\n[2]\u00a0https://brickhousenutrition.com/blogs/articles/sandbag-training-101-is-this-the-ultimate-full-body-workout-tool\n[3]\u00a0https://ultimatesandbagtraining.com/9-ultimate-sandbag-exercises-that-make-functional-strength-better/\n[4]\u00a0https://www.facebook.com/justinagustinFB/posts/the-suitcase-carry-exercise-strengthens-the-core-by-loading-one-side-of-the-body/861852099273834/\n[5]\u00a0https://exercises.virtuagym.com/exercise/sandbag-suitcase-walk-horizontal/\n[6]\u00a0https://www.youtube.com/watch?v=ilYs5-M22J8\n[7]\u00a0https://www.goruck.com/blogs/news-stories/sandbag-workouts\n[8]\u00a0https://www.youtube.com/watch?v=tNHdx7pmrGI\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Anti-Lateral Flexion",
+      "confidence": 1.0
+    },
+    {
+      "name": "Loaded Carry",
+      "confidence": 1.0
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.8
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "External Obliques",
+      "Internal Obliques",
+      "Transverse Abdominis",
+      "Quadratus Lumborum",
+      "Forearm Flexors"
+    ],
+    "secondary": [
+      "Rectus Abdominis",
+      "Erector Spinae",
+      "Deltoid (Lateral)",
+      "Gluteus Medius",
+      "Trapezius (Upper)",
+      "Rectus Femoris",
+      "Gastrocnemius"
+    ]
+  },
+  "processed_at": "2026-01-07T22:03:17.484552"
+}

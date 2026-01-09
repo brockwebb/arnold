@@ -1,0 +1,38 @@
+{
+  "exercise_id": "CUSTOM:Scapular_Pull-Up",
+  "exercise_name": "Scapular Pull-Up",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "scapular pull-up muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Scapular Pull-Up targets your upper back and shoulders, primarily engaging the latissimus dorsi, trapezius (lower & middle), rhomboids, and serratus anterior, developing scapular depression and retraction (pulling shoulder blades down and together) with minimal arm involvement, essential for proper pull-up form and posture. The movement pattern involves initiating from a dead hang by depressing and retracting the scapulae to lift the body a few inches, focusing on the initial phase of a full pull-up to build foundational strength and control. [1, 2, 3, 4, 5]  \nPrimary Muscles Worked: \n\n\u2022 Latissimus Dorsi (Lats): Aids in depressing the scapula. \n\u2022 Trapezius (Lower & Middle): Depresses (pulls down) and retracts (pulls back) the shoulder blades. \n\u2022 Rhomboids (Major & Minor): Assist in scapular retraction. \n\u2022 Serratus Anterior: Helps control scapular upward rotation and stability. [1, 6, 7]  \n\nSecondary Muscles Worked: \n\n\u2022 Core Muscles (Abs, Obliques, Erector Spinae): Provide isometric stability for the trunk. \n\u2022 Posterior Deltoids: Assist in shoulder stabilization. \n\u2022 Forearms & Grip: Activated for hanging, though less dominant than in full pull-ups. [1, 4, 6]  \n\nMovement Pattern: \n\n1. Start: Hang from a bar with straight arms (dead hang). \n2. Depress & Retract: Without bending your elbows, squeeze your shoulder blades together and pull them down, slightly lifting your body a few inches. \n3. Hold: Briefly pause at the top. \n4. Return: Slowly lower back to the dead hang position. [2, 4, 5]  \n\nThis exercise isolates the initial pulling action, teaching you to engage your back muscles before your biceps, preventing shoulder impingement and building strength for harder pull-up variations. [2, 4, 8]  \n\n**Citations:**\n\n[1]\u00a0https://backmusclesolutions.com/blogs/the-ql-blawg/scapular-pull-ups\n[2]\u00a0https://www.masterclass.com/articles/scapular-pull-ups-guide\n[3]\u00a0https://kensuifitness.com/blogs/news/scapula-pull-ups-the-exercise-to-boost-your-pull-ups\n[4]\u00a0https://www.hevyapp.com/exercises/scapular-pull-ups/\n[5]\u00a0https://workoutlabs.com/exercise-guide/scapulascap-pullspull-ups/\n[6]\u00a0https://www.garagegymreviews.com/what-muscles-do-pull-ups-work\n[7]\u00a0https://www.muscleandmotion.com/mastering-the-pull-up-from-first-rep-to-perfect-form/\n[8]\u00a0https://www.pullupmate.co.uk/scapular-pull-ups-explained\n\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Scapular Retraction",
+      "confidence": 1.0
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.8
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Trapezius (Lower)",
+      "Trapezius (Middle)",
+      "Rhomboids",
+      "Serratus Anterior",
+      "Latissimus Dorsi"
+    ],
+    "secondary": [
+      "Deltoid (Posterior)",
+      "Forearm Flexors",
+      "Rectus Abdominis",
+      "External Obliques",
+      "Erector Spinae"
+    ]
+  },
+  "processed_at": "2026-01-07T15:11:07.410394"
+}

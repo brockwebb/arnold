@@ -1,0 +1,47 @@
+{
+  "exercise_id": "CUSTOM:Viking_Press",
+  "exercise_name": "Viking Press",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "viking press muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Viking Press primarily targets the shoulders (deltoids), along with the triceps and upper chest (pectoralis major), while engaging the core, traps, and back for stabilization, using a dynamic, momentum-driven pattern similar to a push press or jerk, allowing for heavy weight lifting by dipping the knees and driving the weight up. [1, 2, 3, 4]  \nThis video demonstrates the correct form for the Viking Press: \nMuscles Worked \n\n\u2022 Primary Movers: \n\n    \u2022 Deltoids: Anterior (front) and lateral (side) heads are heavily recruited for pressing overhead, say Garage Gym Reviews (https://www.garagegymreviews.com/viking-press), Onnit (https://www.onnit.com/blogs/the-edge/how-to-do-the-viking-press-like-an-expert), and trainingstation.co.uk (https://trainingstation.co.uk/blogs/news/what-is-a-viking-press). \n    \u2022 Triceps Brachii: Extend the elbows to lock out the weight, note Garage Gym Reviews, Onnit, and trainingstation.co.uk. \n    \u2022 Pectoralis Major (Clavicular Head): Assists with shoulder flexion, say Garage Gym Reviews and Lippincott (https://journals.lww.com/nsca-scj/fulltext/2021/10000/the_viking_press.12.aspx). \n\n\u2022 Stabilizers: \n\n    \u2022 Core (Abs & Obliques): Braces the torso and maintains stability, according to Garage Gym Reviews and trainingstation.co.uk. \n    \u2022 Trapezius & Upper Back: Help stabilize the shoulder girdle and assist with scapular movement, note Onnit and trainingstation.co.uk. \n    \u2022 Serratus Anterior: Stabilizes the shoulder blades, note Garage Gym Reviews and Lippincott. [1, 3, 5, 6]  \n\nThis video provides variations of the Viking Press, including kneeling and standing: \nMovement Pattern (Dynamic/Momentum-Based) \n\n1. Dip: A quick, shallow bend in the knees and hips to load the lower body, say BarBend, Generation Iron, and Garage Gym Reviews. \n2. Drive (Legs/Hips): Explosively extend the ankles, knees, and hips to propel the weight upward, using momentum [2, 3, 4, 7]  \n\n**Citations:**\n\n[1]\u00a0https://www.garagegymreviews.com/viking-press\n[2]\u00a0https://www.youtube.com/watch?v=PbYkdHEULrE\n[3]\u00a0https://trainingstation.co.uk/blogs/news/what-is-a-viking-press\n[4]\u00a0https://barbend.com/viking-press/\n[5]\u00a0https://www.onnit.com/blogs/the-edge/how-to-do-the-viking-press-like-an-expert\n[6]\u00a0https://journals.lww.com/nsca-scj/fulltext/2021/10000/the_viking_press.12.aspx\n[7]\u00a0https://www.facebook.com/coachnicx/posts/the-first-exercise-in-this-set-is-called-a-viking-press-%EF%B8%8F%EF%B8%8Fyou-can-use-a-machine-/586604357469689/\n\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Vertical Push",
+      "confidence": 1.0
+    },
+    {
+      "name": "Hip Extension",
+      "confidence": 0.7
+    },
+    {
+      "name": "Knee Extension",
+      "confidence": 0.7
+    },
+    {
+      "name": "Elbow Extension",
+      "confidence": 0.8
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Deltoid (Anterior)",
+      "Deltoid (Lateral)",
+      "Triceps Brachii",
+      "Pectoralis Major"
+    ],
+    "secondary": [
+      "Rectus Abdominis",
+      "External Obliques",
+      "Trapezius (Upper)",
+      "Trapezius (Middle)",
+      "Serratus Anterior",
+      "Gluteus Maximus",
+      "Rectus Femoris"
+    ]
+  },
+  "processed_at": "2026-01-07T15:08:59.867898"
+}

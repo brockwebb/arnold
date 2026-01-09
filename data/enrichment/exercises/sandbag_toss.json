@@ -1,0 +1,65 @@
+{
+  "exercise_id": "CUSTOM:Sandbag_Toss",
+  "exercise_name": "Sandbag Toss",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "sandbag toss muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Sandbag Toss is a powerful, full-body exercise demanding explosive power through the legs, hips, and core, while engaging the shoulders, back, forearms, and grip for stabilization and force transfer, mimicking functional movements like lifting and throwing. Its movement pattern integrates a powerful hip hinge, leg drive, and explosive core rotation, training the body to efficiently transfer energy from the ground up for maximum velocity. [1, 2, 3, 4, 5]  \nMuscles Worked \n\n\u2022 Legs: Quadriceps, Glutes (driving the initial lift and hip extension). \n\u2022 Core: Abdominals, Obliques (stabilizing the spine and facilitating rotation). \n\u2022 Hips: Glutes, Hip Flexors (generating explosive power). \n\u2022 Back: Lats, Erector Spinae (transferring force, maintaining posture). \n\u2022 Shoulders & Arms: Deltoids, Biceps, Forearms (supporting the lift, stabilizing the bag). \n\u2022 Grip: Forearms, Hands (essential for controlling the unstable bag). [1, 2, 3, 4, 6, 7]  \n\nMovement Patterns \n\n1. Hip Hinge & Squat: Bending at the hips and knees to get under the bag, similar to a deadlift. \n2. Explosive Drive (Triple Extension): Simultaneous extension of the ankles, knees, and hips to powerfully launch the bag. \n3. Core Bracing & Rotation: The midsection braces to transfer power from legs to arms, often involving a rotational element in variations like overhead or rotational throws. \n4. Force Transfer: Efficiently moving energy from the lower body through the core and into the upper body. \n5. Stabilization: Constant muscle engagement (especially core and grip) to control the bag's shifting weight. [1, 2, 3, 7, 8]  \n\nFunctional Application \nThis movement builds explosive power, full-body coordination, and core strength, making it excellent for athletes in sports requiring powerful throwing, jumping, and lifting actions, and for general functional fitness. [1, 3, 9]  \n\n**Citations:**\n\n[1]\u00a0https://brickhousenutrition.com/blogs/articles/sandbag-training-101-is-this-the-ultimate-full-body-workout-tool\n[2]\u00a0https://www.muscletech.com/blogs/journal/sandbag-workout\n[3]\u00a0https://www.nextalpha.eu/blogs/functional-fitness/unleash-your-strength-with-the-dynamic-sandbag-throw-exercise-with-the-sandbag-for-fitness\n[4]\u00a0https://ultimatesandbagtraining.com/muscles-made-smarter-ultimate-sandbag-exercises/\n[5]\u00a0https://ultimatesandbagtraining.com/understanding-what-functional-movement-really-means/\n[6]\u00a0https://www.youtube.com/shorts/EBx0-5IsWCA\n[7]\u00a0https://godsofgrip.com/blogs/everything-else/all-about-sandbag-training-by-project-bear-mode\n[8]\u00a0https://www.youtube.com/shorts/JVTG45FA_D8\n[9]\u00a0https://mtntactical.com/knowledge/the-full-body-training-effect-of-sandbag-based-multi-modal-chassis-integrity-grinds/\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Hip Hinge",
+      "confidence": 0.9
+    },
+    {
+      "name": "Hip Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Knee Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Squat",
+      "confidence": 0.7
+    },
+    {
+      "name": "Trunk Rotation",
+      "confidence": 0.7
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.6
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.8
+    },
+    {
+      "name": "Vertical Push",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Gluteus Maximus",
+      "Rectus Femoris",
+      "Rectus Abdominis",
+      "External Obliques"
+    ],
+    "secondary": [
+      "Erector Spinae",
+      "Latissimus Dorsi",
+      "Deltoid (Anterior)",
+      "Deltoid (Lateral)",
+      "Biceps Brachii",
+      "Forearm Flexors",
+      "Hamstrings",
+      "Transverse Abdominis"
+    ]
+  },
+  "processed_at": "2026-01-07T22:03:37.216071"
+}

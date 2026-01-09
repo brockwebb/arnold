@@ -1,0 +1,35 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:SPINAL_DECOMPRESSION",
+  "exercise_name": "Spinal Decompression",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "spinal decompression hang muscles worked",
+    "retrieved_at": "Spinal",
+    "raw_text": "Spinal decompression primarily works by reducing tension in the erector spinae, hamstrings, glutes, and core muscles, creating space between vertebrae, and improving circulation, not directly building muscle, but allowing them to function better. The movement pattern involves controlled stretching (flexion, extension, lateral bending, rotation) to relieve pressure, often using variable pull-relax cycles to prevent muscle guarding, enhancing overall spinal mobility and stability when combined with strengthening exercises. [1, 2, 3, 4, 5, 6]  \nMuscles Worked (Indirectly & Supportively) \nSpinal decompression aims to relax muscles that guard the spine and promote healing in deep supportive tissues, rather than isolating them for strength training. \n\n\u2022 Spinal Stabilizers: Relieves tension in the erector spinae (longissimus, iliocostalis, spinalis) and deep multifidus, allowing them to function better. \n\u2022 Core Muscles: Reduces spasms and improves function in the abdominals and obliques, which support the spine. \n\u2022 Glutes & Hamstrings: Stretches tight hamstrings and piriformis, which can pull on the pelvis and lower back. [1, 4, 5, 7, 8]  \n\nMovement Patterns \nThe therapy uses controlled, cyclical movements to achieve decompression. \n\n\u2022 Variable Tension: Instead of constant pulling (traction), decompression uses cycles of stretch and release to relax muscles and prevent guarding. \n\u2022 Spinal Elongation: Creates negative pressure to draw disc material back in and decompress nerve roots. \n\u2022 Flexion & Extension: Gentle forward (flexion) and backward (extension) bending movements. \n\u2022 Lateral Bending & Rotation: Some protocols incorporate side bending and twisting to target specific spinal segments. [3, 6, 9, 10, 11]  \n\nHow it Helps Muscles & Movement \n\n\u2022 Reduces Muscle Spasm & Guarding: The gentle stretching relaxes tight muscles that reflexively contract due to pain. \n\u2022 Improves Circulation: Creates suction to bring nutrients and oxygen to discs, aiding muscle recovery. \n\u2022 Restores Mobility: Allows for a greater range of motion (flexion, extension, etc.). \n\u2022 Foundation for Strengthening: By alleviating pain, it enables patients to perform targeted core and back exercises to build lasting stability. [1, 2, 3, 9, 10, 12]  \n\n**Citations:**\n\n\n[1]\u00a0https://deintegrativehealthcare.com/7-ways-spinal-decompression-can-help-your-spine/\n[2]\u00a0https://www.glchiromi.com/spinal-decompression.html\n[3]\u00a0https://woodroofchiro.com/blog/how-spinal-decompression-works-for-disc-related-back-and-neck-pain\n[4]\u00a0https://www.ncbi.nlm.nih.gov/books/NBK537074/\n[5]\u00a0https://www.healthline.com/health/spinal-decompression-exercises\n[6]\u00a0https://www.kenhub.com/en/library/anatomy/curvature-and-movements-of-the-vertebral-column\n[7]\u00a0https://drpalmes.com/how-spinal-decompression-can-improve-mobility-and-daily-function/\n[8]\u00a0https://greenbellclinic.com/en/medical-blog-en/effective-exercises-for-degenerate-disc-relief-2/\n[9]\u00a0https://www.fixmyback.com/blog/81955-how-does-spinal-decompression-work\n[10]\u00a0https://www.livingwellbainbridge.com/how-spinal-decompression-supports-long-term-spine-health-without-medication/\n[11]\u00a0https://www.physio-pedia.com/Lumbar_Traction\n[12]\u00a0https://fletcherfamilychiropractic.com/decompression-therapy-for-back-pain-and-disc-problems/\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Mobility",
+      "confidence": 1.0
+    },
+    {
+      "name": "Spinal Flexion",
+      "confidence": 0.7
+    }
+  ],
+  "muscles": {
+    "primary": [],
+    "secondary": [
+      "Erector Spinae",
+      "Rectus Abdominis",
+      "External Obliques",
+      "Internal Obliques",
+      "Transverse Abdominis",
+      "Gluteus Maximus",
+      "Hamstrings"
+    ]
+  },
+  "processed_at": "2026-01-08T08:36:00.989236"
+}

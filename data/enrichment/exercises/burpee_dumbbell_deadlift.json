@@ -1,0 +1,56 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:BURPEE_DUMBBELL_DEADLIFT",
+  "exercise_name": "Burpee Dumbbell Deadlift",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "burpee dumbbell deadlift muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Burpee Dumbbell Deadlift is a full-body compound movement combining the explosive, full-body effort of a burpee with the strength-building hip hinge of a deadlift, working legs (glutes, quads, hamstrings), back (erectors, traps, lats), core, shoulders, and forearms, all within a dynamic pattern that integrates pushing, hinging, and lifting. It's excellent for strength, power, conditioning, and functional fitness by challenging the cardiovascular system while building muscle. [1, 2, 3, 4, 5]  \nMuscles Worked \n\n\u2022 Primary Movers: Glutes, Hamstrings, Quadriceps, Back (Erector Spinae, Traps, Lats), Core (Abs). \n\u2022 Secondary/Stabilizers: Shoulders (Deltoids), Chest (Pectorals), Calves, Forearms. [1, 2, 4, 6]  \n\nMovement Patterns \nThis exercise combines several patterns into one continuous flow: \n\n1. Plank/Push-Up: Transitioning from standing to a plank/push-up position involves core stability, chest, and shoulder engagement. \n2. Hip Hinge (Deadlift): Sending hips back and bending knees slightly to grip dumbbells, engaging hamstrings and glutes. \n3. Hip Extension (Deadlift): Driving hips forward and standing tall, using glutes, hamstrings, and back to lift the weight. \n4. Explosive Power: The entire sequence builds power and raises the heart rate, making it a conditioning powerhouse. [2, 4, 5, 8, 9]  \n\nHow it Works Together \n\n\u2022 You start by dropping into a squat, placing hands on dumbbells (a hinge setup). \n\u2022 Kick back to a plank, then do a push-up (or just hold the plank). \n\u2022 Jump feet back in and immediately hinge at the hips to pick up the weights. \n\u2022 Stand up fully with the weights (deadlift). \n\u2022 Lower weights, kick back to plank, push-up, jump in, hinge, lift, repeat. [2, 7]  \n\n**Citations:**\n\n[1]\u00a0https://burnbootcamp.com/a-deep-dive-into-the-dumbbell-deadlift/\n[2]\u00a0https://homeworkouts.org/exercise/dumbbell-deadlifts/\n[3]\u00a0https://www.nourishmovelove.com/web-stories/full-body-dumbbell-exercises-to-burn-fat/\n[4]\u00a0https://www.puregym.com/exercises/plyometrics/burpees/burpee-with-dumbbells/\n[5]\u00a0https://www.yahoo.com/lifestyle/did-20-burpee-deadlifts-day-050000030.html\n[6]\u00a0https://www.puregym.com/exercises/legs/hamstring-exercises/deadlifts/dumbbell-deadlift/\n[7]\u00a0https://www.youtube.com/watch?v=BXXyl42zPMs\n[8]\u00a0https://www.youtube.com/shorts/yjRW85XDQh0\n[9]\u00a0https://www.onepeloton.com/blog/barbell-deadlift\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Hip Hinge",
+      "confidence": 0.9
+    },
+    {
+      "name": "Horizontal Push",
+      "confidence": 0.8
+    },
+    {
+      "name": "Conditioning",
+      "confidence": 0.9
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.7
+    },
+    {
+      "name": "Squat",
+      "confidence": 0.6
+    },
+    {
+      "name": "Hip Extension",
+      "confidence": 0.8
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Gluteus Maximus",
+      "Biceps Femoris",
+      "Rectus Femoris",
+      "Erector Spinae",
+      "Rectus Abdominis"
+    ],
+    "secondary": [
+      "Deltoid (Anterior)",
+      "Pectoralis Major",
+      "Trapezius",
+      "Latissimus Dorsi",
+      "Gastrocnemius",
+      "Forearm Flexors"
+    ]
+  },
+  "processed_at": "2026-01-08T08:33:55.884402"
+}

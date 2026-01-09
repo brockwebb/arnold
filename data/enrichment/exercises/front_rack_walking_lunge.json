@@ -1,0 +1,58 @@
+{
+  "exercise_id": "CUSTOM:Front_Rack_Walking_Lunge",
+  "exercise_name": "Front-Rack Walking Lunge",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "front rack lunge muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Front-Rack Walking Lunge heavily targets your quads, glutes, and hamstrings, with significant engagement from your core (abs, lower back) for stability, plus activation in your calves and hip flexors, working through a fundamental bilateral unilateral pattern (one leg at a time) that improves balance, coordination, and functional strength. [1, 2, 3, 4, 5]  \nMuscles Worked: \n\n\u2022 Primary Movers: \n\n    \u2022 Quadriceps: Extend the knee and control the descent. \n    \u2022 Glutes (Gluteus Maximus, Medius): Extend the hip and provide stability. \n    \u2022 Hamstrings: Work with glutes to extend the hip and flex the knee. \n\n\u2022 Stabilizers/Secondary Muscles: \n\n    \u2022 Core (Abs & Lower Back): Crucial for maintaining an upright torso and balance with the weight in front. \n    \u2022 Calves: Assist with ankle stability and propulsion. \n    \u2022 Hip Flexors: Help lift the leg forward. [1, 2, 3, 4, 6, 7]  \n\nMovement Pattern: \n\n\u2022 Bilateral/Unilateral: You perform the lunge on one leg (unilateral) before switching, but the weight is held with both hands (bilateral), challenging balance. \n\u2022 Sagittal Plane: The primary motion is forward and backward (stepping forward, returning), though you need lateral stability. \n\u2022 Eccentric & Concentric: Muscles lengthen (eccentric) controlling the lowering phase and shorten (concentric) pushing back up. \n\u2022 Functional Strength: It mimics natural walking, improving real-world movement and coordination. [3, 6, 8, 9, 10]  \n\nHow it Works: \nHolding the weight in the front rack position (across the shoulders) forces your core to work harder to keep your spine neutral, while the walking motion builds endurance and coordination in your legs. [1, 2, 5]  \n\n**Citations:**\n\n[1]\u00a0https://dragogym.club/en/blog/the-front-rack-lunge\n[2]\u00a0https://www.youtube.com/watch?v=F9im9b7ouYs\n[3]\u00a0https://www.setforset.com/blogs/news/walking-lunges\n[4]\u00a0https://www.puregym.com/exercises/legs/quad-exercises/lunges/walking-lunges/\n[5]\u00a0https://www.trainwell.net/exercises/dumbbell-front-rack-lunge\n[6]\u00a0https://www.healthline.com/health/fitness-exercise/lunges-muscles-worked\n[7]\u00a0https://www.thewellnews.com/health/the-ultimate-gym-guide-lunges/\n[8]\u00a0https://www.opexfit.com/blog/10-exercise-variations-for-the-lunge-movement-pattern\n[9]\u00a0https://www.garagegymreviews.com/fundamental-movement-patterns\n[10]\u00a0https://www.onepeloton.com/blog/how-to-do-walking-lunge\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Lunge",
+      "confidence": 1.0
+    },
+    {
+      "name": "Hip Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Knee Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Hip Flexion",
+      "confidence": 0.8
+    },
+    {
+      "name": "Knee Flexion",
+      "confidence": 0.7
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Anti-Lateral Flexion",
+      "confidence": 0.7
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Rectus Femoris",
+      "Gluteus Maximus",
+      "Biceps Femoris"
+    ],
+    "secondary": [
+      "Gluteus Medius",
+      "Rectus Abdominis",
+      "External Obliques",
+      "Erector Spinae",
+      "Gastrocnemius",
+      "Iliopsoas"
+    ]
+  },
+  "processed_at": "2026-01-07T22:05:38.841922"
+}

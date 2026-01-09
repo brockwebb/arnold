@@ -1,0 +1,67 @@
+{
+  "exercise_id": "CUSTOM:Turkish_Get-Up",
+  "exercise_name": "Turkish Get-Up",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "turkish get up muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Turkish Get-Up (TGU) is a full-body, multi-step movement from lying to standing and back, working muscles like shoulders (deltoids, rotator cuff), core (abs, obliques, erectors), glutes, legs (quads, hamstrings, calves), and back (traps, lats) for stability, strength, and mobility, with movement patterns emphasizing rotational control, hip extension, spinal stability, and overhead stabilization through distinct phases like bridging, sweeping, and half-kneeling. [1, 2, 3, 4]  \nMuscles Worked \n\n\u2022 Shoulders & Arms: Deltoids, rotator cuff, traps, lats, triceps (for stabilization and pressing). \n\u2022 Core: Rectus abdominis, obliques, transverse abdominis, erector spinae (for spinal rigidity and rotation). \n\u2022 Hips & Glutes: Gluteus maximus, medius, minimus (for hip extension and pelvic stability). \n\u2022 Legs: Quadriceps, hamstrings, calves (for stabilization and driving up). \n\u2022 Grip: Forearm muscles (to hold the weight). [2, 4, 5, 6, 7, 8]  \n\nMovement Patterns & Phases \nThe TGU involves a sequence of controlled transitions, requiring coordinated effort in each phase. \n\n1. Starting Position: Lying down, arm extended overhead, knee bent, foot flat, other arm out. \n2. Roll to Elbow: Pushing through the foot and hand to lift onto the elbow. \n3. Hand Support: Pressing into the hand to lift the torso upright. \n4. Bridge (Hip Lift): Lifting hips off the floor (glutes, hamstrings). \n5. Leg Sweep: Sweeping the back leg through to a half-kneeling position (hip mobility, glutes, core). \n6. Knee to Stand: Driving up to a tall, standing lunge (quads, glutes). \n7. Reverse: The entire sequence is reversed with the same control and stability, emphasizing the core and shoulder as you lower back down. [1, 2, 5, 9, 10, 11]  \n\nKey Functional Aspects \n\n\u2022 Stability: The weight overhead acts as a stability challenge for the shoulder girdle and core. \n\u2022 Mobility: Requires hip and thoracic spine mobility. \n\u2022 Strength: Builds full-body strength through isometric holds and dynamic movement. \n\u2022 Coordination: Integrates multiple joints and muscle groups. [1, 2, 3, 4, 7]  \n\n**Citations:**\n\n[1]\u00a0https://www.ritfitsports.com/blogs/article/how-to-do-the-turkish-get-up\n[2]\u00a0https://www.hevyapp.com/exercises/kettlebell-turkish-get-up/\n[3]\u00a0https://www.masterclass.com/articles/turkish-get-up-guide\n[4]\u00a0https://www.acefitness.org/continuing-education/prosource/november-2015/5686/ace-technique-series-turkish-get-up/\n[5]\u00a0https://www.nerdfitness.com/blog/turkish-get-up-workout/\n[6]\u00a0https://www.physio-pedia.com/Turkish_Get_Up_Exercise\n[7]\u00a0https://hangarhpc.com/bulletproof-your-body-with-the-turkish-get-up/\n[8]\u00a0https://steelsupplements.com/blogs/steel-blog/how-to-do-turkish-get-ups-form-benefits\n[9]\u00a0https://www.strongfirst.com/the-turkish-get-up-a-clinicians-perspective/\n[10]\u00a0https://www.youtube.com/shorts/zaQ-_lErBAc\n[11]\u00a0https://www.youtube.com/watch?v=0xWU9nz_pyo\n\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Hip Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Anti-Rotation",
+      "confidence": 0.9
+    },
+    {
+      "name": "Vertical Push",
+      "confidence": 0.8
+    },
+    {
+      "name": "Lunge",
+      "confidence": 0.7
+    },
+    {
+      "name": "Trunk Rotation",
+      "confidence": 0.7
+    },
+    {
+      "name": "Hip Flexion",
+      "confidence": 0.6
+    },
+    {
+      "name": "Mobility",
+      "confidence": 0.8
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Deltoid (Anterior)",
+      "Deltoid (Lateral)",
+      "Deltoid (Posterior)",
+      "Rotator Cuff",
+      "Rectus Abdominis",
+      "External Obliques",
+      "Transverse Abdominis",
+      "Gluteus Maximus",
+      "Gluteus Medius"
+    ],
+    "secondary": [
+      "Trapezius (Upper)",
+      "Trapezius (Middle)",
+      "Latissimus Dorsi",
+      "Triceps Brachii",
+      "Erector Spinae",
+      "Gluteus Minimus",
+      "Rectus Femoris",
+      "Biceps Femoris",
+      "Gastrocnemius",
+      "Forearm Flexors"
+    ]
+  },
+  "processed_at": "2026-01-07T15:10:45.724152"
+}

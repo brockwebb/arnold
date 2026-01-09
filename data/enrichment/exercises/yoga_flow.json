@@ -1,0 +1,87 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:YOGA_FLOW",
+  "exercise_name": "Yoga Flow",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "yoga sun salutation muscles worked",
+    "retrieved_at": "Yoga",
+    "raw_text": "Yoga flow, particularly Vinyasa, provides a full-body workout by recruiting multiple muscle groups simultaneously in integrated, dynamic movement patterns that are synchronized with breath. It emphasizes functional strength, flexibility, balance, and neuromuscular efficiency. [1, 2, 3, 4]  \nMuscles Worked \nA typical yoga flow engages a wide range of muscles throughout the body. [1, 5]  \n\n| Body Area [4, 6, 7, 8] | Muscles Involved | Poses for Activation  |\n| --- | --- | --- |\n| Upper Body | * Shoulders/Back: Trapezius, deltoids, pectoralis major | Downward Dog, Plank, Warrior poses  |\n| \u2014 | * Arms: Biceps brachii, triceps brachii | Chaturanga (yoga push-up), Plank, Upward Dog, Chair Pose  |\n| Core | * Abdominals: External obliques, deep stabilizers | Plank, twists, Cat-Cow, Chair Pose  |\n| \u2014 | * Back: Erector spinae, mid-back fibers | Upward Dog, \"halfway lift,\" Chair Pose  |\n| Lower Body | * Legs/Glutes: Rectus femoris, biceps femoris (hamstrings), glutes, vastus medialis | Chair Pose (squatting), Warrior poses (lunging), Bridge Pose  |\n| \u2014 | * Ankles/Feet: Tibialis anterior, calves (gastrocnemius) | Standing poses, Downward Dog, various transitions  |\n\nMovement Patterns \nYoga flow utilizes essential, functional movement patterns that mimic daily life activities. The continuous transitions between poses activate muscles more significantly than holding poses statically. \n\n\u2022 Squatting: Mimicked in poses like Chair Pose (Utkatasana), engaging glutes and quadriceps. \n\u2022 Lunging: Seen in Warrior variations and High/Low Lunges, targeting hip flexors, glutes, and adductors while building single-leg stability. \n\u2022 Hinging: The hip hinge is central to Forward Folds and \"halfway lifts,\" engaging the posterior chain (hamstrings and back muscles). \n\u2022 Pushing and Pulling: The Chaturanga to Upward Dog to Downward Dog sequence (part of the common Sun Salutation flow) involves pushing (triceps, pectorals) and pulling (back muscles) movements that build upper body strength. \n\u2022 Rotation and Twisting: Supine Twists and Revolved Triangle engage the core and improve spinal mobility. \n\u2022 Gait and Crawling Dynamics: The transition movements within a flow, like stepping back to Plank or walking the feet to the hands, involve elements of crawling and gait patterns, enhancing coordination and core strength. [1, 6, 8, 10, 11, 12, 13]  \n\nBy coordinating breath with these varied movements, a yoga flow practice enhances overall body awareness and neuromuscular control. [14, 15]  \n\n**Citations:**\n\n[1]\u00a0https://www.queensparkclinic.co.uk/23-1529-us-yoga-trend-vinyasa-flows-that-boost-metabolism-and-aid-weight-loss/\n[2]\u00a0https://www.goodrx.com/well-being/movement-exercise/yoga-for-strength\n[3]\u00a0https://www.yogadownload.com/Blog/TabId/424/PostId/2862/full-body-flow-state.aspx\n[4]\u00a0https://goyogausa.com/functionalmovement/\n[5]\u00a0https://myyogateacher.com/articles/vinyasa-flow-yoga\n[6]\u00a0https://yogauonline.com/yoga-practice-teaching-tips/yoga-anatomy/which-muscles-are-you-using-in-your-yoga-practice-a-new-study-provides-the-answers/\n[7]\u00a0https://www.yoganatomy.com/muscle-activation-in-yoga-transitions/\n[8]\u00a0https://www.awakenedspirityoga.com/blog/2024/10/06/biomechanics-and-functional-movement-in-yoga/\n[9]\u00a0https://www.sciencedirect.com/science/article/abs/pii/S0965229916302953\n[10]\u00a0https://www.onthematyoga.com/flow-yoga\n[11]\u00a0https://gymdesk.com/blog/create-yoga-flows\n[12]\u00a0https://www.aetheryoga.org/reads/primalmovement\n[13]\u00a0https://www.yogaru.ie/pause/functional-movement\n[14]\u00a0https://manflowyoga.com/training/strength-foundations-course/\n[15]\u00a0https://www.yogajournal.com/practice/yoga-for-athletes/movement-patterns/\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Squat",
+      "confidence": 0.8
+    },
+    {
+      "name": "Lunge",
+      "confidence": 0.8
+    },
+    {
+      "name": "Hip Hinge",
+      "confidence": 0.8
+    },
+    {
+      "name": "Horizontal Push",
+      "confidence": 0.7
+    },
+    {
+      "name": "Vertical Push",
+      "confidence": 0.6
+    },
+    {
+      "name": "Trunk Rotation",
+      "confidence": 0.7
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Anti-Rotation",
+      "confidence": 0.7
+    },
+    {
+      "name": "Mobility",
+      "confidence": 0.9
+    },
+    {
+      "name": "Hip Extension",
+      "confidence": 0.7
+    },
+    {
+      "name": "Hip Flexion",
+      "confidence": 0.7
+    },
+    {
+      "name": "Spinal Flexion",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Rectus Femoris",
+      "Gluteus Maximus",
+      "Biceps Femoris",
+      "Erector Spinae",
+      "Rectus Abdominis",
+      "External Obliques"
+    ],
+    "secondary": [
+      "Deltoid (Anterior)",
+      "Deltoid (Posterior)",
+      "Trapezius",
+      "Pectoralis Major",
+      "Triceps Brachii",
+      "Biceps Brachii",
+      "Transverse Abdominis",
+      "Gluteus Medius",
+      "Tibialis Anterior",
+      "Gastrocnemius",
+      "Hip Adductors",
+      "Iliopsoas"
+    ]
+  },
+  "processed_at": "2026-01-08T08:36:51.687379"
+}

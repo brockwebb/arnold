@@ -1,0 +1,44 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:SANDBAG_GATOR_ROLL",
+  "exercise_name": "Sandbag Gator Roll",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "sandbag gator roll muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Sandbag Gator Roll is a fantastic core and full-body exercise, primarily targeting the obliques, abdominals, lats, and shoulders for stabilization, while developing rotational core strength, hip mobility, and overall body tension through its challenging transverse plane movement. It's a powerful dynamic plank variation that teaches your body to control movement across different planes, improving balance and functional power. [1, 2, 3, 4, 5]  \nMuscles Worked \n\n\u2022 Primary Movers/Stabilizers: Obliques (side abs), Transverse Abdominis, Rectus Abdominis, Latissimus Dorsi (lats), Shoulders (deltoids). \n\u2022 Supporting Muscles: Glutes, Hamstrings, Hip Flexors, Lower Back (erector spinae), and even grip muscles for maintaining tension. [1, 2, 5, 6, 7]  \n\nMovement Pattern \n\n1. Starting Position: Lie on your back with feet slightly elevated, arms extended in a T-shape (one overhead, one to the side) or with the sandbag held in a specific position. \n2. The Roll (Transverse Plane): Engage your core to lift your hips and roll your body to one side, keeping your feet and hands off the floor, aiming for a controlled, twisting motion. \n3. The Stabilization: Your core muscles (especially obliques) work intensely to prevent your hips from dropping and to control the unstable, shifting weight of the sandbag. \n4. Return: Roll back to the starting position or transition to the other side, maintaining core tension throughout. [1, 2, 3, 5, 8]  \n\nKey Benefits \n\n\u2022 Core & Rotational Power: Excellent for building anti-rotation strength and dynamic core stability. \n\u2022 Full Body Tension: Teaches full-body bracing and connecting upper and lower body movement. \n\u2022 Functional Strength: Mimics real-world twisting and turning movements. [1, 2, 7, 9, 10]  \n\n**Citations:**\n\n[1]\u00a0https://brickhousenutrition.com/blogs/articles/sandbag-training-101-is-this-the-ultimate-full-body-workout-tool\n[2]\u00a0https://www.instagram.com/reel/DKgA0GGRP9r/\n[3]\u00a0https://www.instagram.com/reel/DLmnY7Ysytr/\n[4]\u00a0https://www.muscletech.com/blogs/journal/sandbag-workout\n[5]\u00a0https://www.youtube.com/watch?v=Vf9xG5LHtTA\n[6]\u00a0https://republicbos.com/2018/04/24/equipment-highlight-sandbags/\n[7]\u00a0https://ultimatesandbagtraining.com/muscles-made-smarter-ultimate-sandbag-exercises/\n[8]\u00a0https://www.arkansasonline.com/news/2019/jun/03/core-exercise-gator-roll-makes-pullups-/\n[9]\u00a0https://ultimatesandbagtraining.com/9-ultimate-sandbag-exercises-that-make-functional-strength-better/\n[10]\u00a0https://swolverine.com/blogs/blog/mastering-the-farmer-s-carry-unlock-strength-and-stability-with-this-essential-exercise-4\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Trunk Rotation",
+      "confidence": 0.9
+    },
+    {
+      "name": "Anti-Rotation",
+      "confidence": 0.8
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.7
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "External Obliques",
+      "Internal Obliques",
+      "Transverse Abdominis"
+    ],
+    "secondary": [
+      "Rectus Abdominis",
+      "Latissimus Dorsi",
+      "Deltoid (Anterior)",
+      "Deltoid (Lateral)",
+      "Deltoid (Posterior)",
+      "Gluteus Maximus",
+      "Erector Spinae",
+      "Forearm Flexors"
+    ]
+  },
+  "processed_at": "2026-01-08T08:35:29.048938"
+}

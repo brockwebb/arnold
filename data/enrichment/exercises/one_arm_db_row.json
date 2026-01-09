@@ -1,0 +1,55 @@
+{
+  "exercise_id": "CUSTOM:One-Arm_DB_Row",
+  "exercise_name": "One-Arm DB Row",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "one arm dumbbell row muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The One-Arm Dumbbell Row is a horizontal pulling exercise targeting the Latissimus Dorsi (lats) as the primary mover, supported by the Rhomboids, Traps, and Posterior Deltoids for scapular retraction and shoulder extension, with the Biceps, Forearms (for grip), and Core (for stability) acting as secondary muscles. The movement pattern involves hinging at the hips, keeping your back flat, and pulling the dumbbell towards your hip/abdomen by retracting the shoulder blade and flexing the elbow, emphasizing controlled shoulder extension and adduction. [1, 2, 3, 4, 5, 6]  \nMuscles Worked: \n\n\u2022 Primary: \n\n    \u2022 Latissimus Dorsi (Lats): The main muscle, responsible for pulling the arm down and back (shoulder extension/adduction). \n\n\u2022 Secondary/Synergistic: \n\n    \u2022 Rhomboids (Major & Minor): Pull shoulder blades together (retraction). \n    \u2022 Trapezius (Middle & Lower Fibers): Stabilize and retract the scapula. \n    \u2022 Posterior Deltoids (Rear Delts): Assist in shoulder extension/horizontal abduction. \n    \u2022 Biceps Brachii & Brachialis: Flex the elbow to bring the weight up. \n    \u2022 Forearm Muscles (Brachioradialis, etc.): Maintain grip. \n    \u2022 Core Muscles (Abs, Obliques): Stabilize the torso and prevent twisting. [2, 3, 5, 7, 8]  \n\nMovement Pattern: \n\n1. Setup: Place one knee and hand on a bench, keeping your back flat and torso roughly parallel to the floor. \n2. Stretch/Reach: Let the dumbbell hang, allowing your shoulder to stretch forward (shoulder flexion/protraction). \n3. Pull/Concentric: Pull the dumbbell up towards your hip/abdomen by driving your elbow back and squeezing your shoulder blade towards your spine (shoulder extension/adduction, scapular retraction). \n4. Peak Contraction: Squeeze at the top, feeling the back muscles engage. \n5. Lower/Eccentric: Slowly lower the weight back to the starting stretched position with control, resisting the weight. \n6. Key: Avoid torso rotation; focus on pulling with your back muscles, not just your arms. [1, 4, 6, 9]  \n\n**Citations:**\n\n[1]\u00a0https://www.youtube.com/watch?v=tLnlWj7LQ34\n[2]\u00a0https://nielasher.com/es/blogs/strength-and-conditioning/single-arm-dumbbell-row\n[3]\u00a0https://nfpt.com/proper-form-for-a-one-arm-dumbbell-row/\n[4]\u00a0https://www.youtube.com/watch?v=jHMkcYbECkA\n[5]\u00a0https://nielasher.com/blogs/strength-and-conditioning/single-arm-dumbbell-row\n[6]\u00a0https://www.muscleandstrength.com/exercises/one-arm-dumbbell-row.html\n[7]\u00a0https://learn.athleanx.com/articles/back-for-men/how-to-do-dumbbell-rows\n[8]\u00a0https://www.oreateai.com/blog/singlearm-dumbbell-row-training-guide-muscle-activation-and-movement-standards-explained/94d278012bf77682d6c62862844d917b\n[9]\u00a0https://www.youtube.com/watch?v=sUqz6oaISkQ\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Horizontal Pull",
+      "confidence": 1.0
+    },
+    {
+      "name": "Scapular Retraction",
+      "confidence": 0.9
+    },
+    {
+      "name": "Elbow Flexion",
+      "confidence": 0.8
+    },
+    {
+      "name": "Hip Hinge",
+      "confidence": 0.7
+    },
+    {
+      "name": "Anti-Rotation",
+      "confidence": 0.6
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.5
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Latissimus Dorsi"
+    ],
+    "secondary": [
+      "Rhomboids",
+      "Trapezius (Middle)",
+      "Trapezius (Lower)",
+      "Deltoid (Posterior)",
+      "Biceps Brachii",
+      "Brachialis",
+      "Forearm Flexors",
+      "Rectus Abdominis",
+      "External Obliques"
+    ]
+  },
+  "processed_at": "2026-01-07T22:03:56.986456"
+}

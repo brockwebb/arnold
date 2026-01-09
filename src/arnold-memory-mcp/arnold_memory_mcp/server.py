@@ -384,6 +384,22 @@ async def call_tool_handler(name: str, arguments: dict[str, Any]) -> list[types.
                 for s in upcoming:
                     lines.append(f"- {s.get('date')}: {s.get('goal', 'Workout')} [{s.get('status')}]")
             
+            # PATTERN GAPS
+            pattern_gaps = briefing.get("pattern_gaps", [])
+            if pattern_gaps:
+                lines.append("")
+                lines.append("## Pattern Gaps (7+ days)")
+                for pg in pattern_gaps:
+                    lines.append(f"- **{pg['pattern']}**: {pg['days']} days")
+            
+            # MUSCLE VOLUME THIS WEEK
+            muscle_vol = briefing.get("muscle_volume_this_week", [])
+            if muscle_vol:
+                lines.append("")
+                lines.append("## Muscle Volume This Week (Primary)")
+                for mv in muscle_vol:
+                    lines.append(f"- {mv['muscle']}: {mv['sets']} sets, {mv['reps']} reps")
+            
             # EQUIPMENT
             equipment = briefing.get("equipment", [])
             if equipment:

@@ -1,0 +1,54 @@
+{
+  "exercise_id": "CUSTOM:Jump_Rope",
+  "exercise_name": "Jump Rope",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "jump rope muscles worked",
+    "retrieved_at": "Jumping",
+    "raw_text": "Jumping rope is a full-body, high-intensity exercise primarily working the calves, quads, hamstrings, and glutes, while also engaging the core, shoulders, forearms, and back for stabilization and rhythm, using fundamental movement patterns like bounding, hopping, and rhythmic rotation for cardio and strength. Key movements involve explosive upward propulsion from the calves and quads, impact absorption by hamstrings and glutes, core bracing for stability, and wrist/shoulder rotation to control the rope. [1, 2, 3, 4]  \nMuscles Worked \n\n\u2022 Primary (Lower Body): Calves (gastrocnemius, soleus), Quadriceps, Hamstrings, Glutes (gluteus maximus, medius). \n\u2022 Secondary (Core & Stabilizers): Abdominals, Back extensors (rhomboids, deltoids). \n\u2022 Upper Body (Rhythm & Control): Forearms, Biceps, Triceps, Shoulders (deltoids, rotator cuffs). [1, 3, 4, 5, 6]  \n\nMovement Patterns \n\n1. Bounding/Hopping: The basic up-and-down motion, driven by calf and quad power, with hamstrings and glutes absorbing landing impact. \n2. Rhythmic Rotation: Small, controlled circles made by the wrists and forearms to spin the rope. \n3. Core Engagement: Maintaining an upright posture and stability throughout the movement. \n4. Shoulder Stabilization: Keeping shoulders firm and back to control rope momentum, especially with weighted ropes. \n5. Footwork Variations: Boxer skip (alternating foot taps), side swings, and double unders add complexity and challenge agility and coordination. [2, 3, 4, 5, 6, 7]  \n\nKey Benefits \n\n\u2022 Cardiovascular Fitness: Excellent for endurance and calorie burning. \n\u2022 Lower Body Strength: Tones and strengthens legs. \n\u2022 Bone Density: Improves bone resilience through impact. \n\u2022 Coordination & Agility: Enhances footwork and body control. [4, 5, 7, 8, 9]  \n\n**Citations:**\n\n[1]\u00a0https://rxsmartgear.com/blogs/news/what-muscles-does-jump-rope-work\n[2]\u00a0https://www.youtube.com/watch?v=HvqAodpgDgo\n[3]\u00a0https://www.thejumpropecoachchris.com/faq/which-muscles-does-jump-rope-target\n[4]\u00a0https://everjump.fit/en/blogs/everything-you-need-to-know-about-rope-skipping/bodychange-what-jumping-rope-does-to-your-body\n[5]\u00a0https://www.youtube.com/watch?v=xQlqTt2_YPA\n[6]\u00a0https://www.bodi.com/blog/what-muscles-does-jump-rope-work\n[7]\u00a0https://www.youtube.com/watch?v=yj19BkTB5C4\n[8]\u00a0https://elitejumps.co/blogs/guides/what-muscles-does-jump-rope-work\n[9]\u00a0https://www.youtube.com/watch?v=TR19rP8hIKo\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Conditioning",
+      "confidence": 1.0
+    },
+    {
+      "name": "Ankle Plantarflexion",
+      "confidence": 0.9
+    },
+    {
+      "name": "Knee Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Hip Extension",
+      "confidence": 0.7
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Gastrocnemius",
+      "Soleus",
+      "Rectus Femoris",
+      "Gluteus Maximus"
+    ],
+    "secondary": [
+      "Biceps Femoris",
+      "Rectus Abdominis",
+      "External Obliques",
+      "Erector Spinae",
+      "Deltoid (Anterior)",
+      "Deltoid (Posterior)",
+      "Forearm Flexors",
+      "Biceps Brachii",
+      "Triceps Brachii"
+    ]
+  },
+  "processed_at": "2026-01-07T22:04:20.810421"
+}

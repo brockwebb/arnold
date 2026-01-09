@@ -10,17 +10,31 @@ Usage:
     python scripts/sync_pipeline.py --dry-run    # Show what would run
 
 Steps (in order):
-    1. polar       - Import new Polar HR exports from data/raw/
-    2. ultrahuman  - Fetch new data from Ultrahuman API (if configured)
-    3. fit         - Import FIT files (Suunto/Garmin/Wahoo) from data/raw/
-    4. apple       - Import Apple Health exports from data/staging/
-    5. neo4j       - Sync workouts from Neo4j to Postgres
-    6. annotations - Sync annotations from Neo4j to Postgres  
-    7. clean       - Run outlier detection on biometrics
-    8. refresh     - Refresh Postgres materialized views
+    1. polar        - Import new Polar HR exports from data/raw/
+    2. ultrahuman   - Fetch new data from Ultrahuman API (if configured)
+    3. fit          - Import FIT files (Suunto/Garmin/Wahoo) from data/raw/
+    4. apple_export - Extract Apple Health export.zip from iCloud (if present)
+    5. apple        - Import Apple Health exports (XML → parquet → Postgres)
+    6. neo4j        - Sync workouts from Neo4j to Postgres
+    7. annotations  - Sync annotations from Neo4j to Postgres
+    8. relationships - Sync exercise relationships (INVOLVES, TARGETS) from Neo4j
+    9. clean        - Run outlier detection on biometrics
+    10. refresh     - Refresh Postgres materialized views
 
-Run via cron:
-    0 6 * * * cd ~/Documents/GitHub/arnold && /opt/anaconda3/envs/arnold/bin/python scripts/sync_pipeline.py >> logs/sync.log 2>&1
+Run via launchd (macOS):
+    See ~/Library/LaunchAgents/com.arnold.sync-daily.plist (daily at 6 AM, skips relationships)
+    See ~/Library/LaunchAgents/com.arnold.sync-weekly.plist (Sunday 5 AM, full sync)
+
+    Load:   launchctl load ~/Library/LaunchAgents/com.arnold.sync-daily.plist
+    Unload: launchctl unload ~/Library/LaunchAgents/com.arnold.sync-daily.plist
+    Test:   launchctl start com.arnold.sync-daily
+
+Or via cron:
+    # Daily (skip relationships - KB is stable)
+    0 6 * * * cd ~/Documents/GitHub/arnold && /opt/anaconda3/envs/arnold/bin/python scripts/sync_pipeline.py --skip relationships >> logs/sync.log 2>&1
+    
+    # Weekly full sync (Sunday 5 AM)
+    0 5 * * 0 cd ~/Documents/GitHub/arnold && /opt/anaconda3/envs/arnold/bin/python scripts/sync_pipeline.py >> logs/sync.log 2>&1
 """
 
 import os
@@ -28,6 +42,9 @@ import sys
 import json
 import argparse
 import subprocess
+import shutil
+import tempfile
+import zipfile
 from datetime import datetime
 from pathlib import Path
 from dotenv import load_dotenv
@@ -101,9 +118,20 @@ def find_new_polar_exports() -> list:
 
 
 def step_polar(dry_run: bool = False) -> bool:
-    """Import new Polar HR exports."""
-    log("=== Step: Polar HR Import ===")
+    """Sync Polar training sessions via API (preferred) or file imports (fallback)."""
+    log("=== Step: Polar Training Sessions ===")
     
+    # Try API sync first if configured
+    refresh_token = os.environ.get("POLAR_REFRESH_TOKEN")
+    if refresh_token:
+        log("Polar API configured, syncing via API...")
+        args = ["--days", "7"]  # Last 7 days
+        if dry_run:
+            args.append("--dry-run")
+        return run_script("sync/polar_api.py", args, dry_run=False)  # Script handles dry-run
+    
+    # Fallback to file imports
+    log("No POLAR_REFRESH_TOKEN, checking for file exports...")
     exports = find_new_polar_exports()
     if not exports:
         log("No Polar exports found in data/raw/")
@@ -148,8 +176,85 @@ def step_fit(dry_run: bool = False) -> bool:
     return run_script("import_fit_workouts.py", args, dry_run=False)  # Script handles its own dry-run
 
 
+# Apple Health export paths
+ICLOUD_EXPORT_ZIP = Path.home() / "Library/Mobile Documents/com~apple~CloudDocs/export.zip"
+APPLE_HEALTH_DIR = DATA_RAW / "apple_health_export"
+APPLE_HEALTH_BACKUP = DATA_RAW / "apple_health_export.backup"
+
+
+def step_apple_export(dry_run: bool = False) -> bool:
+    """Extract Apple Health export.zip from iCloud if present.
+    
+    Flow:
+    1. Check for export.zip in iCloud Drive
+    2. If not found → no-op (success)
+    3. If found → unzip to temp, validate export.xml exists
+    4. Rotate: current → backup, new → current
+    5. Delete export.zip from iCloud
+    """
+    log("=== Step: Apple Health Export Extraction ===")
+    
+    if not ICLOUD_EXPORT_ZIP.exists():
+        log("No export.zip in iCloud Drive, skipping")
+        return True
+    
+    log(f"Found export.zip ({ICLOUD_EXPORT_ZIP.stat().st_size / 1024 / 1024:.1f} MB)")
+    
+    if dry_run:
+        log("Would extract and rotate Apple Health export", "DRY-RUN")
+        return True
+    
+    # Extract to temp directory
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        tmp_path = Path(tmp_dir)
+        
+        try:
+            log("Extracting zip...")
+            with zipfile.ZipFile(ICLOUD_EXPORT_ZIP, 'r') as zf:
+                zf.extractall(tmp_path)
+        except zipfile.BadZipFile as e:
+            log(f"Invalid zip file: {e}", "ERROR")
+            return False
+        
+        # Validate: look for export.xml (might be in apple_health_export/ subdir or root)
+        extracted_dir = tmp_path / "apple_health_export"
+        if not extracted_dir.exists():
+            # Maybe it extracted directly without subdirectory
+            if (tmp_path / "export.xml").exists():
+                extracted_dir = tmp_path
+            else:
+                log("No apple_health_export directory or export.xml found in zip", "ERROR")
+                return False
+        
+        export_xml = extracted_dir / "export.xml"
+        if not export_xml.exists():
+            log(f"export.xml not found in {extracted_dir}", "ERROR")
+            return False
+        
+        log(f"Validated export.xml ({export_xml.stat().st_size / 1024 / 1024:.1f} MB)")
+        
+        # Rotate: delete old backup, move current to backup, move new to current
+        if APPLE_HEALTH_BACKUP.exists():
+            log("Removing old backup...")
+            shutil.rmtree(APPLE_HEALTH_BACKUP)
+        
+        if APPLE_HEALTH_DIR.exists():
+            log("Moving current to backup...")
+            shutil.move(str(APPLE_HEALTH_DIR), str(APPLE_HEALTH_BACKUP))
+        
+        log("Moving new export to target...")
+        shutil.move(str(extracted_dir), str(APPLE_HEALTH_DIR))
+    
+    # Delete the zip from iCloud
+    log("Removing export.zip from iCloud...")
+    ICLOUD_EXPORT_ZIP.unlink()
+    
+    log("Apple Health export extraction complete")
+    return True
+
+
 def step_apple(dry_run: bool = False) -> bool:
-    """Import Apple Health exports."""
+    """Import Apple Health exports (XML → staging parquet → Postgres)."""
     log("=== Step: Apple Health Import ===")
     
     script_path = SCRIPTS / "import_apple_health.py"
@@ -170,6 +275,16 @@ def step_annotations(dry_run: bool = False) -> bool:
     """Sync annotations from Neo4j to Postgres."""
     log("=== Step: Annotations Neo4j → Postgres ===")
     return run_script("sync_annotations.py", dry_run=dry_run)
+
+
+def step_relationships(dry_run: bool = False) -> bool:
+    """Sync exercise relationships (INVOLVES, TARGETS) from Neo4j to Postgres cache.
+    
+    Per ADR-001: Neo4j is source of truth for relationships.
+    Postgres cache tables enable efficient analytics joins.
+    """
+    log("=== Step: Exercise Relationships Neo4j → Postgres ===")
+    return run_script("sync_exercise_relationships.py", dry_run=dry_run)
 
 
 def step_clean(dry_run: bool = False) -> bool:
@@ -215,14 +330,16 @@ STEPS = {
     "polar": step_polar,
     "ultrahuman": step_ultrahuman,
     "fit": step_fit,
+    "apple_export": step_apple_export,
     "apple": step_apple,
     "neo4j": step_neo4j,
     "annotations": step_annotations,
+    "relationships": step_relationships,
     "clean": step_clean,
     "refresh": step_refresh,
 }
 
-STEP_ORDER = ["polar", "ultrahuman", "fit", "apple", "neo4j", "annotations", "clean", "refresh"]
+STEP_ORDER = ["polar", "ultrahuman", "fit", "apple_export", "apple", "neo4j", "annotations", "relationships", "clean", "refresh"]
 
 # Database connection
 PG_URI = os.environ.get("DATABASE_URI", "postgresql://brock@localhost:5432/arnold_analytics")

@@ -1,0 +1,34 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:THORACIC_EXTENSIONS",
+  "exercise_name": "Thoracic Extensions",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "thoracic extension exercise muscles worked",
+    "retrieved_at": "Thoracic",
+    "raw_text": "Thoracic extension works muscles like the Erector Spinae group, Trapezius, and Rhomboids, improving posture and upper body mobility by straightening the upper back, while the movement pattern involves arching the mid-back backward, distinct from lumbar (lower back) movement, often combined with shoulder blade retraction, crucial for overhead movements and reducing shoulder strain. [1, 2, 3, 4, 5]  \nMuscles Worked \n\n\u2022 Erector Spinae Group: The primary extensors, including the Spinalis, responsible for extending the spine. \n\u2022 Trapezius (Middle & Lower): Helps elevate and retract the shoulder blades (scapulae) during extension. \n\u2022 Rhomboids (Major & Minor): Work with the traps to pull the shoulder blades together. \n\u2022 Latissimus Dorsi (Lats): While involved in pulling, they also influence thoracic position and can be tight in those lacking extension. [1, 2, 3, 5, 6]  \n\nMovement Pattern \n\n\u2022 Extension: The movement involves arching the upper back (thoracic spine) backward, away from flexion (rounding forward). \n\u2022 Scapular Retraction: Often paired with squeezing the shoulder blades together for stability. \n\u2022 Isolation: Key is to isolate the upper back movement, preventing compensation (arching) from the lower (lumbar) spine or neck. \n\u2022 Combined Motions: Can be combined with rotation or side-bending for more complex patterns. [4, 5, 7, 8, 9]  \n\nWhy It's Important \n\n\u2022 Reduces Lower Back Pain: Takes strain off the lumbar spine by allowing it to move more naturally. \n\u2022 Improves Shoulder Function: Provides a stable base for the shoulder blades, crucial for overhead pressing, throwing, and pulling. \n\u2022 Enhances Posture: Counteracts slouching and rounded shoulders from prolonged sitting. [4, 5, 10, 11]  \n\n**Citations:**\n\n[1]\u00a0https://pliability.com/stories/thoracic-mobility-exercises\n[2]\u00a0https://centenoschultz.com/understanding-the-role-of-the-thoracic-spine-muscles/\n[3]\u00a0https://theclimbingdoctor.com/thoracic-mobility-for-climbers/\n[4]\u00a0https://setptusa.com/blog/exercise/thoracic-spine-mobility-overhead-lifting-benefits/\n[5]\u00a0http://vahvafitness.com/thoracic-mobility-routine/\n[6]\u00a0https://www.strength-forge.com/thoracic-spine-exercises/\n[7]\u00a0https://www.healthline.com/health/fitness/thoracic-mobility-exercises\n[8]\u00a0https://www.rehabhero.ca/exercise/thoracic-extension\n[9]\u00a0https://www.instagram.com/p/C7ZbruBtIl_/\n[10]\u00a0https://missionmvmt.com/thoracic-extension-mobility-the-ultimate-how-to-post/\n[11]\u00a0https://www.klynergywellness.com/post/thoracic-mobility-for-athlete-training-routine\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Mobility",
+      "confidence": 0.9
+    },
+    {
+      "name": "Scapular Retraction",
+      "confidence": 0.8
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Erector Spinae",
+      "Trapezius (Middle)",
+      "Trapezius (Lower)",
+      "Rhomboids"
+    ],
+    "secondary": [
+      "Latissimus Dorsi"
+    ]
+  },
+  "processed_at": "2026-01-08T08:36:19.032183"
+}

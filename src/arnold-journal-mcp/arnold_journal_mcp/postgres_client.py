@@ -225,3 +225,78 @@ class PostgresJournalClient:
         """Close the database connection."""
         if self._conn and not self._conn.closed:
             self._conn.close()
+    
+    # =========================================================================
+    # DATA ANNOTATIONS (for explaining data gaps/anomalies)
+    # =========================================================================
+    
+    def create_annotation(
+        self,
+        annotation_date: date,
+        target_type: str,
+        reason_code: str,
+        explanation: str,
+        date_range_end: Optional[date] = None,
+        target_metric: Optional[str] = None,
+        target_id: Optional[str] = None,
+        tags: Optional[List[str]] = None
+    ) -> Dict:
+        """Create a data annotation explaining a data gap or anomaly.
+        
+        Args:
+            annotation_date: Start date of the period being explained
+            target_type: Type of data (biometric, training, general)
+            reason_code: Why the anomaly exists (expected, device_issue, surgery, etc.)
+            explanation: Human-readable explanation
+            date_range_end: End date if annotation covers a range
+            target_metric: Specific metric (hrv, sleep, all, etc.)
+            target_id: Optional ID of specific record
+            tags: Optional tags for retrieval
+        
+        Returns:
+            The created annotation record
+        """
+        query = """
+        INSERT INTO data_annotations (
+            annotation_date, date_range_end, target_type, target_metric,
+            target_id, reason_code, explanation, tags, created_by
+        ) VALUES (
+            %s, %s, %s, %s, %s, %s, %s, %s, 'arnold'
+        )
+        RETURNING id, annotation_date, date_range_end, target_type, target_metric,
+                  reason_code, explanation, tags, is_active
+        """
+        
+        return self._execute_returning(query, (
+            annotation_date,
+            date_range_end,
+            target_type,
+            target_metric,
+            target_id,
+            reason_code,
+            explanation,
+            tags
+        ))
+    
+    def get_active_annotations(self, days_back: int = 30) -> List[Dict]:
+        """Get active annotations from recent period."""
+        return self._execute(
+            """
+            SELECT id, annotation_date, date_range_end, target_type, target_metric,
+                   reason_code, explanation, tags
+            FROM data_annotations
+            WHERE is_active = true
+              AND (date_range_end IS NULL OR date_range_end >= CURRENT_DATE - %s)
+            ORDER BY annotation_date DESC
+            """,
+            (days_back,)
+        )
+    
+    def deactivate_annotation(self, annotation_id: int) -> bool:
+        """Mark an annotation as inactive (resolved)."""
+        self._execute(
+            "UPDATE data_annotations SET is_active = false WHERE id = %s",
+            (annotation_id,),
+            fetch=False
+        )
+        return True

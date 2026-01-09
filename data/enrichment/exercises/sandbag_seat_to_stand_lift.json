@@ -1,0 +1,52 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:SANDBAG_SEAT_TO_STAND_LIFT",
+  "exercise_name": "Sandbag Seat-to-Stand Lift",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "sandbag squat to stand muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Sandbag Seat-to-Stand Lift is a full-body exercise activating major lower body and core muscles, primarily working glutes, quadriceps, hamstrings, and core (abdominals, erector spinae) for power, with assistance from calves, shoulders, and back for stability and movement, using a fundamental hip hinge and knee/hip extension pattern, enhanced by the sandbag's shifting load for core engagement. [1, 2, 3]  \nThis video demonstrates the proper technique for the sit-to-stand movement: \nMuscles Worked \n\n\u2022 Primary Movers (Legs & Hips): Gluteus Maximus, Quadriceps, Hamstrings. \n\u2022 Core & Stability: Abdominals (rectus abdominis, obliques), Erector Spinae (lower back). \n\u2022 Stabilizers/Assistants: Calves (gastrocnemius, soleus), Back (lats, traps), Shoulders (deltoids), Forearms/Grip. [1, 2, 3, 4, 5, 6]  \n\nMovement Pattern (Hip Hinge & Squat) \n\n1. Initial Setup (Hinge): Hinge at the hips, leaning forward to reach the sandbag, engaging glutes and hamstrings to load them. \n2. Push-Off (Extension): Drive through the feet, extending hips and knees (like a squat) to lift the body and bag. \n3. Core Bracing: Throughout, brace the abdominals to create spinal stability and efficient force transfer. \n4. Controlled Descent: Reverse the motion, controlling the movement by bending at the hips and knees as you sit back down. [1, 3, 4, 5]  \n\n**Citations:**\n\n[1]\u00a0https://www.hingehealth.com/resources/articles/sit-to-stand/\n[2]\u00a0https://www.myhomeforlife.com/From-Sitting-to-Strong-Why-Sit-to-Stand-Lifts-Are-the-Best-s/122.htm\n[3]\u00a0https://brickhousenutrition.com/blogs/articles/sandbag-training-101-is-this-the-ultimate-full-body-workout-tool\n[4]\u00a0https://gymbox.de/en/sandbag-exercise-lift/\n[5]\u00a0https://fitsb.com/blog/sit-to-stand-a-movement-essential-done-well/\n[6]\u00a0https://www.everydayhealth.com/workouts-activities/the-muscles-used-sit-stand/\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Hip Hinge",
+      "confidence": 0.9
+    },
+    {
+      "name": "Hip Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Knee Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Squat",
+      "confidence": 0.7
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Gluteus Maximus",
+      "Rectus Femoris",
+      "Biceps Femoris"
+    ],
+    "secondary": [
+      "Rectus Abdominis",
+      "Erector Spinae",
+      "Gastrocnemius",
+      "Soleus",
+      "Latissimus Dorsi",
+      "Trapezius",
+      "Deltoid (Anterior)",
+      "Forearm Flexors"
+    ]
+  },
+  "processed_at": "2026-01-08T08:35:33.639459"
+}

@@ -1,0 +1,56 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#4A90A4'}}}%%
+
+flowchart LR
+    subgraph Sources["Data Sources"]
+        Ring["Ultrahuman Ring"]
+        HR["Polar HR"]
+        Health["Apple Health"]
+        User["User Input"]
+    end
+
+    subgraph Ingest["Ingestion"]
+        Sync["sync_pipeline.py"]
+    end
+
+    subgraph Storage["Dual Storage"]
+        PG[("Postgres<br/>Facts")]
+        Neo[("Neo4j<br/>Relationships")]
+    end
+
+    subgraph Intelligence["Intelligence Layer"]
+        Analytics["Analytics MCP<br/>Compute metrics"]
+        Memory["Memory MCP<br/>Load context"]
+        Coach["Claude<br/>Synthesize & decide"]
+    end
+
+    subgraph Output["Outputs"]
+        Plan["Workout Plan"]
+        Brief["Coach Brief"]
+        Trace["Decision Trace"]
+    end
+
+    Ring --> |"HRV, Sleep"| Sync
+    HR --> |"HR sessions"| Sync
+    Health --> |"Labs, BP"| Sync
+    User --> |"Workouts"| Coach
+
+    Sync --> PG
+    Sync --> Neo
+
+    PG --> Analytics
+    Neo --> Memory
+    
+    Analytics --> |"Readiness,<br/>ACWR, Load"| Coach
+    Memory --> |"Goals, Block,<br/>Injuries"| Coach
+
+    Coach --> Plan
+    Coach --> Brief
+    Coach --> Trace
+
+    Plan --> |"Execute"| User
+    Trace --> PG
+
+    style Sources fill:#FFF3E0,stroke:#EF6C00
+    style Storage fill:#E8F5E9,stroke:#2E7D32
+    style Intelligence fill:#E3F2FD,stroke:#1565C0
+    style Output fill:#F3E5F5,stroke:#7B1FA2

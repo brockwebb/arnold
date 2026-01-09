@@ -1,0 +1,71 @@
+{
+  "exercise_id": "CUSTOM:Sandbag_Get-Up",
+  "exercise_name": "Sandbag Get-Up",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "turkish get up muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Sandbag Get-Up (similar to a Turkish Get-Up) is a full-body, multi-planar movement building strength, stability, and endurance, working legs (glutes, hamstrings, quads), core (abs, obliques, lower back), shoulders (deltoids, rotator cuff), traps, and grip/forearms, using complex patterns like the hinge, lunge, roll, sweep, push, and stand, challenging stabilization and coordination through shifting weight. [1, 2, 3, 4, 5]  \nMuscles Worked \n\n\u2022 Legs: Glutes, hamstrings, quads, calves (driving up). \n\u2022 Core: Abdominals, obliques, lower back (significant stabilization). \n\u2022 Shoulders: Deltoids, rotator cuff (stabilizing the weight overhead). \n\u2022 Back: Traps, erectors (supporting the spine and lifting). \n\u2022 Arms/Grip: Biceps, forearms (crushing grip, holding the bag). [2, 3, 6, 7, 8, 9]  \n\nMovement Patterns & Phases \nThe get-up progresses through distinct phases, demanding different patterns: \n\n1. Starting Position (Supine): Lying on your back, holding the bag over one shoulder (or chest), forming a stable base. \n2. Roll to Forearm/Elbow: Rolling onto your forearm/elbow with the lead leg bent and trail leg extended, keeping the core braced and shoulder stable. \n3. Sit-Up Transition: Driving through the elbow and heel, sweeping the back leg under to a high kneel/tall sit. \n4. Hinge/Reposition: Hinging back, placing the free hand down, adjusting the bag to a strong, stable position. \n5. Push to Stand: Driving through the heel, stepping the back leg back into a lunge, then pushing up to a standing split/lunge, then standing tall. \n6. Return: Reversing the steps back to the start, emphasizing control. [2, 4, 10, 11, 12]  \n\nKey Benefits \n\n\u2022 Dynamic Stability: The shifting sand forces greater core and shoulder stabilization than fixed weights. \n\u2022 Full-Body Power: Develops strength and coordination across all planes of motion (hinging, squatting, lunging, pushing, pulling). \n\u2022 Functional Strength: Mimics real-life lifting challenges for improved athleticism. [3, 5, 8, 13]  \n\n**Citations:**\n\n[1]\u00a0https://repfitness.com/blogs/training/sandbag-workout\n[2]\u00a0https://www.youtube.com/watch?v=CXRDnOsm2Gw\n[3]\u00a0https://www.mensjournal.com/health-fitness/this-sandbag-move-outperforms-traditional-weightlifting\n[4]\u00a0https://ultimatesandbagtraining.com/stronger-better-turkish-get-ups/\n[5]\u00a0https://ultimatesandbagtraining.com/9-ultimate-sandbag-exercises-that-make-functional-strength-better/\n[6]\u00a0https://gymbox.de/en/sandbag-exercise-lift/\n[7]\u00a0https://www.youtube.com/watch?v=gn15-JNLxRU\n[8]\u00a0https://mtntactical.com/knowledge/ode-to-the-sandbag-getup/\n[9]\u00a0https://www.reddit.com/r/sandbagtraining/comments/1dqckg5/muscles_worked/\n[10]\u00a0https://www.youtube.com/watch?v=Ggl4qhY2X04\n[11]\u00a0https://redefiningstrength.com/13-sandbag-exercises-full-body-workout/\n[12]\u00a0https://library.theprehabguys.com/vimeo-video/anterior-step-up-to-reverse-lunge/\n[13]\u00a0https://chadwaterbury.com/the-benefits-of-sandbag-training/\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Hip Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Anti-Rotation",
+      "confidence": 0.9
+    },
+    {
+      "name": "Lunge",
+      "confidence": 0.8
+    },
+    {
+      "name": "Hip Hinge",
+      "confidence": 0.8
+    },
+    {
+      "name": "Vertical Push",
+      "confidence": 0.7
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.8
+    },
+    {
+      "name": "Trunk Rotation",
+      "confidence": 0.6
+    },
+    {
+      "name": "Hip Flexion",
+      "confidence": 0.7
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Gluteus Maximus",
+      "Rectus Femoris",
+      "Rectus Abdominis",
+      "External Obliques",
+      "Erector Spinae",
+      "Deltoid (Anterior)"
+    ],
+    "secondary": [
+      "Biceps Femoris",
+      "Gluteus Medius",
+      "Transverse Abdominis",
+      "Internal Obliques",
+      "Rotator Cuff",
+      "Trapezius (Upper)",
+      "Forearm Flexors",
+      "Gastrocnemius"
+    ]
+  },
+  "processed_at": "2026-01-07T22:04:09.778676"
+}

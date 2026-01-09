@@ -1,0 +1,64 @@
+{
+  "exercise_id": "CUSTOM:Goblet_Squat_Hold",
+  "exercise_name": "Goblet Squat Hold",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "goblet squat muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Goblet Squat Hold is a full-body exercise primarily targeting the quads, glutes, hamstrings, and core, with significant activation of the upper back, shoulders, and forearms for stabilization due to the front-loaded weight. The movement pattern is a bilateral squat, emphasizing an upright torso, deep hip flexion, and knee extension, making it excellent for learning proper squat mechanics while building strength and endurance in the entire posterior chain and stabilizing muscles. [1, 2, 3, 4, 5]  \nThis video provides a complete guide to the Goblet Squat: \nMuscles Worked \n\n\u2022 Primary Movers (Lower Body): Quadriceps, Glutes (Gluteus Maximus), Hamstrings, Adductors. \n\u2022 Stabilizers & Secondary Muscles: \n\n    \u2022 Core: Rectus Abdominis, Obliques, Erector Spinae (for upright posture). \n    \u2022 Upper Back: Traps, Rhomboids, Lats (to keep the weight close). \n    \u2022 Shoulders (Deltoids): Stabilize the weight. \n    \u2022 Forearms & Biceps: Grip and stabilization. \n    \u2022 Calves: Ankle stability. [1, 2, 3, 5, 6, 7]  \n\nYou can watch this video for a visual demonstration of the proper technique: \nMovement Pattern (The Squat Pattern) \n\n1. Starting Position: Feet shoulder-width apart, holding weight at chest. \n2. Descent: Initiate by pushing hips back, bending knees, maintaining an upright chest and core. \n3. Depth: Lower until thighs are near parallel or deeper, with knees tracking over toes. \n4. Hold (Isometric Phase): Maintain tension in the core and glutes, keeping the weight stable. \n5. Ascent (Concentric Phase): Drive through the heels, extending hips and knees to return to standing. [1, 3, 5, 8, 9, 10, 11]  \n\nKey Benefits \n\n\u2022 Teaches Squat Form: The front load encourages a more upright torso, ideal for beginners. \n\u2022 Full-Body Integration: Excellent for building overall strength and endurance. \n\u2022 Core & Posture: Greatly improves core stability and spinal strength. [1, 3, 4, 5, 12]  \n\n**Citations:**\n\n[1]\u00a0https://www.issaonline.com/blog/post/goblet-squat-form-muscles-worked-benefits-variations\n[2]\u00a0https://learn.athleanx.com/articles/legs-for-men/how-to-do-goblet-squats\n[3]\u00a0https://www.gymshark.com/blog/article/goblet-squats\n[4]\u00a0https://zackhenderson.com/the-ultimate-guide-to-the-goblet-squat/\n[5]\u00a0https://barbend.com/goblet-squat/\n[6]\u00a0https://www.youtube.com/watch?v=xTM-e_Gj5sA\n[7]\u00a0https://www.youtube.com/watch?v=9Xv_5oevuqw\n[8]\u00a0https://www.muscleandstrength.com/exercises/dumbbell-goblet-squat\n[9]\u00a0https://www.strengthlog.com/goblet-squat/\n[10]\u00a0https://www.youtube.com/watch?v=l6Vlx3qsjLg\n[11]\u00a0https://www.coachweb.com/leg-exercises/3379/how-to-master-the-goblet-squat\n[12]\u00a0https://www.webmd.com/fitness-exercise/how-to-do-goblet-squat\n\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Squat",
+      "confidence": 1.0
+    },
+    {
+      "name": "Hip Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Knee Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Hip Flexion",
+      "confidence": 0.8
+    },
+    {
+      "name": "Knee Flexion",
+      "confidence": 0.8
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.7
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Rectus Femoris",
+      "Gluteus Maximus",
+      "Biceps Femoris",
+      "Hip Adductors"
+    ],
+    "secondary": [
+      "Rectus Abdominis",
+      "External Obliques",
+      "Erector Spinae",
+      "Trapezius",
+      "Rhomboids",
+      "Latissimus Dorsi",
+      "Deltoid (Anterior)",
+      "Deltoid (Lateral)",
+      "Deltoid (Posterior)",
+      "Forearm Flexors",
+      "Biceps Brachii",
+      "Gastrocnemius"
+    ]
+  },
+  "processed_at": "2026-01-07T15:09:22.688143"
+}

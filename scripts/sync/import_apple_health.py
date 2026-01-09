@@ -19,16 +19,22 @@ Outputs:
   - staging/clinical_immunizations.parquet  Immunizations (FHIR)
 
 Usage:
-  python import_apple_health.py                    # Standard import
+  python import_apple_health.py                    # Incremental import (from cutoff date)
+  python import_apple_health.py --full             # Full import (all records)
   python import_apple_health.py --raw-hr           # Include raw HR (large!)
   python import_apple_health.py --verbose          # Show progress
   python import_apple_health.py --clinical-only    # Only clinical records
+
+Incremental Import:
+  By default, queries Postgres for the max date from Apple Health sources,
+  subtracts 1 day for safety, and only processes records from that date forward.
+  This dramatically reduces processing time for subsequent imports.
 """
 
 import argparse
 import json
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from pathlib import Path
 from typing import Dict, List, Optional, Generator, Any
 from xml.etree.ElementTree import iterparse
@@ -37,11 +43,20 @@ from collections import defaultdict
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
+import psycopg2
 
 # Paths
 DATA_DIR = Path(__file__).parent.parent.parent / "data"
 RAW_DIR = DATA_DIR / "raw" / "apple_health_export"
 STAGING_DIR = DATA_DIR / "staging"
+
+# Database config for cutoff query
+DB_CONFIG = {
+    "dbname": "arnold_analytics",
+    "user": "brock",
+    "host": "localhost",
+    "port": 5432,
+}
 
 # Apple Health date format
 # Example: "2025-05-15 18:31:17 -0500"
@@ -78,12 +93,51 @@ def parse_apple_date(date_str: str) -> datetime:
             return None
 
 
-def stream_xml_records(xml_path: Path, verbose: bool = False) -> Generator[Dict, None, None]:
+def get_cutoff_date(verbose: bool = False) -> Optional[date]:
+    """Get cutoff date from Postgres: max Apple Health date minus 1 day.
+    
+    Returns None on cold start (no data yet) - will process everything.
+    """
+    try:
+        conn = psycopg2.connect(**DB_CONFIG)
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT MAX(reading_date) 
+            FROM biometric_readings 
+            WHERE source ILIKE '%apple%' OR source ILIKE '%watch%' OR source ILIKE '%iphone%'
+        """)
+        result = cur.fetchone()[0]
+        conn.close()
+        
+        if result is None:
+            if verbose:
+                print("  No existing Apple Health data - processing all records")
+            return None
+        
+        # Subtract 1 day for safety margin (timezone edge cases, late arrivals)
+        cutoff = result - timedelta(days=1)
+        if verbose:
+            print(f"  Cutoff date: {cutoff} (processing records from {cutoff} onwards)")
+        return cutoff
+        
+    except Exception as e:
+        if verbose:
+            print(f"  Warning: Could not get cutoff date ({e}) - processing all records")
+        return None
+
+
+def stream_xml_records(xml_path: Path, verbose: bool = False, cutoff_date: Optional[date] = None) -> Generator[Dict, None, None]:
     """
     Stream parse Apple Health export.xml.
     Yields records one at a time without loading entire file.
+    
+    Args:
+        xml_path: Path to export.xml
+        verbose: Print progress
+        cutoff_date: Only yield records on or after this date (None = all records)
     """
     record_count = 0
+    skipped_count = 0
     workout_count = 0
     
     context = iterparse(str(xml_path), events=("end",))
@@ -92,6 +146,15 @@ def stream_xml_records(xml_path: Path, verbose: bool = False) -> Generator[Dict,
         if elem.tag == "Record":
             record_type = elem.get("type")
             if record_type in RECORD_TYPES:
+                # Check cutoff before building full record dict
+                if cutoff_date is not None:
+                    start_date_str = elem.get("startDate")
+                    record_dt = parse_apple_date(start_date_str)
+                    if record_dt and record_dt.date() < cutoff_date:
+                        skipped_count += 1
+                        elem.clear()
+                        continue
+                
                 record = {
                     "type": RECORD_TYPES[record_type],
                     "original_type": record_type,
@@ -119,6 +182,15 @@ def stream_xml_records(xml_path: Path, verbose: bool = False) -> Generator[Dict,
                     print(f"  Processed {record_count:,} records...")
         
         elif elem.tag == "Workout":
+            # Check cutoff for workouts too
+            if cutoff_date is not None:
+                start_date_str = elem.get("startDate")
+                workout_dt = parse_apple_date(start_date_str)
+                if workout_dt and workout_dt.date() < cutoff_date:
+                    skipped_count += 1
+                    elem.clear()
+                    continue
+            
             workout = {
                 "type": "workout",
                 "activity_type": elem.get("workoutActivityType"),
@@ -171,6 +243,8 @@ def stream_xml_records(xml_path: Path, verbose: bool = False) -> Generator[Dict,
     
     if verbose:
         print(f"  Total: {record_count:,} records, {workout_count:,} workouts")
+        if skipped_count > 0:
+            print(f"  Skipped: {skipped_count:,} records (before cutoff date)")
 
 
 def process_hr_records(records: List[Dict], aggregate_hourly: bool = True) -> pd.DataFrame:
@@ -640,7 +714,7 @@ def update_catalog(tables: Dict[str, pd.DataFrame]):
     if "sources" not in catalog:
         catalog["sources"] = {}
     
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(tz=None).isoformat()  # Local time is fine for catalog metadata
     
     # Apple Health records
     for table_name, df in tables.items():
@@ -701,6 +775,7 @@ def main():
     parser.add_argument("--raw-hr", action="store_true", help="Include raw HR (not aggregated)")
     parser.add_argument("--clinical-only", action="store_true", help="Only process clinical records")
     parser.add_argument("--xml-only", action="store_true", help="Only process export.xml")
+    parser.add_argument("--full", action="store_true", help="Process all records (ignore cutoff date)")
     args = parser.parse_args()
     
     print("Importing Apple Health data...")
@@ -712,11 +787,19 @@ def main():
     if xml_path.exists() and not args.clinical_only:
         print(f"\nProcessing export.xml ({xml_path.stat().st_size / 1024 / 1024:.1f} MB)...")
         
+        # Get cutoff date from Postgres (incremental import)
+        if args.full:
+            cutoff = None
+            if args.verbose:
+                print("  --full specified: processing all records")
+        else:
+            cutoff = get_cutoff_date(verbose=args.verbose)
+        
         # Collect records by type
         records_by_type = defaultdict(list)
         workouts = []
         
-        for record in stream_xml_records(xml_path, args.verbose):
+        for record in stream_xml_records(xml_path, args.verbose, cutoff_date=cutoff):
             if record["type"] == "workout":
                 workouts.append(record)
             else:

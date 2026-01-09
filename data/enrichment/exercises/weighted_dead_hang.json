@@ -1,0 +1,44 @@
+{
+  "exercise_id": "CUSTOM:Weighted_Dead_Hang",
+  "exercise_name": "Weighted Dead Hang",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "dead hang muscles worked",
+    "retrieved_at": "A",
+    "raw_text": "A Weighted Dead Hang is an isometric exercise primarily strengthening your grip (forearms/hands), back (lats, traps, rhomboids), and shoulders (deltoids, rotator cuff), while intensely engaging your core (abs, obliques) for stability, with spinal decompression as a major benefit, working muscles isometrically to build endurance and functional strength, not through traditional movement patterns. [1, 2, 3, 4]  \nMuscles Worked \n\n\u2022 Grip & Arms: Forearm flexors, hand muscles, wrist flexors. \n\u2022 Back: Latissimus dorsi (lats), trapezius (traps), rhomboids. \n\u2022 Shoulders: Deltoids, rotator cuff muscles, serratus anterior. \n\u2022 Core: Rectus abdominis, transverse abdominis, obliques, erector spinae (deep stabilizers). \n\u2022 Legs (Stabilizers): Glutes, quads. [1, 2, 3, 5, 6, 7, 8]  \n\nMovement Pattern \n\n\u2022 Isometric Contraction: Muscles are held under tension without changing length, focusing on stabilization rather than movement. \n\u2022 Scapular Stability: Teaches shoulder blades to depress and retract, stabilizing the shoulder girdle. \n\u2022 Spinal Decompression: Gravity lengthens the spine, creating space between vertebrae. [1, 3, 4, 9, 10]  \n\nHow It Works \n\n\u2022 Grip Strength: Holding the weight significantly increases the demand on your hands and forearms. \n\u2022 Core Stability: Your core works hard to prevent your body from swinging and maintain alignment. \n\u2022 Full-Body Tension: Creates full-body tension, especially in the upper back, shoulders, and arms, improving posture and upper body endurance. [3, 4, 5, 7]  \n\n**Citations:**\n\n[1]\u00a0https://www.goodrx.com/well-being/movement-exercise/dead-hang-benefits\n[2]\u00a0https://honehealth.com/edge/dead-hang-benefits/\n[3]\u00a0https://www.youtube.com/watch?v=M25ibDAVhMQ\n[4]\u00a0https://www.setforset.com/blogs/news/dead-hang\n[5]\u00a0https://hangarhpc.com/dead-hangs-the-benefits-on-your-overall-health/\n[6]\u00a0https://backmusclesolutions.com/blogs/the-ql-blawg/dead-hang\n[7]\u00a0https://forceusa.in/blogs/news/dead-hang-exercise-and-benefits\n[8]\u00a0https://www.hevyapp.com/exercises/dead-hang/\n[9]\u00a0https://www.anytimefitness.com/blog/dead-hang-benefits\n[10]\u00a0https://www.youtube.com/watch?v=ShkBXOGK7A8\n\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Grip / Hang",
+      "confidence": 1.0
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Scapular Retraction",
+      "confidence": 0.7
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Forearm Flexors",
+      "Latissimus Dorsi",
+      "Trapezius",
+      "Rhomboids"
+    ],
+    "secondary": [
+      "Deltoid (Posterior)",
+      "Rotator Cuff",
+      "Serratus Anterior",
+      "Rectus Abdominis",
+      "Transverse Abdominis",
+      "External Obliques",
+      "Erector Spinae",
+      "Gluteus Maximus"
+    ]
+  },
+  "processed_at": "2026-01-07T15:08:51.491927"
+}

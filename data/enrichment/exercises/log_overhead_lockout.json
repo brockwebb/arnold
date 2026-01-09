@@ -1,0 +1,53 @@
+{
+  "exercise_id": "CUSTOM:Log_Overhead_Lockout",
+  "exercise_name": "Log Overhead Lockout",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "log press overhead lockout muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Log Overhead Lockout is an overhead pressing movement pattern and the final static hold of a log lift, involving full elbow and shoulder extension. This position primarily works the triceps and shoulders, with significant engagement of various stabilizing muscles throughout the body. [1, 2, 3, 4, 5]  \nMuscles Worked \nThe overhead lockout places an immense demand on both prime movers and stabilizers, especially since the log's neutral grip and awkward shape require more stabilization than a standard barbell. \n\n\u2022 Primary Movers (at lockout): \n\n    \u2022 Triceps Brachii: Crucial for the final elbow extension to lock the weight overhead. \n    \u2022 Anterior and Lateral Deltoids: Contract isometrically (and concentrically during the press phase) to hold the load in the overhead position and stabilize the shoulder joint. \n\n\u2022 Synergists and Stabilizers: \n\n    \u2022 Trapezius (Upper, Middle, and Lower): Essential for stabilizing the scapula (shoulder blades) and maintaining an upright posture. \n    \u2022 Rotator Cuff Muscles: Deep shoulder muscles that co-contract to center the head of the humerus (upper arm bone) and provide dynamic joint support and stability. \n    \u2022 Serratus Anterior: Helps with upward rotation and stabilization of the shoulder blade in the overhead position. \n    \u2022 Core Musculature (Rectus Abdominis, Obliques, Transverse Abdominis, Erector Spinae): Engage intensely to stabilize the spine, resist hyperextension (excessive arching) of the lower back, and transfer force effectively. \n    \u2022 Lats (Latissimus Dorsi): Play a role in creating a solid shelf and providing stability in the overhead position. \n    \u2022 Grip/Forearm Flexors: Maintain a strong grip on the log handles. \n    \u2022 Glutes: When standing, glute engagement provides a solid foundation and base for stability. [1, 2, 7, 10, 11, 12, 13, 14, 15, 16]  \n\nMovement Patterns \nThe primary movement pattern involved in the final lockout phase is isometric contraction and overhead stabilization. \n\n\u2022 Vertical Pressing: The log lockout is the end phase of a vertical pressing movement (e.g., a push press or strict press). \n\u2022 Overhead Stabilization: The core pattern involves holding the heavy load directly above the shoulder, elbow, and wrist joints, which builds significant functional strength, stability, and endurance. \n\u2022 Elbow Extension: The very last part of the upward drive is a powerful elbow extension, where the triceps finish the movement. \n\u2022 Scapular Upward Rotation and Fixation: The shoulder blades rotate upward and are then fixed in a stable position by the surrounding muscles to support the weight. [3, 10, 12, 16, 17, 18, 19]  \n\n**Citations:**\n\n[1]\u00a0https://www.instagram.com/reel/C-0n0NWvOCk/\n[2]\u00a0https://getrawnutrition.com/blogs/workouts/muscles-worked-by-the-overhead-press\n[3]\u00a0https://barbend.com/overhead-press/\n[4]\u00a0https://fitbod.me/blog/push-jerk-vs-push-press/\n[5]\u00a0https://grindergym.com/log-clean-and-press/\n[6]\u00a0https://www.ironlegacybarbell.com/post/3-exercises-to-improve-your-log-press\n[7]\u00a0https://elitefts.com/blogs/motivation/the-biggest-weaknesses-in-your-overhead-press\n[8]\u00a0https://kettlebellsworkouts.com/kettlebell-overhead-carry/\n[9]\u00a0https://mirafit.co.uk/blog/are-strongman-logs-just-for-strongmen/\n[10]\u00a0https://steelsupplements.com/blogs/steel-blog/what-muscles-are-worked-by-overhead-presses\n[11]\u00a0https://barbend.com/benefits-of-overhead-carries/\n[12]\u00a0https://www.advancedhumanperformance.com/blog/the-best-functional-mass-builder-overhead-power-hold\n[13]\u00a0https://www.garagestrength.com/blogs/news/overhead-strict-press\n[14]\u00a0https://www.facebook.com/Strong.Muscle/posts/muscles-targeted-by-the-overhead-press/1147256807440377/\n[15]\u00a0https://barbend.com/overhead-carries/\n[16]\u00a0https://www.boxrox.com/perfect-your-lockout-overhead-stability-tips-for-the-kettlebell-snatch/\n[17]\u00a0https://www.crossfit.com/essentials/the-push-press\n[18]\u00a0https://www.youtube.com/shorts/h9mJOoMDe-w\n[19]\u00a0https://barbend.com/push-press/\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Vertical Push",
+      "confidence": 0.9
+    },
+    {
+      "name": "Elbow Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.7
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Triceps Brachii",
+      "Deltoid (Anterior)",
+      "Deltoid (Lateral)"
+    ],
+    "secondary": [
+      "Trapezius (Upper)",
+      "Trapezius (Middle)",
+      "Trapezius (Lower)",
+      "Rotator Cuff",
+      "Serratus Anterior",
+      "Rectus Abdominis",
+      "External Obliques",
+      "Internal Obliques",
+      "Transverse Abdominis",
+      "Erector Spinae",
+      "Latissimus Dorsi",
+      "Forearm Flexors",
+      "Gluteus Maximus"
+    ]
+  },
+  "processed_at": "2026-01-07T22:04:36.912128"
+}

@@ -1,0 +1,51 @@
+{
+  "exercise_id": "CUSTOM:Pull-Up",
+  "exercise_name": "Pull-Up",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "pull-up muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The pull-up is a vertical pulling movement primarily targeting the latissimus dorsi (lats), biceps, rhomboids, and traps, with support from deltoids and forearm muscles for grip and stabilization, working to bring the body up towards a bar using shoulder adduction and elbow flexion. Key muscles include the lats (back width), biceps (elbow bending), rhomboids/traps (scapula retraction), and core (stability). [1, 2, 3, 4]  \nThis video provides a complete overview of the muscles used in a pull-up: \nMuscles Worked (Primary & Secondary) \n\n\u2022 Latissimus Dorsi (Lats): Main muscle for pulling the body up (shoulder extension/adduction). \n\u2022 Biceps Brachii: Elbow flexion (bending the elbow). \n\u2022 Rhomboids & Traps (Middle/Lower): Scapular retraction (pulling shoulder blades together) and depression. \n\u2022 Posterior Deltoids (Rear Shoulders): Assist in shoulder extension. \n\u2022 Forearms: Grip strength and wrist stabilization. \n\u2022 Core (Abs, Obliques, Erector Spinae): Trunk stability to prevent swinging. [1, 2, 3, 5]  \n\nMovement Pattern: Vertical Pull \n\n\u2022 Action: Pulling the body upwards against gravity. \n\u2022 Grip: Pronated (overhand), palms facing away, emphasizing the lats more than a chin-up. \n\u2022 Initiation: Starts from a dead hang, engaging the shoulder blades (scapula) first by pulling them down and back. \n\u2022 Execution: Pull chest towards the bar, keeping elbows close, then lower with control. [3, 4, 6, 7]  \n\nThis video demonstrates the proper technique for performing a pull-up: \nKey Aspects of the Movement \n\n\u2022 Scapular Engagement: Crucial for power and protecting the shoulder joint, initiating the pull before elbow flexion. \n\u2022 Grip Variation: Wide grips target upper lats; narrower grips increase biceps involvement. \n\u2022 Full Range of Motion: From a full hang to bringing the chest to the bar for maximum muscle activation. [3, 7, 8]  \n\nYou can watch this video to learn how to master the pull-up: \n\n**Citations:**\n\n[1]\u00a0https://www.muscleandmotion.com/mastering-the-pull-up-from-first-rep-to-perfect-form/\n[2]\u00a0https://9dfit.com/what-muscles-do-pull-ups/\n[3]\u00a0https://blog.nasm.org/chin-ups-vs.-pull-ups-the-difference-the-benefits-muscles-worked\n[4]\u00a0https://www.acefitness.org/resources/pros/expert-articles/5565/4-moves-to-help-you-master-the-pull-up/\n[5]\u00a0https://pubmed.ncbi.nlm.nih.gov/21068680/\n[6]\u00a0https://www.nifs.org/blog/topic/pull\n[7]\u00a0https://www.youtube.com/watch?v=KEedOgJSAOQ\n[8]\u00a0https://www.transparentlabs.com/blogs/all/what-muscles-do-pull-ups-work\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Vertical Pull",
+      "confidence": 1.0
+    },
+    {
+      "name": "Elbow Flexion",
+      "confidence": 0.8
+    },
+    {
+      "name": "Scapular Retraction",
+      "confidence": 0.9
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.7
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Latissimus Dorsi",
+      "Biceps Brachii",
+      "Rhomboids",
+      "Trapezius (Middle)"
+    ],
+    "secondary": [
+      "Deltoid (Posterior)",
+      "Forearm Flexors",
+      "Rectus Abdominis",
+      "External Obliques",
+      "Erector Spinae",
+      "Trapezius (Lower)"
+    ]
+  },
+  "processed_at": "2026-01-07T22:04:48.380481"
+}

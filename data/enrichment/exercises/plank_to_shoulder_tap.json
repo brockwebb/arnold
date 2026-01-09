@@ -1,0 +1,41 @@
+{
+  "exercise_id": "CUSTOM:Plank_to_Shoulder_Tap",
+  "exercise_name": "Plank to Shoulder Tap",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "plank shoulder tap muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Plank to Shoulder Tap is a full-body stability exercise primarily targeting the core (rectus abdominis, obliques, transverse abdominis), shoulders (deltoids), and arms (triceps), while also engaging glutes, quadriceps, and back muscles (erector spinae, serratus anterior) for stabilization. The movement pattern involves transitioning from a static plank, lifting one hand to tap the opposite shoulder while resisting hip rotation, emphasizing anti-rotation strength, balance, and overall body control. [1, 2, 3, 4, 5, 6]  \nMuscles Worked \n\n\u2022 Primary (Stabilizers & Movers): \n\n    \u2022 Core: Rectus Abdominis (abs), Obliques, Transverse Abdominis (deep core). \n    \u2022 Shoulders: Deltoids, Rotator Cuff muscles. \n    \u2022 Arms: Triceps, Forearms. \n\n\u2022 Secondary (Support & Stability): \n\n    \u2022 Glutes & Legs: Glutes, Quadriceps (to keep legs stable). \n    \u2022 Back: Erector Spinae (lower back), Serratus Anterior (around rib cage). [2, 3, 4, 6, 7, 8]  \n\nMovement Pattern \n\n1. Starting Position: Begin in a high plank (top of a push-up) with wrists under shoulders, body in a straight line, feet hip-width apart for stability. \n2. Initiation: Engage your core to prevent your hips from shifting or rocking. \n3. The Tap: Lift one hand and reach across to tap your opposite shoulder. \n4. Return & Alternate: Slowly return the hand to the floor and repeat the movement with the other arm. \n5. Key Focus: Minimize hip movement (anti-rotation) and maintain a stable, straight line from head to heels throughout the exercise. [1, 5, 8, 9]  \n\nBenefits \n\n\u2022 Improves core strength, endurance, and stability. \n\u2022 Enhances balance and coordination. \n\u2022 Builds shoulder stability and upper body endurance. [2, 4, 5, 8]  \n\n**Citations:**\n\n[1]\u00a0https://www.fit2youpt.com/blog/2018/8/21/plank-with-shoulder-taps\n[2]\u00a0https://www.onepeloton.com/blog/shoulder-taps\n[3]\u00a0https://www.freeletics.com/en/blog/posts/freeletics-exercises-plank-shoulder-taps/\n[4]\u00a0https://www.endomondo.com/exercise/plank-shoulder-tap\n[5]\u00a0https://www.trainwell.net/exercises/plank-shoulder-tap\n[6]\u00a0https://befittrainingphysio.com/shoulder-taps/\n[7]\u00a0https://www.evolveyou.app/blog/plank-exercises-what-is-the-plank-exercise-good-for\n[8]\u00a0https://www.ajax.ca/en/exercise-of-the-month-high-plank-shoulder-taps.aspx\n[9]\u00a0https://www.youtube.com/watch?v=gKA5LBy7WAI\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Anti-Rotation",
+      "confidence": 0.95
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.85
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Rectus Abdominis",
+      "External Obliques",
+      "Internal Obliques",
+      "Transverse Abdominis",
+      "Deltoid (Anterior)",
+      "Triceps Brachii"
+    ],
+    "secondary": [
+      "Erector Spinae",
+      "Serratus Anterior",
+      "Gluteus Maximus",
+      "Quadriceps Femoris",
+      "Rotator Cuff",
+      "Forearm Flexors"
+    ]
+  },
+  "processed_at": "2026-01-07T22:04:04.185143"
+}

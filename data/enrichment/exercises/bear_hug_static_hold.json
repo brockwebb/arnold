@@ -1,0 +1,43 @@
+{
+  "exercise_id": "CUSTOM:Bear-Hug_Static_Hold",
+  "exercise_name": "Bear-Hug Static Hold",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "bear hug carry muscles worked",
+    "retrieved_at": "A",
+    "raw_text": "A Bear-Hug Static Hold works your chest (pectorals), shoulders (deltoids, serratus anterior), biceps, upper back (traps), and especially your deep core muscles, focusing on isometric stabilization to resist flexion and maintain a neutral spine, improving posture, balance, and functional strength for real-world lifting. The movement pattern is essentially isometric contraction and bracing, holding a fixed position, often while hugging a weight or simply crossing arms to create tension. [1, 2, 3, 4, 5, 6, 7]  \nMuscles Worked \n\n\u2022 Core: Deep abdominals (rectus abdominis, obliques, transverse abdominis), lower back, pelvic floor, and hip flexors. \n\u2022 Upper Body: Pectorals (chest), anterior deltoids (front shoulders), biceps, serratus anterior (shoulder blade stabilizers). \n\u2022 Back & Shoulders: Traps, rhomboids, and rotator cuff muscles (for stability). [1, 2, 3, 4, 8, 9, 10, 11]  \n\nMovement Pattern (Static Hold) \n\n1. Starting Position: Can be on all fours (Bear Hold) or standing with a weight (Bear Hug/Front Load). \n2. Action (Isometric): Engage muscles to hold the position without movement. \n3. Core Engagement: Actively brace the abs to prevent the back from arching or rounding (anti-extension/flexion). \n4. Shoulder Stability: Spread shoulder blades apart (protraction) to activate the serratus anterior. \n5. Hold: Maintain tension, focusing on deep breathing and core engagement for a set time. [1, 2, 5, 6, 9, 10, 12]  \n\nVariations & Purpose \n\n\u2022 Bear Hold (Knees Hovering): Core, hip, shoulder stability. \n\u2022 Bear Hug Squat (with sandbag/weight): Challenges legs, core, and upper back more intensely. \n\u2022 Bear Hug (arms only): Great for upper back and shoulder mobility/stability. [1, 2, 7, 8, 9]  \n\nThis video demonstrates the bear hold exercise: \n\n**Citations:**\n\n[1]\u00a0https://simplypt.com/bear-hold-exercises/\n[2]\u00a0https://www.youtube.com/watch?v=FPZHDkatnA4\n[3]\u00a0https://www.dailymotion.com/video/x3gq2kb\n[4]\u00a0https://bulldoggear.com/blogs/news/copy-of-minimal-kit-maximum-progress\n[5]\u00a0https://barmethod.com/blog/the-science-behind-static-hold-exercises/\n[6]\u00a0https://www.tntstrength.com/blog/the-overlooked-value-of-static-holds-in-strength-training\n[7]\u00a0https://whitelionstrong.com/elementor-4401/\n[8]\u00a0https://azopt.net/bear-hug/\n[9]\u00a0https://nfpt.com/the-bear-crawl/\n[10]\u00a0https://ultimatesandbagtraining.com/why-this-key-workout-concept-unlocks-better-squats-more/\n[11]\u00a0https://library.theprehabguys.com/vimeo-video/bear-hug/\n[12]\u00a0https://barbend.com/bear-plank/\n\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Anti-Lateral Flexion",
+      "confidence": 0.8
+    },
+    {
+      "name": "Scapular Retraction",
+      "confidence": 0.7
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Transverse Abdominis",
+      "Rectus Abdominis",
+      "External Obliques",
+      "Internal Obliques"
+    ],
+    "secondary": [
+      "Serratus Anterior",
+      "Pectoralis Major",
+      "Deltoid (Anterior)",
+      "Biceps Brachii",
+      "Trapezius",
+      "Rhomboids",
+      "Erector Spinae"
+    ]
+  },
+  "processed_at": "2026-01-07T15:08:44.658311"
+}

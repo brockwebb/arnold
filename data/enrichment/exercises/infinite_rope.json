@@ -1,0 +1,64 @@
+{
+  "exercise_id": "CUSTOM:Infinite_Rope",
+  "exercise_name": "Infinite Rope",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "endless rope pull muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Infinite Rope (or endless rope machine) is a full-body workout hitting the back (lats, traps, rhomboids), shoulders, arms (biceps, triceps, forearms), and core (abs, obliques, erector spinae), with lower body engagement during compound movements, while developing strength, endurance, and cardio through fluid, hand-over-hand pulling, lateral, and rotational patterns that mimic climbing and pulling, enhancing functional fitness. [1, 2, 3, 4]  \nMuscles Worked \n\n\u2022 Back: Latissimus Dorsi, Trapezius (middle/upper), Rhomboids, Erector Spinae. \n\u2022 Arms: Biceps, Triceps, Forearms (grip strength). \n\u2022 Shoulders: Deltoids (front, side, rear). \n\u2022 Core: Abdominals, Obliques, Spinal Erectors (for stability). \n\u2022 Lower Body: Glutes, Quads, Calves (engaged in squats, split stances). \n\u2022 Cardiovascular: Heart and lungs (due to continuous effort). [1, 2, 3, 4, 5, 6]  \n\nMovement Patterns \n\n\u2022 Hand-Over-Hand Pulling: Vertical or horizontal, simulating climbing, targeting lats and biceps. \n\u2022 Grip Variations: Overhand (palms down) for broader back work; Underhand (palms up) for more bicep focus. \n\u2022 Twisting/Lateral Pulls: Involve rotational movements, strongly engaging obliques and core stabilizers. \n\u2022 Asymmetrical/Alternating: One arm at a time, shifting weight side-to-side (like a fluid flow). \n\u2022 Compound Stances: Using squats or lunges with the pull to activate legs and glutes. \n\u2022 Rope Flow: Fluid, continuous movements that connect the entire body from hips to hands, promoting alignment. [1, 2, 4, 5, 6, 7, 8, 9]  \n\n**Citations:**\n\n[1]\u00a0https://strengthwarehouseusa.com/blogs/resources/rope-pulling-exercise-benefits\n[2]\u00a0https://strengthwarehouseusa.com/blogs/resources/rope-pull-machine-muscles-worked\n[3]\u00a0https://www.ropeflex.com/blog/news-updates-1/rope-pull-machine-benefits-32\n[4]\u00a0https://strengthwarehouseusa.com/blogs/resources/rope-machine-workout\n[5]\u00a0https://www.ropeflex.com/forum/knowledge-resources-1/endless-rope-pull-machine-workout-guide-3\n[6]\u00a0https://www.endlessrope.com/fitness-tips/\n[7]\u00a0https://www.octomoves.com/blogs/news/what-is-rope-flow-and-why-should-you-try-it\n[8]\u00a0https://www.acefitness.org/continuing-education/certified/april-2020/7496/hyper-rope-an-ace-integrated-fitness-training-model-workout/\n[9]\u00a0https://www.youtube.com/watch?v=I_TnCq_5JgM\n\n\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Vertical Pull",
+      "confidence": 0.9
+    },
+    {
+      "name": "Horizontal Pull",
+      "confidence": 0.8
+    },
+    {
+      "name": "Elbow Flexion",
+      "confidence": 0.8
+    },
+    {
+      "name": "Scapular Retraction",
+      "confidence": 0.8
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.9
+    },
+    {
+      "name": "Anti-Rotation",
+      "confidence": 0.7
+    },
+    {
+      "name": "Trunk Rotation",
+      "confidence": 0.6
+    },
+    {
+      "name": "Conditioning",
+      "confidence": 0.8
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Latissimus Dorsi",
+      "Biceps Brachii",
+      "Trapezius (Middle)",
+      "Rhomboids"
+    ],
+    "secondary": [
+      "Deltoid (Posterior)",
+      "Forearm Flexors",
+      "External Obliques",
+      "Internal Obliques",
+      "Rectus Abdominis",
+      "Erector Spinae",
+      "Triceps Brachii"
+    ]
+  },
+  "processed_at": "2026-01-07T22:04:53.295956"
+}

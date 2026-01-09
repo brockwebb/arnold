@@ -1,0 +1,66 @@
+{
+  "exercise_id": "CUSTOM:Boxing",
+  "exercise_name": "Boxing",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "boxing muscles worked",
+    "retrieved_at": "Boxing",
+    "raw_text": "Boxing is a full-body workout demanding power from legs and hips, rotation from the core (abs, obliques, lower back), and explosive force from the shoulders (deltoids, serratus anterior) and arms (triceps, biceps), coordinated through complex movement patterns like rotational force generation, dynamic stabilization, and horizontal/vertical pushing/pulling for a powerful, balanced punch and agile footwork, relying on the entire kinetic chain for effective striking and defense. [1, 2, 3, 4]  \nKey Muscles Worked: \n\n\u2022 Core: Abs (rectus abdominis, transverse abdominis), obliques, lower back for rotational power and stability. \n\u2022 Lower Body: Glutes, quadriceps, calves, hamstrings, hip flexors for generating power from the ground up and maintaining stance. \n\u2022 Upper Body (Pushing): Deltoids, pectorals, triceps for extending the punch. \n\u2022 Upper Body (Pulling/Stabilizing): Biceps (retraction, hooks), latissimus dorsi, rhomboids, trapezius (balancing push power). \n\u2022 Shoulder Girdle: Serratus anterior (\"boxer's muscle\") for scapular protraction (punching motion). [1, 3, 4, 5, 6, 7, 8, 9]  \n\nKey Movement Patterns: \n\n\u2022 Rotational Power: Initiated in the legs, transferred through the hips and core to the upper body, like a coiled spring releasing energy. \n\u2022 Horizontal Pushing: Jabs, crosses, hooks (chest, shoulders, triceps). \n\u2022 Vertical Pushing: Uppercuts (shoulders, triceps). \n\u2022 Pulling/Retraction: Returning the arm to guard (biceps, back muscles). \n\u2022 Dynamic Stabilization: Core and lower body maintaining balance and stance during movement. \n\u2022 Lower Body Drive: Constant shifting, bouncing, and driving power from the ground (hip/knee dominance). [1, 2, 3, 6, 8, 9, 10]  \n\nIn essence, boxing uses the whole body as a kinetic chain, turning ground force into punching power through coordinated muscle engagement and movement patterns. [2, 11]  \n\n**Citations:**\n\n\n[1]\u00a0https://www.hayabusafight.com/blogs/community/4-muscle-groups-that-a-boxing-workout-targets\n[2]\u00a0https://getbackintofitness.com/2020/10/16/punching-body-mechanics-and-movement-patterns/\n[3]\u00a0https://blog.joinfightcamp.com/training/what-muscles-do-you-use-in-a-boxing-workout/\n[4]\u00a0https://trainingstation.co.uk/blogs/news/what-muscles-does-boxing-work\n[5]\u00a0https://www.reddit.com/r/amateur_boxing/comments/7otuug/muscles_used_for_punching/\n[6]\u00a0https://gracieraleigh.com/parts-body-boxing-work/\n[7]\u00a0https://www.ncbi.nlm.nih.gov/books/NBK531457/\n[8]\u00a0https://boxingscience.co.uk/strength-top-5/\n[9]\u00a0https://boxingscience.co.uk/back-exercises-for-boxing/\n[10]\u00a0https://heatrick.com/2024/01/12/essential-exercise-movement-patterns-for-fighters/\n[11]\u00a0https://spartansboxing.com/blog/the-science-behind-a-boxers-workout-unveiling-the-power-within/\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Horizontal Push",
+      "confidence": 0.9
+    },
+    {
+      "name": "Trunk Rotation",
+      "confidence": 0.9
+    },
+    {
+      "name": "Vertical Push",
+      "confidence": 0.7
+    },
+    {
+      "name": "Horizontal Pull",
+      "confidence": 0.6
+    },
+    {
+      "name": "Anti-Rotation",
+      "confidence": 0.7
+    },
+    {
+      "name": "Hip Extension",
+      "confidence": 0.6
+    },
+    {
+      "name": "Conditioning",
+      "confidence": 0.8
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Deltoid (Anterior)",
+      "Pectoralis Major",
+      "Triceps Brachii",
+      "External Obliques",
+      "Internal Obliques",
+      "Rectus Abdominis",
+      "Serratus Anterior"
+    ],
+    "secondary": [
+      "Gluteus Maximus",
+      "Rectus Femoris",
+      "Gastrocnemius",
+      "Biceps Femoris",
+      "Iliopsoas",
+      "Biceps Brachii",
+      "Latissimus Dorsi",
+      "Rhomboids",
+      "Trapezius (Middle)",
+      "Erector Spinae",
+      "Transverse Abdominis"
+    ]
+  },
+  "processed_at": "2026-01-07T15:09:57.628306"
+}

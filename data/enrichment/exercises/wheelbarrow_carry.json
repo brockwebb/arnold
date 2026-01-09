@@ -1,0 +1,51 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:WHEELBARROW_CARRY",
+  "exercise_name": "Wheelbarrow Carry",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "wheelbarrow carry exercise muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Wheelbarrow Carry (pushing) heavily engages the chest (pectorals), shoulders (deltoids), triceps, and core (abdominals) for stability and force, while also working forearms, glutes, and lower back for endurance and balance; it's a compound movement pattern that emphasizes pushing strength, shoulder stability, and anti-extension core control, with significant grip and wrist strength demand as the load increases. [1, 2, 3, 4, 5]  \nThis video demonstrates how to perform the wheelbarrow carry exercise: \nMuscles Worked (Primary & Secondary) \n\n\u2022 Primary Movers (Pushing & Stabilizing): \n\n    \u2022 Pectorals (Chest): Pushing the handles forward and stabilizing the upper body. \n    \u2022 Deltoids (Shoulders): Lifting and controlling arm movements. \n    \u2022 Triceps: Extending the elbows to push. \n    \u2022 Core (Abs, Obliques, Lower Back): Maintaining a straight, stable torso, resisting flexion and lateral movement. \n\n\u2022 Stabilizers & Synergists: \n\n    \u2022 Forearms & Wrists: Grip strength, wrist stability. \n    \u2022 Glutes & Hamstrings: Stabilizing the legs and hips. [1, 2, 3, 6, 7, 8]  \n\nMovement Patterns & Benefits \n\n\u2022 Anti-Extension Core Work: Resisting the body's tendency to sink into spinal extension (arching the back). \n\u2022 Bilateral Coordination: Both arms work together, requiring coordinated effort. \n\u2022 Proprioception: Enhances body awareness and balance. \n\u2022 Shoulder Stability: Demands strong shoulder girdle control. \n\u2022 Grip & Forearm Endurance: Carrying heavy loads significantly challenges grip strength. \n\u2022 Dynamic Stability: Obliques work to prevent side-to-side swaying as you walk. [1, 2, 5, 9, 10]  \n\nKey Takeaway \nIt's a full-body challenge that builds pushing power, core strength, and endurance, acting as a functional exercise that strengthens the entire kinetic chain from hands to hips. [5, 9]  \n\n**Citations:**\n\n[1]\u00a0https://www.meridian-fitness.co.uk/exercises/strongman-wheelbarrow/\n[2]\u00a0https://www.instagram.com/reel/CHiLP-MAebS/\n[3]\u00a0https://fitbod.me/exercises/partner-wheelbarrow-push-up\n[4]\u00a0https://www.tiktok.com/@lagreefitbyheather/video/7399807266649591070\n[5]\u00a0https://occupationaltherapy.com.au/mbr_resources/wheelbarrow-walks/\n[6]\u00a0https://thejacksonclinics.com/healthy-lifting-and-carrying/\n[7]\u00a0https://fitbod.me/exercises/partner-wheelbarrow-walk\n[8]\u00a0https://www.instagram.com/reel/DRwlmkQDzNL/\n[9]\u00a0https://www.youtube.com/watch?v=oa0uDQG7mgc\n[10]\u00a0https://www.theottoolbox.com/wheelbarrow-walking/\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Loaded Carry",
+      "confidence": 1.0
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Horizontal Push",
+      "confidence": 0.8
+    },
+    {
+      "name": "Anti-Lateral Flexion",
+      "confidence": 0.7
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.8
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Pectoralis Major",
+      "Deltoid (Anterior)",
+      "Triceps Brachii",
+      "Rectus Abdominis",
+      "External Obliques"
+    ],
+    "secondary": [
+      "Forearm Flexors",
+      "Gluteus Maximus",
+      "Erector Spinae",
+      "Transverse Abdominis",
+      "Serratus Anterior"
+    ]
+  },
+  "processed_at": "2026-01-08T08:36:45.030586"
+}

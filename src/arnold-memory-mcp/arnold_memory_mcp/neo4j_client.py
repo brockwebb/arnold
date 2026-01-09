@@ -347,6 +347,46 @@ class Neo4jMemoryClient:
             
             briefing["equipment"] = [dict(r) for r in equipment_result]
             
+            # =========================================================
+            # PATTERN GAPS (from Postgres cache via direct query)
+            # =========================================================
+            try:
+                import psycopg2
+                pg_conn = psycopg2.connect(
+                    dbname='arnold_analytics',
+                    host='localhost',
+                    port=5432
+                )
+                with pg_conn.cursor() as cur:
+                    # Pattern gaps - patterns not trained in 7+ days
+                    cur.execute("""
+                        SELECT movement_pattern, days_since
+                        FROM pattern_last_trained
+                        WHERE days_since >= 7
+                        ORDER BY days_since DESC
+                        LIMIT 5
+                    """)
+                    pattern_gaps = [{'pattern': r[0], 'days': r[1]} for r in cur.fetchall()]
+                    briefing["pattern_gaps"] = pattern_gaps
+                    
+                    # Muscle volume this week (primary only)
+                    cur.execute("""
+                        SELECT muscle_name, total_sets, total_reps
+                        FROM muscle_volume_weekly
+                        WHERE role = 'primary' 
+                          AND week_start = date_trunc('week', CURRENT_DATE)::date
+                        ORDER BY total_sets DESC
+                        LIMIT 8
+                    """)
+                    muscle_volume = [{'muscle': r[0], 'sets': r[1], 'reps': r[2]} for r in cur.fetchall()]
+                    briefing["muscle_volume_this_week"] = muscle_volume
+                    
+                pg_conn.close()
+            except Exception as e:
+                logger.warning(f"Could not load pattern/muscle data from Postgres: {e}")
+                briefing["pattern_gaps"] = []
+                briefing["muscle_volume_this_week"] = []
+            
             return briefing
 
     def generate_embedding(self, text: str) -> List[float]:

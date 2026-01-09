@@ -1,0 +1,43 @@
+{
+  "exercise_id": "EXERCISE:Bird_Dog",
+  "exercise_name": "Bird Dog",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "bird dog exercise muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Bird-Dog exercise targets the deep core (transverse abdominis, obliques, rectus abdominis), spinal extensors (erector spinae), glutes, hamstrings, and upper back/shoulders (traps, deltoids, lats) for spinal stability, balance, and coordination, working by extending the opposite arm and leg from a quadruped (all-fours) position to build functional strength and improve posture. The movement pattern involves slow, controlled anti-rotation and extension, emphasizing neutral spine and resisting hip/shoulder shifting. [1, 2, 3, 4, 5, 6, 7]  \nMuscles Worked \n\n\u2022 Core: Transverse Abdominis, Rectus Abdominis, Obliques (for stability). \n\u2022 Back: Erector Spinae (along the spine), Trapezius, Latissimus Dorsi (upper back). \n\u2022 Glutes: Gluteus Maximus, Medius, Minimus (buttock muscles). \n\u2022 Shoulders: Deltoids (front), Pectoralis (chest) (stabilizers). \n\u2022 Legs: Hamstrings (back of thigh). [3, 4, 6, 8, 9]  \n\nMovement Pattern (Functional Movement) \n\n\u2022 Starting Position: All fours (hands under shoulders, knees under hips). \n\u2022 Action: Extend one arm forward and the opposite leg straight back, keeping them in line with the torso. \n\u2022 Key Focus: Maintain a neutral spine (avoid arching or rounding), keep hips and shoulders level, and reach long through fingertips and toes. \n\u2022 Return: Slowly return to the start and alternate sides. \n\u2022 Pattern Type: An anti-rotation, contralateral (opposite limbs) movement that promotes spinal stability and functional core strength for daily tasks and sports. [1, 3, 4, 5, 6, 7, 10]  \n\n**Citations:**\n\n[1]\u00a0https://www.youtube.com/shorts/JM9MLYqMLjs\n[2]\u00a0https://www.nike.com/a/bird-dog-exercise\n[3]\u00a0https://www.hingehealth.com/resources/articles/bird-dog/\n[4]\u00a0https://thenoteninjas.com/blog/f/dog-bird-exercise-in-physical-and-occupational-therapy\n[5]\u00a0https://www.youtube.com/watch?v=-LRjkbEy-qU\n[6]\u00a0https://www.verywellfit.com/how-to-do-the-bird-dog-exercise-3498253\n[7]\u00a0https://barbend.com/benefits-of-bird-dogs/\n[8]\u00a0https://barbend.com/bird-dog/\n[9]\u00a0https://fitnessvolt.com/how-to-do-the-bird-dog/\n[10]\u00a0http://www.brandonsmitley.com/thirst-gym-terre-haute-bird-dog-i-y-t-w-complex/\n\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Anti-Rotation",
+      "confidence": 0.95
+    },
+    {
+      "name": "Hip Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.7
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Transverse Abdominis",
+      "Erector Spinae",
+      "Gluteus Maximus"
+    ],
+    "secondary": [
+      "External Obliques",
+      "Internal Obliques",
+      "Rectus Abdominis",
+      "Gluteus Medius",
+      "Hamstrings",
+      "Deltoid (Anterior)",
+      "Trapezius",
+      "Latissimus Dorsi"
+    ]
+  },
+  "processed_at": "2026-01-07T15:08:22.598956"
+}

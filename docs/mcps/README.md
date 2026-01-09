@@ -1,6 +1,6 @@
 # Arnold MCP Architecture
 
-> **Last Updated:** January 3, 2026
+> **Last Updated:** January 6, 2026 (Added journal MCP, annotation tools)
 
 ## Overview
 
@@ -32,6 +32,7 @@ Arnold uses four MCP servers, each owning a distinct domain. Claude Desktop orch
 | Domain | MCP | Owns | Does NOT Own |
 |--------|-----|------|--------------|
 | **Identity & Setup** | arnold-profile | Person, equipment, activities, observations | Workouts, plans, coaching |
+| **Journal & Notes** | arnold-journal | Log entries, symptoms, feedback, **data annotations** | Workouts, analytics |
 | **Training Ops** | arnold-training | Plans, workouts, execution, exercise selection | Profile data, analytics |
 | **Metrics & Insights** | arnold-analytics | Readiness, training load, red flags, sleep | Data writes, coaching decisions |
 | **Context & Memory** | arnold-memory | Briefings, observations, block summaries | Profile, workouts |
@@ -41,6 +42,7 @@ Arnold uses four MCP servers, each owning a distinct domain. Claude Desktop orch
 | MCP | Purpose | Tools | Docs |
 |-----|---------|-------|------|
 | **arnold-profile-mcp** | Athlete identity, equipment, biometrics | 10 | [arnold-profile.md](arnold-profile.md) |
+| **arnold-journal-mcp** | Subjective data, notes, **annotations** | 17 | (see HANDOFF) |
 | **arnold-training-mcp** | Workout planning and execution | 16 | [arnold-training.md](arnold-training.md) |
 | **arnold-analytics-mcp** | Training metrics and coaching insights | 5 | [arnold-analytics.md](arnold-analytics.md) |
 | **arnold-memory-mcp** | Conversation context and coaching memory | 5 | [arnold-memory.md](arnold-memory.md) |

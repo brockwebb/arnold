@@ -1,0 +1,41 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:SANDBAG_CRUSH_PRESS",
+  "exercise_name": "Sandbag Crush Press",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "sandbag crush grip press muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Sandbag Crush Press primarily targets your chest (pectorals), shoulders (anterior deltoids), and triceps, working in a pressing/pushing pattern with significant core stabilization due to the unstable weight, engaging stabilizers and teaching proper shoulder/core coordination by forcing you to \"crush\" or \"rip\" the bag apart to maintain tension, much like a heavy dumbbell bench press but with added instability. [1, 2, 3, 4]  \nMuscles Worked \n\n\u2022 Primary Movers: Pectoralis Major (chest), Anterior Deltoids (front shoulders), Triceps Brachii (back of arms). \n\u2022 Stabilizers: Core (abdominals, obliques, erector spinae), Lats, Rotator Cuff. [2, 3, 4, 5, 6]  \n\nMovement Pattern & Key Focus \n\n1. Setup: Start with the sandbag on your lap (for floor press) or front rack position (for standing press), feet stable. \n2. Pressing Motion: Press the bag upward (or overhead), similar to a dumbbell press, but with a key difference: you actively squeeze the bag, trying to pull it apart or \"crush\" it. \n3. Coordination: This \"crush\" action creates tension, teaching your lats and core to stabilize the shoulder joint, preventing the elbows from flaring out and shoulders from rounding forward, a common issue in traditional presses. \n4. Dynamic Instability: The shifting weight forces constant muscle recruitment, making it a more functional movement that improves mind-muscle connection and overall stability. [2, 4, 5, 7, 8]  \n\nVariations (for context) \n\n\u2022 Floor Press: Lying on your back, pressing up from the floor, emphasizing chest and triceps. \n\u2022 Overhead Press: From a front rack, pressing the bag overhead, engaging more shoulders, core, and legs for stability. [2, 7, 9]  \n\n**Citations:**\n\n[1]\u00a0https://www.muscleandstrength.com/exercises/close-grip-dumbbell-press.html\n[2]\u00a0https://www.youtube.com/watch?v=rV-3Q6ZYz5g\n[3]\u00a0https://www.boxrox.com/5-sandbag-exercises-for-a-jacked-and-strong-upper-body/\n[4]\u00a0https://ultimatesandbagtraining.com/muscles-made-smarter-ultimate-sandbag-exercises/\n[5]\u00a0https://redefiningstrength.com/13-sandbag-exercises-full-body-workout/\n[6]\u00a0https://www.facebook.com/muscleandmotion/videos/shoulder-to-shoulder-thruster-with-sandbagthis-exercise-is-a-variation-of-the-th/647480079901789/?locale=ms_MY\n[7]\u00a0https://www.setforset.com/blogs/news/sandbag-workouts\n[8]\u00a0https://www.setforset.com/blogs/news/sandbag-training-benefits\n[9]\u00a0https://www.muscletech.com/blogs/journal/sandbag-workout\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Horizontal Push",
+      "confidence": 0.9
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.7
+    },
+    {
+      "name": "Anti-Rotation",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Pectoralis Major",
+      "Deltoid (Anterior)",
+      "Triceps Brachii"
+    ],
+    "secondary": [
+      "Rectus Abdominis",
+      "External Obliques",
+      "Latissimus Dorsi",
+      "Rotator Cuff",
+      "Erector Spinae"
+    ]
+  },
+  "processed_at": "2026-01-08T08:35:24.850100"
+}

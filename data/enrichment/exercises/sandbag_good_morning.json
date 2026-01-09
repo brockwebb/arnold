@@ -1,0 +1,37 @@
+{
+  "exercise_id": "CUSTOM:Sandbag_Good_Morning",
+  "exercise_name": "Sandbag Good Morning",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "good morning exercise muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Sandbag Good Morning is a hip-hinge movement that heavily targets your posterior chain (hamstrings, glutes, lower back/erector spinae) for strength and mobility, forcing core stabilization, while the sandbag's shifting weight demands more coordination than a barbell, building functional strength in a natural, life-like motion. You push hips back, lower torso with a flat back, feeling a stretch in the hamstrings, then drive hips forward to stand, engaging glutes and hamstrings to lift. [1, 2, 3, 4, 5, 6, 7]  \nMuscles Worked (Posterior Chain & Core) \n\n\u2022 Primary Movers (Hip Extension): Hamstrings, Gluteus Maximus. \n\u2022 Stabilizers (Spinal Extension): Erector Spinae (lower back muscles). \n\u2022 Core/Stabilization: Abdominals and obliques work isometrically to maintain a rigid, neutral spine, preventing rounding. [2, 5, 8, 9]  \n\nMovement Pattern (Hip Hinge) \n\n1. Setup: Shoulder the sandbag, stand hip-width apart, chest up, shoulders back, knees slightly bent (not deep). \n2. Hinge (Eccentric Phase): Push your hips backward, allowing your chest to fall forward while maintaining a flat, neutral spine (like bowing). \n3. Depth: Lower until your torso is near parallel to the floor or you feel a deep stretch in your hamstrings. \n4. Return (Concentric Phase): Squeeze your glutes and hamstrings to drive your hips forward, returning to the starting upright position. [1, 2, 4, 6]  \n\nKey Takeaway \nThe sandbag's unstable nature recruits more stabilizing muscles and develops functional strength, mimicking real-world lifting patterns better than traditional weighted exercises. [3, 7]  \n\n**Citations:**\n\n[1]\u00a0https://www.youtube.com/watch?v=udpWvJWKLks\n[2]\u00a0https://barbend.com/good-morning-exercise/\n[3]\u00a0https://abrotherabroad.com/sandbag-good-mornings/\n[4]\u00a0https://www.youtube.com/watch?v=EzzSakKLI74\n[5]\u00a0https://www.masterclass.com/articles/good-morning-exercise-guide\n[6]\u00a0https://www.dvidshub.net/video/548810/sandbag-good-morning\n[7]\u00a0https://brickhousenutrition.com/blogs/articles/sandbag-training-101-is-this-the-ultimate-full-body-workout-tool\n[8]\u00a0https://en.wikipedia.org/wiki/Good-morning_(exercise)\n[9]\u00a0https://www.setforset.com/blogs/news/good-morning-exercise\n\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Hip Hinge",
+      "confidence": 1.0
+    },
+    {
+      "name": "Hip Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.7
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Gluteus Maximus",
+      "Biceps Femoris"
+    ],
+    "secondary": [
+      "Erector Spinae",
+      "Rectus Abdominis",
+      "External Obliques"
+    ]
+  },
+  "processed_at": "2026-01-07T15:10:34.675575"
+}

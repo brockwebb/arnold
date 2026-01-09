@@ -1,0 +1,55 @@
+{
+  "exercise_id": "CUSTOM:Sandbag_Box_Squat",
+  "exercise_name": "Sandbag Box Squat",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "box squat muscles worked",
+    "retrieved_at": "Sandbag",
+    "raw_text": "Sandbag box squats work your quads, glutes, hamstrings, core, and posterior chain, with added demands on your upper back, forearms, and biceps due to stabilizing the shifting sandbag. The movement pattern involves sitting back onto a box (like a chair), activating hip hinges for posterior chain strength, and then exploding up, improving power and functional strength by mimicking real-world lifting of bulky items. [1, 2, 3, 4, 5]  \nMuscles Worked \n\n\u2022 Primary Movers (Legs): Quadriceps, Glutes, Hamstrings, Adductors (inner thighs). \n\u2022 Stabilizers & Support: \n\n    \u2022 Core: Abs, obliques, and spinal erectors (lower back) to keep your torso upright. \n    \u2022 Upper Back: To maintain posture and control the weight. \n    \u2022 Forearms & Biceps: For grip strength to hold the unstable sandbag. \n    \u2022 Calves: To stabilize the lower leg. [1, 2, 4, 5, 6, 7]  \n\nMovement Patterns & Benefits \n\n\u2022 Hip Hinge: Sitting back onto the box emphasizes hip movement, activating the glutes and hamstrings more than a traditional squat. \n\u2022 Posterior Chain Focus: Excellent for building strength in the glutes, hamstrings, and lower back (the backside of your body). \n\u2022 Strength-Endurance: High reps build significant muscular endurance and systemic strength, transferring to other movements. \n\u2022 Functional Strength: The unstable nature of the sandbag mimics lifting heavy, awkward objects (like a box or bag of soil), improving real-world lifting ability. \n\u2022 Power Development: The brief pause (or relaxation) on the box allows for a powerful concentric (pushing up) phase, building explosive power. \n\u2022 Core & Grip Challenge: The shifting weight constantly engages your core and grip, making it a comprehensive full-body exercise. [1, 2, 3, 4, 5, 6, 8, 9]  \n\n**Citations:**\n\n[1]\u00a0https://www.youtube.com/watch?v=xjZ_ceK4tXs\n[2]\u00a0https://www.speediance.com/blogs/fitness/box-squats\n[3]\u00a0https://www.promixx.com/blogs/academy/benefits-of-box-squats\n[4]\u00a0https://www.youtube.com/watch?v=4u6QQx0DXRs\n[5]\u00a0https://whitelionstrong.com/elementor-4401/\n[6]\u00a0https://sunnyhealthfitness.com/blogs/health-wellness/box-squats-benefits-and-how-to\n[7]\u00a0https://www.healthline.com/health/box-squats\n[8]\u00a0https://games.crossfit.com/article/sandbag-training\n[9]\u00a0https://www.westside-barbell.com/blogs/the-blog/box-squatting-benefits\n\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Squat",
+      "confidence": 0.9
+    },
+    {
+      "name": "Hip Hinge",
+      "confidence": 0.8
+    },
+    {
+      "name": "Hip Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Knee Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.6
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.5
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Gluteus Maximus",
+      "Rectus Femoris",
+      "Biceps Femoris"
+    ],
+    "secondary": [
+      "Hip Adductors",
+      "Erector Spinae",
+      "Rectus Abdominis",
+      "External Obliques",
+      "Trapezius (Middle)",
+      "Forearm Flexors",
+      "Biceps Brachii",
+      "Gastrocnemius"
+    ]
+  },
+  "processed_at": "2026-01-07T15:08:55.875998"
+}

@@ -1,0 +1,51 @@
+{
+  "exercise_id": "CUSTOM:Hip_Circles",
+  "exercise_name": "Hip Circles",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "hip circles muscles worked",
+    "retrieved_at": "Hip",
+    "raw_text": "Hip circles primarily target your hip flexors, glutes, abductors, adductors, and core, working through hip flexion, extension, abduction, and adduction (moving the leg in, out, forward, and back) to lubricate the hip socket, improve range of motion, and build stability for better balance and reduced lower back pain. The movement pattern involves rotating the thigh bone in the hip socket, either standing or on hands and knees, to enhance control and joint health. [1, 2, 3, 4, 5, 6, 7]  \nMuscles Worked \n\n\u2022 Primary Movers: Gluteus Medius/Minimus (side hip), Gluteus Maximus (extension), Hip Flexors (lifting leg forward). \n\u2022 Stabilizers/Assisters: Core (abs, obliques), Lower Back muscles, Tensor Fasciae Latae (TFL), Adductors (inner thighs), Sartorius, Rectus Femoris. [1, 4, 5, 8, 9, 10]  \n\nMovement Patterns & Benefits \n\n\u2022 Dynamic Movement: It's a circular motion (like drawing a bowl or circle with your knee) that integrates multiple planes of motion (flexion, extension, abduction, adduction). \n\u2022 Joint Lubrication: Distributes synovial fluid, reducing stiffness, common in desk-bound individuals, notes this blog post from dianarangaves.com (https://dianarangaves.com/2025/10/04/hip-circles/), this article from Pliability (https://pliability.com/stories/why-is-hip-mobility-important), and this YouTube video (https://www.youtube.com/watch?v=FT-EUIz9idQ). \n\u2022 Improved Mobility & Stability: Strengthens muscles controlling the hip socket, improving control, balance, and posture. \n\u2022 Reduced Pain: Helps alleviate tightness and pain in hips and lower back by addressing compromised ranges of motion, says this Facebook video from TheMSGym, this TikTok video (https://www.tiktok.com/@megan.dahlman/video/7530384613903060238), and this article from Healthline (https://www.healthline.com/health/hip-exercises). [1, 2, 3, 5, 7, 11, 12]  \n\nHow to Perform (Hands & Knees Example) \n\n1. Start on hands and knees (tabletop position). \n2. Lift one knee, keeping it bent, and move it out to the side (abduction). \n3. Continue the circle back and around, bringing the thigh towards your chest (flexion). \n4. Finish the circle by bringing the foot back to the starting position. \n5. Reverse the direction for equal reps, focusing on control and avoiding low back arching. [2, 3, 5, 7]  \n\n**Citations:**\n\n[1]\u00a0https://dieringe.com/exercises/hip-circles\n[2]\u00a0https://www.youtube.com/watch?v=FT-EUIz9idQ\n[3]\u00a0https://www.physitrack.com/exercise-library/how-to-perform-the-hip-circles-exercise\n[4]\u00a0https://dianarangaves.com/2025/10/04/hip-circles/\n[5]\u00a0https://www.facebook.com/TheMSGym/videos/hip-circles/1305527717239961/\n[6]\u00a0https://spotebi.com/exercise-guide/hip-circles/\n[7]\u00a0https://pliability.com/stories/why-is-hip-mobility-important\n[8]\u00a0https://www.onepeloton.com/blog/hip-internal-rotation-exercises\n[9]\u00a0https://www.youtube.com/watch?v=cj0nRe---Z8\n[10]\u00a0https://med.libretexts.org/Bookshelves/Anatomy_and_Physiology/Anatomy_and_Physiology_(Boundless)/9%3A_Muscular_System/9.10%3A_Muscles_of_the_Lower_Limb/9.10A%3A_Muscles_that_Cause_Movement_at_the_Hip_Joint\n[11]\u00a0https://www.tiktok.com/@megan.dahlman/video/7530384613903060238\n[12]\u00a0https://www.healthline.com/health/hip-exercises\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Hip Flexion",
+      "confidence": 0.9
+    },
+    {
+      "name": "Hip Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Hip Abduction",
+      "confidence": 0.9
+    },
+    {
+      "name": "Hip Adduction",
+      "confidence": 0.9
+    },
+    {
+      "name": "Mobility",
+      "confidence": 0.8
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Gluteus Medius",
+      "Gluteus Minimus",
+      "Gluteus Maximus",
+      "Iliopsoas"
+    ],
+    "secondary": [
+      "Rectus Abdominis",
+      "External Obliques",
+      "Erector Spinae",
+      "Tensor Fasciae Latae",
+      "Hip Adductors",
+      "Rectus Femoris"
+    ]
+  },
+  "processed_at": "2026-01-07T22:05:56.081328"
+}

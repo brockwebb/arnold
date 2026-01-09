@@ -1,0 +1,59 @@
+{
+  "exercise_id": "CUSTOM:Wood_Splitting",
+  "exercise_name": "Wood Splitting",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "chopping wood muscles worked",
+    "retrieved_at": "Wood",
+    "raw_text": "Wood splitting is a full-body, functional movement that primarily involves a rotational, high-to-low diagonal movement pattern (transverse plane). It engages a wide array of muscles, from the lower body to the core and upper body, and is considered an effective workout for building functional strength and power. [1, 2, 3, 4]  \nMovement Patterns \nThe primary movement pattern in wood splitting is a dynamic, high-to-low diagonal motion, often referred to as a \"wood chop\" in fitness contexts. Key patterns include: \n\n\u2022 Rotational Power: The core of the movement involves twisting the torso and hips to generate force. This builds rotational strength and power, crucial for many sports and daily activities involving twisting and lifting. \n\u2022 Hinge and Squat: The motion often starts from an athletic stance with feet shoulder-width apart and knees slightly bent, incorporating elements of a hip hinge and squat to generate power from the lower body. \n\u2022 Overhead Lifting/Swinging: The axe is raised overhead before the downward swing, engaging the shoulders and upper back. \n\u2022 Stabilization: The entire body, especially the core and lower body, works intensely to stabilize the movement and control the momentum of the axe. [1, 2, 5, 6, 7, 8, 9]  \n\nMuscles Worked \nWhen performed with proper form, wood splitting engages virtually every major muscle group in the body: [10, 11]  \n\n| Body Area [5, 8, 9, 10] | Primary Muscles Worked  |\n| --- | --- |\n| Core | Obliques (internal and external), transverse abdominis, rectus abdominis, and erector spinae (spinal stabilizers).  |\n| Upper Body | Deltoids and rotator cuff muscles (shoulders), latissimus dorsi, traps, and rhomboids (back), biceps, triceps, and forearm/grip muscles.  |\n| Lower Body | Gluteus maximus, medius, and minimus (hips/glutes), quadriceps, hamstrings, and calves.  |\n\nThis comprehensive engagement makes wood splitting a highly efficient, full-body exercise that can improve core stability, balance, coordination, and overall muscular endurance. [9, 12]  \n\n**Citations:**\n\n[1]\u00a0https://thenoteninjas.com/blog/f/wood-chopping-exercise-in-pt-and-ot\n[2]\u00a0https://marathonhandbook.com/wood-chopping-for-exercise/\n[3]\u00a0https://www.jyfit.com/fitness-blog/how-to-save-your-back-while-splitting-wood\n[4]\u00a0https://www.24hourfitness.com/24life/fitness/2019/master-this-move-wood-chop\n[5]\u00a0https://www.healthline.com/health/fitness/wood-chop-exercise\n[6]\u00a0https://www.onepeloton.com/blog/wood-chop-exercise\n[7]\u00a0https://barbend.com/woodchopping-best-strength-workout-youve-never-tried/\n[8]\u00a0https://trainingstation.co.uk/blogs/news/wood-chop-exercise\n[9]\u00a0https://www.americansportandfitness.com/blogs/fitness-blog/the-top-10-benefits-of-woodchoppers\n[10]\u00a0https://www.quora.com/What-muscles-does-splitting-wood-work\n[11]\u00a0https://www.iconic-tools.de/en/blogs/blog/holzhacken-als-workout\n[12]\u00a0https://www.lemon8-app.com/@jimmy_ts_apparel/7486276277251473963?region=us\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Trunk Rotation",
+      "confidence": 0.95
+    },
+    {
+      "name": "Hip Hinge",
+      "confidence": 0.8
+    },
+    {
+      "name": "Vertical Pull",
+      "confidence": 0.7
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.6
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.8
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "External Obliques",
+      "Internal Obliques",
+      "Latissimus Dorsi",
+      "Gluteus Maximus",
+      "Rectus Femoris"
+    ],
+    "secondary": [
+      "Transverse Abdominis",
+      "Rectus Abdominis",
+      "Erector Spinae",
+      "Deltoid (Anterior)",
+      "Deltoid (Posterior)",
+      "Trapezius",
+      "Rhomboids",
+      "Biceps Brachii",
+      "Triceps Brachii",
+      "Forearm Flexors",
+      "Biceps Femoris",
+      "Gluteus Medius",
+      "Gastrocnemius"
+    ]
+  },
+  "processed_at": "2026-01-07T22:05:05.585481"
+}

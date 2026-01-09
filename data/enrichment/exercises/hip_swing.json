@@ -1,0 +1,43 @@
+{
+  "exercise_id": "CUSTOM:Hip_Swing",
+  "exercise_name": "Hip Swing",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "hip swing exercise muscles worked",
+    "retrieved_at": "A",
+    "raw_text": "A hip swing, often referring to dynamic leg swings or the fundamental hip hinge, primarily targets the posterior chain (glutes, hamstrings, lower back) for strength and the hip flexors and abdominals for dynamic mobility, using a pattern of hip flexion (bringing thigh to torso) and extension (driving thigh back) while stabilizing the core for control, crucial for power and preventing spinal strain in daily life. [1, 2, 3, 4]  \nMuscles Worked \n\n\u2022 Primary Movers (Posterior Chain): \n\n    \u2022 Glutes (Gluteus Maximus): Extend the hip to drive the leg forward/upward and back. \n    \u2022 Hamstrings: Assist glutes in hip extension and stabilize the knee. \n\n\u2022 Stabilizers & Synergists: \n\n    \u2022 Erector Spinae: Support and maintain a neutral, stable spine, especially in hip hinges. \n    \u2022 Core (Transverse Abdominis): Deep abdominal muscles that brace the pelvis and spine for stability. \n    \u2022 Hip Flexors (Iliacus, Psoas): Engage to lift the thigh towards the torso (hip flexion) during the forward swing. \n    \u2022 Quadriceps: Help stabilize the knee joint during movement. [1, 2, 3, 4, 5, 6]  \n\nMovement Pattern \n\n1. The Hip Hinge (Foundation): Involves bending at the hips, not the waist, with a neutral spine, pushing your hips backward as if closing a car door with your butt. \n2. Dynamic Swing (Leg Swings): A controlled, repetitive motion where the leg swings forward (hip flexion) and backward (hip extension). \n3. Core Engagement: The abs and spinal erectors work isometrically (without changing length) to keep the torso upright and prevent the lower back from rounding or hyperextending. \n4. Balance & Control: You're moving the femur (thigh bone) within the hip socket, emphasizing glute and hamstring power on the extension and hip flexor control on the flexion. [1, 2, 4, 7, 8, 9]  \n\nKey Benefits \n\n\u2022 Strength: Develops the posterior chain, vital for lifting and explosive movements. \n\u2022 Mobility: Improves hip flexibility and range of motion. \n\u2022 Injury Prevention: Teaches you to move from your hips, protecting your lower back. [1, 4, 7, 10, 11]  \n\n**Citations:**\n\n[1]\u00a0https://jackhanrahanfitness.com/hip-hinge-exercises/\n[2]\u00a0https://workoutlabs.com/exercise-guide/forward-leg-hip-swings/\n[3]\u00a0https://www.hingehealth.com/resources/articles/hip-hinge/\n[4]\u00a0https://www.instagram.com/reel/DR66TXrDwea/\n[5]\u00a0https://www.muscleandmotion.com/mastering-the-hip-hinge/\n[6]\u00a0https://www.youtube.com/watch?v=cj0nRe---Z8\n[7]\u00a0https://www.facebook.com/coreworks.fitness.maple.lawn/videos/hip-hinge-binge/1857118624443908/\n[8]\u00a0https://med.libretexts.org/Bookshelves/Anatomy_and_Physiology/Anatomy_and_Physiology_(Boundless)/9%3A_Muscular_System/9.10%3A_Muscles_of_the_Lower_Limb/9.10A%3A_Muscles_that_Cause_Movement_at_the_Hip_Joint\n[9]\u00a0https://workoutlabs.com/exercise-guide/side-lateral-leg-hip-swings/\n[10]\u00a0https://www.nifs.org/blog/movement-pattern-variations-the-hip-hinge\n[11]\u00a0https://fitbod.me/blog/best-hip-hinge-exercises/\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Hip Flexion",
+      "confidence": 0.9
+    },
+    {
+      "name": "Hip Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Hip Hinge",
+      "confidence": 0.8
+    },
+    {
+      "name": "Mobility",
+      "confidence": 0.7
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Gluteus Maximus",
+      "Biceps Femoris",
+      "Iliopsoas"
+    ],
+    "secondary": [
+      "Erector Spinae",
+      "Transverse Abdominis",
+      "Rectus Femoris"
+    ]
+  },
+  "processed_at": "2026-01-07T22:06:03.494613"
+}

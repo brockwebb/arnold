@@ -1,0 +1,51 @@
+{
+  "exercise_id": "CUSTOM:Duffel_Row",
+  "exercise_name": "Duffel Row",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "duffel bag row muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Sandbag Duffel Row is a compound, full-body exercise that targets your back (lats, traps, rhomboids), arms (biceps, forearms), and heavily engages the core and stabilizers due to the shifting load, improving posture, grip, and functional strength through a hip-hinge movement pattern. Key muscles are the latissimus dorsi, traps, rhomboids, biceps, forearms, core, and rear deltoids, while the pattern involves hinging at the hips and pulling the bag towards the chest. [1, 2, 3, 4, 5]  \nMuscles Worked \n\n\u2022 Primary Movers (Back): Lats (Latissimus Dorsi), Traps (Trapezius), Rhomboids \n\u2022 Secondary Muscles (Arms): Biceps, Forearms (grip strength) \n\u2022 Stabilizers (Core & Posterior Chain): Transverse Abdominis, Obliques, Lower Back, Glutes, Hamstrings \n\u2022 Shoulders: Rear Deltoids [1, 2, 3, 4, 5, 6]  \n\nMovement Pattern (Bent-Over Row) \n\n1. Starting Position: Stand with feet hip-width apart, slight knee bend, hinge at the hips with a flat back (neutral spine), gripping the sandbag. \n2. Concentric (Pulling Phase): Engage core, pull the sandbag towards your chest by driving elbows back, squeezing shoulder blades together. \n3. Peak Contraction: Pause briefly at the top, keeping the bag close to your body. \n4. Eccentric (Lowering Phase): Slowly lower the sandbag back to the starting position with control, maintaining tension. [1, 4, 7, 8, 9]  \n\nKey Benefits \n\n\u2022 Functional Strength: Mimics lifting awkward objects, improving real-world strength. \n\u2022 Core Stability: Shifting weight forces constant core engagement for balance. \n\u2022 Grip Strength: Demands intense forearm and hand activation. \n\u2022 Posture Improvement: Strengthens upper back muscles crucial for good posture. [1, 2, 5]  \n\n**Citations:**\n\n[1]\u00a0https://www.dingosandbags.com.au/frequently-asked-questions/sandbag-bent-row/\n[2]\u00a0https://freedomstrength.us/pages/sandbag-training-guides\n[3]\u00a0https://www.dangerouslyfit.com.au/category/sandbag-training/\n[4]\u00a0https://www.dangerouslyfit.com.au/sandbag-training/sandbag-bent-over-row/\n[5]\u00a0https://brickhousenutrition.com/blogs/articles/sandbag-training-101-is-this-the-ultimate-full-body-workout-tool\n[6]\u00a0https://www.boxrox.com/5-sandbag-exercises-for-a-jacked-and-strong-upper-body/\n[7]\u00a0https://repfitness.com/blogs/training/sandbag-workout\n[8]\u00a0https://dan.org/alert-diver/article/sandbag-training/\n[9]\u00a0https://evofitness.at/en/blog/learn/core-bag-deadlift-to-row/\n\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Horizontal Pull",
+      "confidence": 0.95
+    },
+    {
+      "name": "Hip Hinge",
+      "confidence": 0.85
+    },
+    {
+      "name": "Scapular Retraction",
+      "confidence": 0.8
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.7
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.7
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Latissimus Dorsi",
+      "Trapezius (Middle)",
+      "Rhomboids",
+      "Biceps Brachii"
+    ],
+    "secondary": [
+      "Deltoid (Posterior)",
+      "Forearm Flexors",
+      "Transverse Abdominis",
+      "External Obliques",
+      "Erector Spinae",
+      "Gluteus Maximus",
+      "Hamstrings"
+    ]
+  },
+  "processed_at": "2026-01-07T15:09:13.486568"
+}

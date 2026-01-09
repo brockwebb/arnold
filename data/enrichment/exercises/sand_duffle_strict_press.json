@@ -1,0 +1,58 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:SAND_DUFFLE_STRICT_PRESS",
+  "exercise_name": "Sand Duffle Strict Press",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "sandbag strict press muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Sandbag Strict Press is a compound, full-body movement building upper-body pushing strength (delts, triceps, chest), core stability (abs, lower back), and leg drive, with the unstable sandbag load enhancing stabilizer muscles and functional strength compared to barbells, forcing greater core engagement and shoulder girdle stabilization through the entire pressing pattern from front rack to overhead lockout. [1, 2, 3, 4]  \nMuscles Worked \n\n\u2022 Primary Movers (Pushing): \n\n    \u2022 Deltoids (Shoulders): Especially the anterior (front) delts, but also lateral and rear delts for stability. \n    \u2022 Triceps: Extend the elbow to lock out the weight overhead. \n    \u2022 Pectorals (Chest): Assist in pressing. \n\n\u2022 Stabilizers & Support: \n\n    \u2022 Core (Abs, Obliques, Lower Back): Braces the spine and pelvis to prevent arching and maintain a stable torso. \n    \u2022 Traps (Trapezius): Help stabilize the shoulder girdle. \n    \u2022 Upper Back (Rhomboids, Lats): Support shoulder stability. \n    \u2022 Glutes & Legs: Provide a solid base and drive power from the ground up (leg drive). \n    \u2022 Forearms & Grip: Hold the sandbag securely. [1, 2, 3, 5, 6, 7]  \n\nMovement Patterns (Pushing Pattern) \n\n1. Setup (Clean): Lift the sandbag to the front rack position (resting on shoulders/chest). \n2. Descent (Eccentric): Brace core, maintain upright chest, and keep the sandbag stable as you transition from front rack to the start. \n3. Press (Concentric): \n\n    \u2022 Drive with legs (slight dip/stomp). \n    \u2022 Drive the sandbag upward, keeping elbows in. \n    \u2022 Drive your head through at the top (like shrugging forward) to get it overhead. \n    \u2022 Lock out elbows with biceps by ears. \n\n4. Return (Eccentric): Control the descent back to the front rack position, resetting for the next rep. [6, 7, 8, 9]  \n\nSandbag Specifics \n\n\u2022 Instability: The shifting weight forces greater stabilizer muscle recruitment in the shoulders and core. \n\u2022 Unpredictable Load: Requires constant adjustment, improving neuromuscular coordination. [4, 10]  \n\n**Citations:**\n\n[1]\u00a0https://www.masterclass.com/articles/strict-press-exercise-guide\n[2]\u00a0https://www.setforset.com/blogs/news/strict-press\n[3]\u00a0https://mudgear.com/pages/mudgear-sandbag-training-tips\n[4]\u00a0https://www.boxrox.com/5-sandbag-exercises-for-a-jacked-and-strong-upper-body/\n[5]\u00a0https://www.garagestrength.com/blogs/news/overhead-strict-press\n[6]\u00a0https://freedomstrength.us/pages/sandbag-training-guides\n[7]\u00a0https://www.trainheroic.com/blog/strict-press/\n[8]\u00a0https://www.muscletech.com/blogs/journal/sandbag-workout\n[9]\u00a0https://redefiningstrength.com/13-sandbag-exercises-full-body-workout/\n[10]\u00a0https://www.setforset.com/blogs/news/sandbag-training-benefits\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Vertical Push",
+      "confidence": 1.0
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Anti-Lateral Flexion",
+      "confidence": 0.7
+    },
+    {
+      "name": "Elbow Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Deltoid (Anterior)",
+      "Triceps Brachii",
+      "Pectoralis Major"
+    ],
+    "secondary": [
+      "Deltoid (Lateral)",
+      "Deltoid (Posterior)",
+      "Rectus Abdominis",
+      "External Obliques",
+      "Internal Obliques",
+      "Transverse Abdominis",
+      "Erector Spinae",
+      "Trapezius (Upper)",
+      "Trapezius (Middle)",
+      "Rhomboids",
+      "Latissimus Dorsi",
+      "Gluteus Maximus",
+      "Rectus Femoris",
+      "Forearm Flexors"
+    ]
+  },
+  "processed_at": "2026-01-08T08:35:13.711581"
+}

@@ -1,0 +1,38 @@
+{
+  "exercise_id": "CUSTOM:Side_Plank_Bag_Slide",
+  "exercise_name": "Side Plank Bag Slide",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "side plank with reach muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Side Plank Bag Slide is an anti-rotation core exercise targeting your obliques, deep core (transverse abdominis), glutes (medius), and shoulder stabilizers, working in a lateral flexion and anti-rotation pattern to build stability by resisting spinal movement while sliding a weight. Key muscles include internal/external obliques, QL, gluteus medius, and lats, challenging unilateral strength and pelvic stability for dynamic movements like running. [1, 2, 3, 4, 5]  \nMuscles Worked \n\n\u2022 Primary Core: External & Internal Obliques (side abs for stabilization & twisting). \n\u2022 Deep Core: Transverse Abdominis (stabilizes spine). \n\u2022 Hip Stabilizers: Gluteus Medius & Minimus (pelvic stability), Quadratus Lumborum (QL) (low back/pelvic stabilizer). \n\u2022 Shoulder/Back: Latissimus Dorsi (lats) & Rotator Cuff (shoulder stabilization). \n\u2022 Legs: Gluteus Maximus (hip extension), Quads/Hamstrings (stabilization). [1, 2, 3, 4, 5, 6, 7, 8, 9]  \n\nMovement Pattern \n\n\u2022 Isometric Hold: The base side plank provides constant tension to resist gravity and spinal collapse. \n\u2022 Anti-Rotation: The sliding motion with the bag challenges your core to prevent your torso from rotating towards the ground. \n\u2022 Lateral Flexion: Your obliques and QL work to keep your torso straight and hips lifted. \n\u2022 Unilateral Loading: Puts more demand on one side of the body, improving functional strength. [1, 2, 4, 10, 11]  \n\nHow it Works \nYou're essentially combining the stability of a side plank with a dynamic movement (the slide), forcing the muscles that keep your spine and pelvis stable (obliques, QL, glutes) to work extra hard against the shifting weight, enhancing your body's ability to resist unwanted twisting and movement. [1, 2, 4]  \n\n**Citations:**\n\n[1]\u00a0https://noregretspt.com.au/how-good-is-the-side-plank-for-improving-core-stability/\n[2]\u00a0https://ultimatesandbagtraining.com/ultimate-sandbag-exercises-better-planks/\n[3]\u00a0https://www.issaonline.com/blog/post/increase-core-strength-with-these-5-side-plank-variations\n[4]\u00a0https://www.hingehealth.com/resources/articles/side-plank/\n[5]\u00a0https://www.healthline.com/health/side-plank\n[6]\u00a0https://www.9round.com/blog/what-muscles-do-planks-work\n[7]\u00a0https://www.onepeloton.com/blog/side-planks\n[8]\u00a0https://betterme.world/articles/side-plank-muscles-worked/\n[9]\u00a0https://trainingstation.co.uk/blogs/news/what-muscles-do-planks-work\n[10]\u00a0https://www.physio-pedia.com/Plank_exercise\n[11]\u00a0https://www.nike.com/au/a/what-muscles-do-planks-work\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Anti-Rotation",
+      "confidence": 0.95
+    },
+    {
+      "name": "Anti-Lateral Flexion",
+      "confidence": 0.9
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "External Obliques",
+      "Internal Obliques",
+      "Transverse Abdominis",
+      "Quadratus Lumborum"
+    ],
+    "secondary": [
+      "Gluteus Medius",
+      "Gluteus Minimus",
+      "Latissimus Dorsi",
+      "Rotator Cuff",
+      "Gluteus Maximus"
+    ]
+  },
+  "processed_at": "2026-01-07T22:03:08.957565"
+}

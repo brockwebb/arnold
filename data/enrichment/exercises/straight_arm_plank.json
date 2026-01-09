@@ -1,0 +1,41 @@
+{
+  "exercise_id": "CUSTOM:Straight-Arm_Plank",
+  "exercise_name": "Straight-Arm Plank",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "high plank muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Straight-Arm Plank (or High Plank) is a full-body isometric exercise primarily targeting your core (rectus abdominis, transverse abdominis, obliques), shoulders (deltoids, serratus anterior), and arms (triceps, biceps), while also engaging your chest, back (lats, rhomboids, traps), glutes, quads, and hamstrings for stabilization, building core stability, posture, and overall functional strength. It's an isometric hold, meaning muscles contract without changing length, focusing on static strength and endurance. [1, 2, 3, 4, 5, 6]  \nMuscles Worked \n\n\u2022 Core: Transverse Abdominis, Rectus Abdominis, Obliques, Erector Spinae, Multifidi, Pelvic Floor. \n\u2022 Shoulders & Arms: Deltoids, Triceps, Biceps, Pectoralis Major, Serratus Anterior, Trapezius. \n\u2022 Back: Latissimus Dorsi, Rhomboids. \n\u2022 Lower Body: Glutes, Quadriceps, Hamstrings, Calves, Hip Flexors. [1, 2, 3, 6, 7, 8, 9]  \n\nMovement Pattern \n\n\u2022 Isometric Hold: You maintain a static, straight line from head to heels, pushing up through your hands like the top of a push-up. \n\u2022 Stabilization: Your body constantly works to resist gravity and prevent sagging or arching, requiring simultaneous contraction from numerous stabilizing muscles. \n\u2022 Anti-Rotation: Especially in variations like plank shoulder taps, the movement pattern challenges your body to resist rotation, strengthening the obliques and serratus anterior for better balance and functional movement. [2, 6, 10, 11, 12]  \n\nKey Benefits \n\n\u2022 Improves posture and spinal stability. \n\u2022 Builds functional strength for daily activities. \n\u2022 Enhances overall body control and injury prevention, especially for the lower back. [2, 5, 10, 12]  \n\n**Citations:**\n\n[1]\u00a0https://www.runstreet.com/blog/straight-arm-plank\n[2]\u00a0https://www.getlabtest.com/news/post/plank-muscles-worked-benefits\n[3]\u00a0https://www.shape.com/what-muscles-do-planks-work-8350322\n[4]\u00a0https://www.quora.com/Are-elbow-planks-or-straight-arm-planks-better-for-ab-training\n[5]\u00a0https://www.theskimm.com/fitness/exercises/plank-for-beginners\n[6]\u00a0https://trainingstation.co.uk/blogs/news/what-muscles-do-planks-work\n[7]\u00a0https://www.physio-pedia.com/Plank_exercise\n[8]\u00a0https://levelsprotein.com/blogs/guides/the-ultimate-muscle-groups-guide\n[9]\u00a0https://nashville-chiropractor.com/master-proper-plank-form/\n[10]\u00a0https://merlinhealthgroup.com/perfect-straight-arm-side-plank-transform-your-core/\n[11]\u00a0https://www.jefit.com/wp/exercise-tips/forearm-plank-vs-straight-arm-plank-emg-comparison/\n[12]\u00a0https://www.puregym.com/exercises/abs/planks/\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Anti-Rotation",
+      "confidence": 0.8
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Rectus Abdominis",
+      "Transverse Abdominis",
+      "External Obliques",
+      "Internal Obliques"
+    ],
+    "secondary": [
+      "Deltoid (Anterior)",
+      "Triceps Brachii",
+      "Serratus Anterior",
+      "Pectoralis Major",
+      "Erector Spinae",
+      "Gluteus Maximus",
+      "Rectus Femoris",
+      "Biceps Femoris"
+    ]
+  },
+  "processed_at": "2026-01-07T22:04:00.531259"
+}

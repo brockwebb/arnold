@@ -1,0 +1,43 @@
+{
+  "exercise_id": "CUSTOM:Elevated_Push-up",
+  "exercise_name": "Elevated Push-up",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "incline push-up muscles worked",
+    "retrieved_at": "An",
+    "raw_text": "An elevated push-up (incline push-up) works the chest (pectorals), shoulders (anterior deltoids), and triceps as primary movers, while engaging core, serratus anterior, and rotator cuff muscles for stabilization, using a pressing movement pattern (pushing away from an elevated surface) that reduces load but still strengthens these upper body muscles. [1, 2, 3]  \nMuscles Worked \n\n\u2022 Primary Movers: \n\n    \u2022 Pectoralis Major (Chest): Brings arms toward the body as you lower and pushes them away. \n    \u2022 Anterior Deltoids (Front Shoulders): Lift the upper arm forward and help press up. \n    \u2022 Triceps Brachii (Back of Arms): Straighten the elbow to extend the arms. \n\n\u2022 Stabilizers/Secondary Muscles: \n\n    \u2022 Core (Abs, Obliques): Keeps the body in a straight line, preventing sagging. \n    \u2022 Serratus Anterior & Trapezius: Support shoulder blade movement and stability. \n    \u2022 Rotator Cuff: Stabilizes the shoulder joint. \n    \u2022 Glutes & Quads: Contract to keep hips and legs aligned. [2, 4, 5, 6, 7]  \n\nMovement Pattern (Incline Press) \n\n1. Starting Position: Hands on an elevated surface (bench, step), body in a straight line from head to heels, core engaged, glutes squeezed. \n2. Descent (Eccentric Phase): Slowly bend elbows, lowering your chest toward the elevated surface, keeping your body tight. \n3. Ascent (Concentric Phase): Press powerfully through your hands, extending your elbows to return to the starting position. \n4. Movement Type: A closed-chain, horizontal pressing movement that's a variation of the standard push-up, making it easier by reducing body weight resistance. [1, 2, 3, 4, 8]  \n\n**Citations:**\n\n[1]\u00a0https://www.physio-pedia.com/Pushups\n[2]\u00a0https://www.onepeloton.com/blog/what-muscles-do-push-ups-work\n[3]\u00a0https://www.puregym.com/exercises/chest/press-up/incline-push-ups/\n[4]\u00a0https://opstudiohk.com/the-anatomy-of-a-push-up-exploring-proper-push-up-form-and-technique/\n[5]\u00a0https://www.nike.com/in/a/what-muscles-do-push-ups-work-out\n[6]\u00a0https://www.nike.com/hr/a/what-muscles-do-push-ups-work-out\n[7]\u00a0https://www.healthline.com/health/fitness-exercise/muscles-worked-push-ups\n[8]\u00a0https://www.nordictrack.co.uk/learn/everything-you-need-to-know-about-push-ups/\n\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Horizontal Push",
+      "confidence": 1.0
+    },
+    {
+      "name": "Elbow Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.7
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Pectoralis Major",
+      "Deltoid (Anterior)",
+      "Triceps Brachii"
+    ],
+    "secondary": [
+      "Serratus Anterior",
+      "Trapezius",
+      "Rotator Cuff",
+      "Rectus Abdominis",
+      "External Obliques",
+      "Gluteus Maximus",
+      "Rectus Femoris"
+    ]
+  },
+  "processed_at": "2026-01-07T22:03:32.119343"
+}

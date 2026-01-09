@@ -1,0 +1,41 @@
+{
+  "exercise_id": "CUSTOM:Wall_Slides",
+  "exercise_name": "Wall Slides",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "wall slides exercise muscles worked",
+    "retrieved_at": "Wall",
+    "raw_text": "Wall Slides are an excellent mobility drill targeting the upper back (traps, rhomboids), shoulders (deltoids, rotator cuff), and serratus anterior, improving scapular stability, overhead reach, and posture by promoting upward shoulder rotation and decompressing the shoulder joint while engaging the core for stability. The movement pattern involves pressing forearms/hands against a wall and sliding them overhead, emphasizing controlled, slow motion to improve the shoulder's overhead movement and activate stabilizing muscles. [1, 2, 3, 4, 5, 6]  \nMuscles Worked \n\n\u2022 Upper Back: Trapezius (especially lower traps), Rhomboids (stabilize shoulder blades). \n\u2022 Shoulders: Deltoids, Rotator Cuff Muscles (for stability). \n\u2022 Serratus Anterior: Crucial for upward scapular rotation. \n\u2022 Core: Abdominals, Erector Spinae (maintain posture and prevent arching). [1, 3, 4, 5, 7]  \n\nMovement Pattern \n\n1. Starting Position: Stand with your back, head, shoulders, and forearms/hands against a wall, elbows bent at 90 degrees (like a goalpost). \n2. The Slide: Slowly slide your arms overhead, trying to keep all points (back, forearms, hands) touching the wall, reaching as high as comfortable. \n3. Scapular Action: Focus on upwardly rotating the shoulder blades and depressing the humerus (bone in the upper arm). \n4. Controlled Return: Slowly lower arms back to the starting position, maintaining control and avoiding shrugging the shoulders. [1, 2, 3, 5, 8, 9]  \n\nKey Focuses & Benefits \n\n\u2022 Improved Posture: Counteracts rounded shoulders by strengthening mid/upper back. \n\u2022 Enhanced Mobility: Increases range of motion for overhead activities. \n\u2022 Scapular Control: Teaches proper scapular movement (upward rotation). \n\u2022 Injury Prevention: Reduces strain by improving shoulder mechanics. [1, 3, 4, 5, 10]  \n\n**Citations:**\n\n[1]\u00a0https://www.hingehealth.com/resources/articles/wall-slides/\n[2]\u00a0https://ericcressey.com/resisted-scapular-wall-slides/\n[3]\u00a0https://setptusa.com/blog/exercise/1016/\n[4]\u00a0https://betterme.world/articles/wall-slides/\n[5]\u00a0https://www.youtube.com/watch?v=5-d4RxkDcXo\n[6]\u00a0https://www.muscleandstrength.com/exercises/scapular-wall-slide\n[7]\u00a0https://www.flexibilityrx.com/shoulder-mobility-exercise-scapular-wall-slides/\n[8]\u00a0https://www.youtube.com/watch?v=w47PAByxmPo\n[9]\u00a0https://deskjockeyphysio.com/how-to-complete-wall-slide/\n[10]\u00a0https://dieringe.com/exercises/wall-slides\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Mobility",
+      "confidence": 1.0
+    },
+    {
+      "name": "Scapular Retraction",
+      "confidence": 0.8
+    },
+    {
+      "name": "Shoulder External Rotation",
+      "confidence": 0.7
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Trapezius (Lower)",
+      "Rhomboids",
+      "Serratus Anterior"
+    ],
+    "secondary": [
+      "Trapezius (Middle)",
+      "Rotator Cuff",
+      "Deltoid (Posterior)",
+      "Rectus Abdominis",
+      "Erector Spinae"
+    ]
+  },
+  "processed_at": "2026-01-07T22:05:21.462475"
+}

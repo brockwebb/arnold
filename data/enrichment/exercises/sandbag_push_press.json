@@ -1,0 +1,55 @@
+{
+  "exercise_id": "CUSTOM:Sandbag_Push_Press",
+  "exercise_name": "Sandbag Push Press",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "sandbag push press muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Sandbag Push Press is a full-body power movement engaging legs (glutes, quads, calves), core (abs, obliques, spinal erectors), shoulders (deltoids), upper back (traps, lats), and arms (triceps) for a dynamic overhead press, using a slight dip and drive to generate force, making it highly functional for athletic power and stability due to the shifting weight, notes Dingo Sandbags (https://www.dingosandbags.com.au/frequently-asked-questions/sandbag-overhead-press/), CrossFit (https://www.crossfit.com/essentials/the-push-press), SET FOR SET (https://www.setforset.com/blogs/news/push-press), and MIKOLO (https://gym-mikolo.com/blogs/home-gym/push-press-muscles-worked-and-benefits). The shifting sandbag demands increased core and shoulder stabilizer activation for balance and coordination, unlike a stable barbell. [1, 2, 3, 4, 5, 6]  \nMuscles Worked \n\n\u2022 Legs: Glutes, Quadriceps (Vastus Medialis, Lateralis, Intermedius, Rectus Femoris), Hamstrings, Calves. \n\u2022 Core: Abdominals (Rectus Abdominis, Obliques, Transverse Abdominis), Spinal Erectors. \n\u2022 Shoulders: Deltoids (Anterior, Lateral, Posterior). \n\u2022 Upper Back: Trapezius (Traps), Latissimus Dorsi (Lats). \n\u2022 Arms: Triceps (for lockout). \n\u2022 Chest: Pectorals (assists pressing). [1, 2, 3, 4, 5, 6, 7]  \n\nMovement Pattern \n\n1. Starting Position: Hold the sandbag at shoulder height (the \"rack\" position). \n2. Dip Phase: Perform a quick, shallow squat by bending at the hips, knees, and ankles, keeping your torso upright. \n3. Drive Phase: Explosively extend your hips, knees, and ankles (like jumping) to generate upward momentum. \n4. Press Phase: As you extend your legs, press the sandbag overhead with your arms, locking out your elbows at the top. \n5. Catch/Finish: Receive the weight in a stable overhead position, then return it to the rack or the floor. [3, 4, 8, 9, 10]  \n\nKey Aspect (Sandbag) \n\n\u2022 Shifting Load: The unstable nature of the sandbag forces deep engagement of core stabilizers and shoulder girdle muscles (medial/posterior delts, traps) to control the weight, enhancing functional strength and coordination. [1, 5]  \n\n\n**Citations:**\n\n[1]\u00a0https://www.boxrox.com/5-sandbag-exercises-for-a-jacked-and-strong-upper-body/\n[2]\u00a0https://journals.lww.com/acsm-healthfitness/fulltext/2022/07000/the_push_press_exercise.11.aspx\n[3]\u00a0https://www.crossfit.com/essentials/the-push-press\n[4]\u00a0https://www.setforset.com/blogs/news/push-press\n[5]\u00a0https://brickhousenutrition.com/blogs/articles/sandbag-training-101-is-this-the-ultimate-full-body-workout-tool\n[6]\u00a0https://gym-mikolo.com/blogs/home-gym/push-press-muscles-worked-and-benefits\n[7]\u00a0https://www.aroleap.com/blogs/exercises/push-press\n[8]\u00a0https://www.youtube.com/shorts/JVTG45FA_D8\n[9]\u00a0https://www.ritfitsports.com/blogs/article/how-to-do-the-push-press\n[10]\u00a0https://www.researchgate.net/publication/232181083_Overhead_Pressing_PowerStrength_Movements\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Vertical Push",
+      "confidence": 0.9
+    },
+    {
+      "name": "Hip Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Knee Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.7
+    },
+    {
+      "name": "Ankle Plantarflexion",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Deltoid (Anterior)",
+      "Deltoid (Lateral)",
+      "Triceps Brachii",
+      "Gluteus Maximus",
+      "Rectus Femoris"
+    ],
+    "secondary": [
+      "Deltoid (Posterior)",
+      "Trapezius (Upper)",
+      "Trapezius (Middle)",
+      "Rectus Abdominis",
+      "External Obliques",
+      "Transverse Abdominis",
+      "Erector Spinae",
+      "Gastrocnemius",
+      "Pectoralis Major",
+      "Latissimus Dorsi"
+    ]
+  },
+  "processed_at": "2026-01-07T15:08:14.105044"
+}

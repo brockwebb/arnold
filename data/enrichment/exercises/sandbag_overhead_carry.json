@@ -1,0 +1,53 @@
+{
+  "exercise_id": "CUSTOM:Sandbag_Overhead_Carry",
+  "exercise_name": "Sandbag Overhead Carry",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "overhead carry muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Sandbag Overhead Carry is a total-body isometric exercise challenging shoulders (deltoids, traps, stabilizers), core (abs, obliques, lower back), and back (lats, rhomboids) to stabilize the unstable load, while also working grip (forearms), legs (glutes, quads), and posterior chain for overall stability and functional strength, forcing continuous micro-adjustments for balance, posture, and neuromuscular control. [1, 2, 3, 4]  \nMuscles Worked \n\n\u2022 Shoulders (Deltoids): Isometrically contract to hold the weight overhead. \n\u2022 Scapular Stabilizers (Traps, Rhomboids, Serratus): Work hard to keep the shoulder blades stable. \n\u2022 Core (Abdominals, Obliques, Erector Spinae): Resist trunk extension and lateral flexion to keep your spine neutral. \n\u2022 Upper Back (Lats, Traps): Prevent the load from collapsing and help keep shoulders down. \n\u2022 Grip & Forearms: Engage intensely to maintain hold on the shifting sandbag. \n\u2022 Legs & Glutes: Provide a stable base and help maintain posture, working isometrically. [1, 2, 3, 5, 6, 7]  \n\nMovement Patterns & Benefits \n\n\u2022 Isometric Stabilization: Muscles contract without significant movement to hold the load steady. \n\u2022 Total Body Integration: Demands simultaneous work from upper and lower body for stability. \n\u2022 Unstable Load Adaptation: The shifting sandbag forces greater activation of stabilizers and enhances motor control. \n\u2022 Functional Strength: Mimics real-life carrying, improving posture, balance, and everyday lifting ability. \n\u2022 Core Stability: Builds control over the spine, preventing arching and hyperextension. \n\u2022 Neuromuscular Coordination: Improves communication between the nervous system and muscles for better control and agility. [1, 3, 4, 6, 8, 9, 10]  \n\n**Citations:**\n[1]\u00a0https://barbend.com/overhead-carries/\n[2]\u00a0https://cerberus-strength.com/blogs/training-tips/the-secret-power-of-sandbag-carries-for-all-strength-athletes\n[3]\u00a0https://freedomstrength.us/pages/sandbag-training-guides\n[4]\u00a0https://brickhousenutrition.com/blogs/articles/sandbag-training-101-is-this-the-ultimate-full-body-workout-tool\n[5]\u00a0https://www.goruck.eu/blogs/news-stories/heavy-loaded-carries\n[6]\u00a0https://www.youtube.com/watch?v=1fGijWfRrCE\n[7]\u00a0https://fitnessvolt.com/barbell-overhead-carry-guide/\n[8]\u00a0https://mudgear.com/pages/mudgear-sandbag-training-tips\n[9]\u00a0https://www.boxrox.com/5-sandbag-exercises-for-a-jacked-and-strong-upper-body/\n[10]\u00a0https://www.instagram.com/reel/C1JXNK7tEpr/\n\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Loaded Carry",
+      "confidence": 1.0
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Anti-Lateral Flexion",
+      "confidence": 0.8
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.8
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Deltoid (Anterior)",
+      "Deltoid (Lateral)",
+      "Deltoid (Posterior)",
+      "Trapezius (Upper)",
+      "Rectus Abdominis",
+      "External Obliques"
+    ],
+    "secondary": [
+      "Trapezius (Middle)",
+      "Trapezius (Lower)",
+      "Rhomboids",
+      "Serratus Anterior",
+      "Latissimus Dorsi",
+      "Erector Spinae",
+      "Internal Obliques",
+      "Transverse Abdominis",
+      "Forearm Flexors",
+      "Gluteus Maximus",
+      "Rectus Femoris"
+    ]
+  },
+  "processed_at": "2026-01-07T15:09:30.714928"
+}

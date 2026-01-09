@@ -1,0 +1,49 @@
+{
+  "exercise_id": "CUSTOM:Keg_Strict_Press",
+  "exercise_name": "Keg Strict Press",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "keg press muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Keg Strict Press is a full-body compound movement emphasizing shoulder (deltoids) and triceps strength for pressing, while demanding significant core stabilization and grip strength due to the keg's awkward, shifting nature, engaging legs for power and upper back (traps, lats) for stability in a strict, leg-drive-free pattern for lockout strength. It's a powerful full-body lift, building strength and stability beyond just the upper body. [1, 2, 3, 4, 5, 6]  \nMuscles Worked \n\n\u2022 Primary Movers: Deltoids (especially anterior), Triceps. \n\u2022 Stabilizers/Secondary: Core (abs, obliques), Upper Back (traps, lats), Pecs (upper), Forearms & Grip, Glutes, Legs (for a stable base). [1, 2, 3, 4, 7]  \n\nMovement Pattern \n\n1. Starting Position: Keg rests on the shoulder/upper chest in a racked position (after a clean) with a firm grip, feet shoulder-width apart, body braced. \n2. The Press (Concentric): Exhale and press the keg overhead, keeping knees locked and core tight, moving the head back slightly to allow the keg to pass. \n3. Lockout (Top): Achieve full elbow extension overhead with shoulders active, not just arms. \n4. Lowering (Eccentric): Control the keg back down to the starting rack position, maintaining core tension. [1, 2, 3, 6, 8, 9]  \n\nKey Characteristics \n\n\u2022 Strict: No leg drive (unlike a push press or jerk), isolating upper body power and stability. \n\u2022 Compound: Engages multiple muscle groups across the entire body. \n\u2022 Stability Focus: The shifting weight of the keg heavily taxes core and stabilizing muscles. [1, 2, 4, 6]  \n\n**Citations:**\n\n[1]\u00a0https://grindergym.com/keg-press/\n[2]\u00a0https://www.setforset.com/blogs/news/strict-press\n[3]\u00a0https://www.garagestrength.com/blogs/news/overhead-strict-press\n[4]\u00a0https://www.masterclass.com/articles/strict-press-exercise-guide\n[5]\u00a0https://www.boxrox.com/benefits-of-the-strict-press/\n[6]\u00a0https://www.trainheroic.com/blog/strict-press/\n[7]\u00a0https://dragogym.club/en/blog/kettlebell-strict-press-double-kb-workout\n[8]\u00a0https://www.eryxfitness.com/en/kettlebell-press/\n[9]\u00a0https://www.rechargexfit.com/anatomy-of-movement-strict-press/\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Vertical Push",
+      "confidence": 1.0
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Anti-Lateral Flexion",
+      "confidence": 0.7
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.7
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Deltoid (Anterior)",
+      "Triceps Brachii"
+    ],
+    "secondary": [
+      "Deltoid (Lateral)",
+      "Pectoralis Major",
+      "Trapezius (Upper)",
+      "Rectus Abdominis",
+      "External Obliques",
+      "Internal Obliques",
+      "Transverse Abdominis",
+      "Forearm Flexors",
+      "Serratus Anterior",
+      "Latissimus Dorsi"
+    ]
+  },
+  "processed_at": "2026-01-07T22:04:57.325149"
+}

@@ -1,0 +1,39 @@
+{
+  "exercise_id": "CUSTOM:Plank_with_Weighted_Reach-Throughs",
+  "exercise_name": "Plank with Weighted Reach-Throughs",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "plank reach through muscles worked",
+    "retrieved_at": "[The",
+    "raw_text": "[The Plank with Weighted Reach-Through is a dynamic core exercise strengthening your abs, obliques, shoulders, and back, challenging anti-rotation stability, balance, and overall core strength by dragging a dumbbell under your body from a high plank, requiring hip and torso stillness while moving the weight across your midline. [1, 2, 3]  \nMuscles Worked: \n\n\u2022 Primary: Rectus Abdominis, Obliques, Transversus Abdominis (deep core). \n\u2022 Secondary: Shoulders (Deltoids), Upper Back (Lats, Traps), Glutes, Hip Flexors, Lower Back. [1, 2, 4, 5, 6]  \n\nMovement Pattern: \n\n1. Starting Position: High plank (push-up position) with a dumbbell just outside one hand, body in a straight line from head to heels, core engaged. \n2. Reach & Drag: Reach with your opposite hand, grab the dumbbell, and drag it under your body to the other side. \n3. Stabilize: Maintain a strong plank; hips should stay level, avoiding excessive rocking or lifting. \n4. Return & Switch: Place the dumbbell down, return to the starting plank, then repeat on the other side, alternating hands. \n5. Focus: The movement emphasizes anti-rotation, forcing your core to work hard to prevent your hips and torso from twisting as the weight moves. [1, 2, 3, 5, 7]  \n\n**Citations:**\n\n[1]\u00a0https://www.trainfitness.ai/exercises/plankReachThrough\n[2]\u00a0https://fitbod.me/exercises/plank-with-dumbbell-pull-through\n[3]\u00a0https://www.trainwell.net/exercises/dumbbell-plank-weight-drag-through\n[4]\u00a0https://support.runna.com/en/articles/6382899-plank-pull-through-exercise-tutorial\n[5]\u00a0https://generationiron.com/plank-pull-through-exercise-guide/\n[6]\u00a0https://www.shape.com/what-muscles-do-planks-work-8350322\n[7]\u00a0https://www.youtube.com/watch?v=iXtAv61NEIo\n\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Anti-Rotation",
+      "confidence": 1.0
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.8
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Rectus Abdominis",
+      "External Obliques",
+      "Internal Obliques",
+      "Transverse Abdominis"
+    ],
+    "secondary": [
+      "Deltoid (Anterior)",
+      "Deltoid (Lateral)",
+      "Latissimus Dorsi",
+      "Trapezius",
+      "Gluteus Maximus",
+      "Iliopsoas",
+      "Erector Spinae"
+    ]
+  },
+  "processed_at": "2026-01-07T15:09:08.880943"
+}

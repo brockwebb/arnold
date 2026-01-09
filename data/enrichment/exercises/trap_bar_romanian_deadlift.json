@@ -1,0 +1,46 @@
+{
+  "exercise_id": "CUSTOM:Trap_Bar_Romanian_Deadlift",
+  "exercise_name": "Trap Bar Romanian Deadlift",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "trap bar romanian deadlift muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Trap Bar Romanian Deadlift (RDL) is a hip-hinge movement primarily targeting the posterior chain (glutes, hamstrings, lower back/erector spinae), but also involves quads, traps, lats, core, and grip. The movement pattern involves a controlled hip hinge with a slight knee bend, keeping the back flat and core tight, moving the bar vertically down the thighs and back up by driving the hips forward and squeezing the glutes, minimizing spinal rounding for a gentler back alternative to traditional RDLs. [1, 2, 3, 4, 5]  \nThis video demonstrates the correct form for a Trap Bar Romanian Deadlift: \nMuscles Worked \n\n\u2022 Primary Movers: Glutes, Hamstrings, Erector Spinae (Lower Back). \n\u2022 Secondary/Stabilizers: Quadriceps (more than traditional RDLs), Traps, Lats, Core, Forearms/Grip, Adductors, Calves. [1, 3, 4, 6, 7, 8]  \n\nMovement Pattern (Hip Hinge) \n\n1. Setup: Stand inside the trap bar with feet hip-width apart, knees slightly bent, shoulders back and down, chest up, and a flat back, holding the bar at your midline. \n2. Descent (Hinge): Push hips backward, keeping the slight knee bend, lowering the bar vertically along your thighs towards the floor (stopping around shin level). \n3. Ascent (Extend): Drive hips forward, squeeze glutes to return to standing, maintaining a flat back and neutral spine. [2, 5, 9, 10, 11]  \n\nKey Characteristics \n\n\u2022 Back-Friendly: The center of gravity with the trap bar reduces lower back strain compared to barbell RDLs. \n\u2022 Posterior Chain Focus: Excellent for developing the entire backside of the body. \n\u2022 Compound Movement: Works multiple muscle groups for functional strength. [2, 3, 5, 8]  \n\n**Citations:**\n\n[1]\u00a0https://sportscienceinsider.com/trap-bar-deadlift-variations/\n[2]\u00a0https://www.youtube.com/watch?v=am_-huJ405Y\n[3]\u00a0https://dumbbellsdirect.com/blogs/barbell-exercisesspecific-movements/barbell-romanian-deadlift\n[4]\u00a0https://defined.com/trap-bar-deadlifts-benefits/\n[5]\u00a0https://barbend.com/best-trap-bar-exercises/\n[6]\u00a0https://www.strengthlog.com/romanian-deadlift/\n[7]\u00a0https://thatfitfriend.com/trap-bar-romanian-deadlift-guide/\n[8]\u00a0https://www.transparentlabs.com/blogs/all/rdl-workout\n[9]\u00a0https://www.youtube.com/watch?v=dfYIApfWS5o\n[10]\u00a0https://mirafit.co.uk/blog/top-three-trap-bar-exercises/\n[11]\u00a0https://www.becomebettersppt.com/tb-deadlift-tutorial\n\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Hip Hinge",
+      "confidence": 1.0
+    },
+    {
+      "name": "Hip Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Knee Flexion",
+      "confidence": 0.6
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.7
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Gluteus Maximus",
+      "Biceps Femoris",
+      "Erector Spinae"
+    ],
+    "secondary": [
+      "Rectus Femoris",
+      "Trapezius",
+      "Latissimus Dorsi",
+      "Rectus Abdominis",
+      "Forearm Flexors",
+      "Hip Adductors",
+      "Gastrocnemius"
+    ]
+  },
+  "processed_at": "2026-01-07T15:08:18.702397"
+}

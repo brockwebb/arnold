@@ -1,0 +1,46 @@
+{
+  "exercise_id": "CUSTOM:Trap_Bar_Deadlift_RDL_Combo",
+  "exercise_name": "Trap Bar Deadlift RDL Combo",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "deadlift rdl combo muscles worked",
+    "retrieved_at": "A",
+    "raw_text": "A Trap Bar Deadlift (TBD) + Romanian Deadlift (RDL) combo targets the entire posterior chain (glutes, hamstrings, lower back) plus quads, core, and upper back, blending the TBD's more upright, quad-friendly hinge with the RDL's deeper hamstring focus, creating a powerful hip hinge movement that builds overall strength, especially when transitioning between the two variations or performing them sequentially for hypertrophy and strength. [1, 2, 3, 4]  \nMuscles Worked \n\n\u2022 Primary Movers (Posterior Chain): Glutes, Hamstrings, Erector Spinae (Lower Back). \n\u2022 Secondary Movers (Lower Body): Quadriceps (more in TBD), Calves, Adductors. \n\u2022 Stabilizers (Core & Upper Body): Core (Abs, Obliques), Traps, Lats, Forearms (Grip). [1, 3, 4, 5, 6]  \n\nMovement Patterns \n\n\u2022 Trap Bar Deadlift (TBD): A hybrid hip hinge and squat pattern, allowing for a more upright torso and greater knee bend than traditional deadlifts, increasing quad involvement. \n\u2022 Romanian Deadlift (RDL): A pure hip hinge, focusing on driving the hips back with minimal knee bend, creating a deep stretch in the hamstrings and emphasizing the posterior chain. \n\u2022 The Combo: You'll move from the TBD's upright start to a deeper hip hinge, mimicking the RDL's eccentric (lowering) phase, feeling the stretch in the hamstrings before driving the hips forward to stand tall. [2, 3, 4, 7]  \n\nThis video demonstrates the movement patterns of the Trap Bar Deadlift and the Romanian Deadlift: \nHow the Combo Works \n\n1. Start with a TBD: Begin in the center of the bar, feet hip-width, handles grasped. \n2. Transition to RDL: Instead of a full squat, sit your hips back (like an RDL) to lower the bar, feeling the hamstring stretch. \n3. Drive Up: Explode up by driving hips forward and squeezing glutes, returning to the TBD's standing position. \n4. Lower with Control: Slowly lower the bar back down, focusing on the hip hinge and hamstring stretch to complete the rep. [1, 2, 7, 8]  \n\nThis blend builds strength through both the quads (TBD) and hamstrings/glutes (RDL) in a single, powerful movement, enhancing functional strength and muscle development. [1, 3, 9]  \n\n**Citations:**\n\n[1]\u00a0https://homegymsupply.co.uk/blogs/guides/trap-bar-deadlift-muscles-worked\n[2]\u00a0https://physiquedevelopment.com/trap-bar-deadlifts-variations/\n[3]\u00a0https://www.zing.coach/fitness-library/trap-bar-deadlift-vs-deadlift\n[4]\u00a0https://repfitness.com/blogs/training/how-to-do-barbell-rdl\n[5]\u00a0https://www.onepeloton.com/blog/how-to-do-a-rdl\n[6]\u00a0https://www.youtube.com/watch?v=GD03oFZ7G3o\n[7]\u00a0https://befittrainingphysio.com/trapbar-deadlift-go-to-compound-lift-for-training-and-rehabilitation/\n[8]\u00a0https://www.endomondo.com/exercise/trap-bar-deadlift\n[9]\u00a0https://www.advancedhumanperformance.com/blog/make-the-reeves-deadlift-better-with-the-trap-bar\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Hip Hinge",
+      "confidence": 1.0
+    },
+    {
+      "name": "Hip Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Knee Extension",
+      "confidence": 0.7
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Gluteus Maximus",
+      "Biceps Femoris",
+      "Erector Spinae"
+    ],
+    "secondary": [
+      "Rectus Femoris",
+      "Trapezius",
+      "Latissimus Dorsi",
+      "Forearm Flexors",
+      "Rectus Abdominis",
+      "External Obliques"
+    ]
+  },
+  "processed_at": "2026-01-07T22:05:59.958275"
+}

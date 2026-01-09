@@ -1,0 +1,52 @@
+{
+  "exercise_id": "CUSTOM:Weighted_Pull-Up",
+  "exercise_name": "Weighted Pull-Up",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "weighted pull-up muscles worked",
+    "retrieved_at": "Weighted",
+    "raw_text": "Weighted pull-ups are a compound exercise primarily targeting the back (lats, traps, rhomboids) and arms (biceps, forearms) for pulling strength, involving a vertical pulling motion with scapular retraction and elbow flexion, while also engaging the core and shoulders for stability, making it a powerful full-body movement for building upper body power. [1, 2, 3, 4]  \nMuscles Worked \n\n\u2022 Primary Movers (Back & Arms): \n\n    \u2022 Latissimus Dorsi (Lats): The main muscle for pulling your body up, responsible for shoulder adduction and extension. \n    \u2022 Biceps Brachii: Flexes the elbow to lift your body. \n    \u2022 Forearm Muscles (Brachialis, Brachioradialis): Crucial for grip strength and elbow flexion. \n\n\u2022 Secondary Movers (Shoulders & Upper Back): \n\n    \u2022 Trapezius (Upper, Middle, Lower): Stabilizes and moves the shoulder blades (scapular retraction/depression). \n    \u2022 Rhomboids: Assist in retracting the shoulder blades. \n    \u2022 Posterior Deltoids (Rear Delts): Help with shoulder extension. \n    \u2022 Teres Major: Works with the lats for arm extension. \n\n\u2022 Stabilizers: \n\n    \u2022 Core Muscles (Abs, Obliques): Maintain a stable, straight trunk. \n    \u2022 Rotator Cuff Muscles (e.g., Infraspinatus): Stabilize the shoulder joint. [1, 4, 5, 6, 7, 8, 9]  \n\nMovement Pattern \n\n1. Starting Position: Hang from the bar with arms extended, engaging your core and keeping shoulders packed down (not shrugging). \n2. Concentric (Pulling) Phase: Pull your body upward by driving your elbows down and back, focusing on pulling with your lats and biceps until your chin is above the bar. \n3. Eccentric (Lowering) Phase: Slowly lower back down with control, extending your arms fully to the starting position. \n4. Compound Movement: It's a vertical pulling, multi-joint exercise that requires significant upper body strength and core stability. [1, 3, 4, 5, 10, 11]  \n\n**Citations:**\n\n[1]\u00a0https://nielasher.com/blogs/strength-and-conditioning/weighted-pull-ups\n[2]\u00a0https://www.garagestrength.com/blogs/news/weighted-pull-ups\n[3]\u00a0https://powerathletehq.com/weighted-pull-ups-can-cure-world-hunger/\n[4]\u00a0https://www.acefitness.org/resources/pros/expert-articles/5565/4-moves-to-help-you-master-the-pull-up/\n[5]\u00a0https://www.muscleandmotion.com/mastering-the-pull-up-from-first-rep-to-perfect-form/\n[6]\u00a0https://www.garagegymreviews.com/weighted-pull-ups\n[7]\u00a0https://www.transparentlabs.com/blogs/all/what-muscles-do-pull-ups-work\n[8]\u00a0https://en.wikipedia.org/wiki/Pull-up\n[9]\u00a0https://www.shape.com/what-muscles-do-pull-ups-work-8681608\n[10]\u00a0https://www.issaonline.com/blog/post/increasing-strength-the-ultimate-pull-up-exercise-guide\n[11]\u00a0https://barbend.com/concentric-vs-eccentric/\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Vertical Pull",
+      "confidence": 1.0
+    },
+    {
+      "name": "Elbow Flexion",
+      "confidence": 0.9
+    },
+    {
+      "name": "Scapular Retraction",
+      "confidence": 0.8
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.7
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Latissimus Dorsi",
+      "Biceps Brachii",
+      "Forearm Flexors"
+    ],
+    "secondary": [
+      "Trapezius (Middle)",
+      "Trapezius (Lower)",
+      "Rhomboids",
+      "Deltoid (Posterior)",
+      "Teres Major",
+      "Brachialis",
+      "Rectus Abdominis",
+      "External Obliques",
+      "Infraspinatus"
+    ]
+  },
+  "processed_at": "2026-01-07T15:07:59.557608"
+}

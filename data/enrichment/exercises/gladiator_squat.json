@@ -1,0 +1,72 @@
+{
+  "exercise_id": "CUSTOM:Gladiator_Squat",
+  "exercise_name": "Gladiator Squat",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "gladiator squat muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The \"Gladiator Squat\" is a dynamic kettlebell movement combining a bottoms-up goblet squat with a pullover transition into a back squat, working legs (quads, glutes, hamstrings, adductors) heavily, plus core, shoulders, grip, and back for stability, improving mobility, power, and coordination through hip flexion/extension, knee flexion/extension, and trunk stabilization patterns. [1, 2, 3]  \nMuscles Worked \n\n\u2022 Primary Movers: Quadriceps, Glutes (maximus), Hamstrings, Adductors (inner thighs). \n\u2022 Stabilizers & Support: Core (abdominals, spinal erectors), Shoulders (grip, control), Back. [1, 3, 4]  \n\nMovement Pattern \nThis complex, compound movement involves several phases: \n\n1. Bottoms-Up Goblet Squat: Kettlebell held upside-down (by horns) to deep squat, engaging legs and core. \n2. Pullover Transition: Standing up, pull the kettlebell overhead and onto the upper back. \n3. Back Squat: Perform a standard back squat with the kettlebell in place. \n4. Explosive Return: Drive up and smoothly return the kettlebell to the starting goblet position. [3]  \n\nKey Joint Actions \n\n\u2022 Eccentric Phase (Lowering): Hip flexion, knee flexion, ankle dorsiflexion (bringing foot towards shin). \n\u2022 Concentric Phase (Lifting): Hip extension, knee extension, ankle plantarflexion (pointing toes). [2]  \n\nBenefits \n\n\u2022 Full-Body Strength & Power: Integrates lower body, core, and upper body. \n\u2022 Mobility & Stability: Enhances thoracic (upper back) mobility and shoulder stability. \n\u2022 Coordination: Builds functional strength through dynamic transitions. [3]  \n\n**Citations:**\n\n[1]\u00a0https://gym-mikolo.com/blogs/home-gym/uncover-the-science-the-complete-breakdown-of-squat-muscles\n[2]\u00a0https://blog.nasm.org/biomechanics-of-the-squat\n[3]\u00a0https://www.facebook.com/kettlebellkings/videos/gladiator-squat/1168831658370502/\n[4]\u00a0https://barbell-logic.com/muscles-worked-in-the-squat/\n\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Squat",
+      "confidence": 1.0
+    },
+    {
+      "name": "Hip Flexion",
+      "confidence": 0.9
+    },
+    {
+      "name": "Hip Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Knee Flexion",
+      "confidence": 0.9
+    },
+    {
+      "name": "Knee Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Vertical Pull",
+      "confidence": 0.7
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.6
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.6
+    },
+    {
+      "name": "Ankle Dorsiflexion",
+      "confidence": 0.5
+    },
+    {
+      "name": "Ankle Plantarflexion",
+      "confidence": 0.5
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Rectus Femoris",
+      "Gluteus Maximus",
+      "Biceps Femoris",
+      "Hip Adductors"
+    ],
+    "secondary": [
+      "Rectus Abdominis",
+      "External Obliques",
+      "Erector Spinae",
+      "Deltoid (Anterior)",
+      "Deltoid (Posterior)",
+      "Latissimus Dorsi",
+      "Forearm Flexors",
+      "Trapezius"
+    ]
+  },
+  "processed_at": "2026-01-07T15:09:47.284793"
+}

@@ -1,0 +1,39 @@
+{
+  "exercise_id": "CUSTOM:Child_Pose",
+  "exercise_name": "Child Pose",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "child pose muscles worked",
+    "retrieved_at": "Child's",
+    "raw_text": "Child's Pose (Balasana) primarily stretches the spine, hips, and thighs, working muscles like the lower back (erector spinae), glutes, hip flexors, lats, and shoulders, while providing a restorative and calming forward fold that activates the parasympathetic nervous system for relaxation, improving mobility and relieving tension. Its movement pattern involves spinal flexion and hip flexion, creating a gentle decompression. [1, 2, 3, 4, 5, 6, 7]  \nMuscles Worked & Stretched \n\n\u2022 Lower Back (Erector Spinae): Gently stretches and decompresses the lumbar spine. \n\u2022 Glutes (Buttocks): Stretches the gluteal muscles, relieving hip tension. \n\u2022 Hip Flexors: Stretches the front of the thighs. \n\u2022 Shoulders (Teres Major, Latissimus Dorsi): Stretches when arms are extended forward, improving mobility. \n\u2022 Thighs/Quads: Stretches the front of the thighs. \n\u2022 Ankles & Feet: Mild stretch from the tucked position. \n\u2022 Obliques & Core: Gentle engagement supports spinal movement. [1, 2, 4, 7, 8, 9]  \n\nMovement Pattern & Benefits \n\n\u2022 Type: A forward fold and restorative pose. \n\u2022 Spinal Movement: Lower spine flexes (rounds), upper spine extends slightly, promoting decompression. \n\u2022 Hip Movement: Hip flexion (folding hips towards thighs). \n\u2022 Nervous System: Stimulates the vagus nerve through forehead support and deep breathing, activating the relaxation response (parasympathetic nervous system). \n\u2022 Purpose: Rest, stress relief, back pain relief, improved mobility, and a moment to reset. [2, 3, 4, 5, 6, 10, 11]  \n\n**Citations:**\n\n[1]\u00a0https://www.yogakawa.com/blog/child-yoga-pose/\n[2]\u00a0https://invigorhealth.com.au/exercise/child-pose/\n[3]\u00a0https://www.hingehealth.com/resources/articles/childs-pose/\n[4]\u00a0https://www.yogajournal.com/poses/child-s-pose/\n[5]\u00a0https://www.youtube.com/watch?v=q-_M3Cfqmj4\n[6]\u00a0https://www.loseit.com/articles/cant-do-childs-pose/\n[7]\u00a0https://www.trainfitness.ai/exercises/childsPose\n[8]\u00a0https://webmd.com/fitness-exercise/how-to-do-childs-pose\n[9]\u00a0https://www.meridian-fitness.co.uk/exercises/child-pose/\n[10]\u00a0https://health.clevelandclinic.org/childs-pose\n[11]\u00a0https://www.tummee.com/yoga-poses/child-pose\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Spinal Flexion",
+      "confidence": 0.9
+    },
+    {
+      "name": "Hip Flexion",
+      "confidence": 0.8
+    },
+    {
+      "name": "Mobility",
+      "confidence": 0.9
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Erector Spinae"
+    ],
+    "secondary": [
+      "Gluteus Maximus",
+      "Iliopsoas",
+      "Latissimus Dorsi",
+      "Teres Major",
+      "Rectus Femoris"
+    ]
+  },
+  "processed_at": "2026-01-07T22:04:44.122797"
+}

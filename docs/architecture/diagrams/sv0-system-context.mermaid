@@ -1,0 +1,48 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#4A90A4', 'primaryTextColor': '#fff', 'primaryBorderColor': '#2C5F6E', 'lineColor': '#5C6BC0', 'secondaryColor': '#81C784', 'tertiaryColor': '#FFB74D'}}}%%
+
+flowchart TB
+    subgraph External["External Data Sources"]
+        UH[("🔵 Ultrahuman Ring<br/>HRV, Sleep, Temp")]
+        Polar[("❤️ Polar H10<br/>HR Sessions")]
+        Apple[("🍎 Apple Health<br/>Medical, Labs")]
+        Manual["📝 Manual Entry<br/>Workouts, Notes"]
+    end
+
+    subgraph Arnold["ARNOLD - AI Fitness Coach"]
+        Claude["🤖 Claude Desktop<br/>(Orchestrator)"]
+        
+        subgraph MCPs["MCP Tool Servers"]
+            Training["arnold-training<br/>Planning & Logging"]
+            Memory["arnold-memory<br/>Context & Search"]
+            Journal["arnold-journal<br/>Subjective Data"]
+            Analytics["arnold-analytics<br/>Metrics & Reports"]
+            Profile["arnold-profile<br/>Digital Twin"]
+        end
+        
+        subgraph Storage["Dual Storage"]
+            Neo4j[("Neo4j<br/>Relationships<br/>Knowledge Graph")]
+            Postgres[("Postgres<br/>Facts<br/>Time Series")]
+        end
+    end
+
+    subgraph Outputs["Outputs"]
+        Athlete["👤 Athlete<br/>Plans, Guidance"]
+        Reports["📊 Reports<br/>Coach Brief, PDF"]
+        Traces["📋 Decision Traces<br/>Audit Trail"]
+    end
+
+    UH --> |"API daily"| Arnold
+    Polar --> |"Export weekly"| Arnold
+    Apple --> |"Export monthly"| Arnold
+    Manual --> |"Conversation"| Arnold
+
+    Claude <--> MCPs
+    MCPs <--> Storage
+
+    Arnold --> Athlete
+    Arnold --> Reports
+    Arnold --> Traces
+
+    style Arnold fill:#E3F2FD,stroke:#1565C0
+    style External fill:#FFF3E0,stroke:#EF6C00
+    style Outputs fill:#E8F5E9,stroke:#2E7D32

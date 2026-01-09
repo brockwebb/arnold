@@ -200,9 +200,42 @@ Postgres (endurance_sessions, endurance_laps)
 Neo4j (lightweight EnduranceWorkout reference)
 ```
 
+## Addendum: Relationship Caching (January 2026)
+
+The Bridge Pattern extends to exercise knowledge:
+
+```
+Neo4j (source of truth)              Postgres (analytics cache)
+┌──────────────────────┐            ┌────────────────────────────────┐
+│ (Exercise)-[:INVOLVES]│            │ neo4j_cache_exercise_patterns  │
+│ ->(MovementPattern)  │───sync────►│ exercise_id, pattern_name      │
+│                      │            │ synced_at                      │
+├──────────────────────┤            ├────────────────────────────────┤
+│ (Exercise)-[:TARGETS]│            │ neo4j_cache_exercise_muscles   │
+│ ->(Muscle)           │───sync────►│ exercise_id, muscle_name, role │
+│                      │            │ synced_at                      │
+└──────────────────────┘            └────────────────────────────────┘
+```
+
+**Sync characteristics:**
+- One-way: Neo4j → Postgres only
+- Full refresh: TRUNCATE + reload (not incremental)
+- Triggered by: `sync_pipeline.py --step relationships`
+- QC output: Coverage %, missing exercises, distribution stats
+
+**Why cache relationships?**
+- Analytics queries need JOINs: "sets per muscle per week"
+- Cross-database JOINs are expensive/impossible
+- Cache enables SQL views like `pattern_last_trained`, `muscle_volume_weekly`
+- Neo4j remains authoritative; Postgres is derived
+
+**Views built on cache:**
+- `pattern_last_trained` — days since each movement pattern
+- `muscle_volume_weekly` — sets/reps/volume per muscle per week
+
 ## Related Decisions
 
-- ADR-002 (future): Migrate strength workout sets to Postgres?
+- ADR-002: Migrate strength workout sets to Postgres (completed)
 - ADR-003 (future): Journal/Log system architecture
 
 ## References

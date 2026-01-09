@@ -1,0 +1,47 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:PUSH_UP_PLANK_COMBO",
+  "exercise_name": "Push-Up Plank Combo",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "push up to plank muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Push-Up Plank Combo (or Plank Up-Down) is a full-body exercise strengthening the core (abs, obliques, glutes, lower back), shoulders (deltoids, serratus anterior), chest (pectorals), and arms (triceps, biceps) by transitioning between a high plank and forearm plank, engaging pushing muscles during the press up and stabilizing muscles throughout. The movement pattern involves alternating lowering to forearms and pressing back up, focusing on maintaining a rigid, straight body to build strength, stability, and endurance. [1, 2, 3, 4, 5, 6, 7]  \nMuscles Worked \n\n\u2022 Primary Movers (Push Phase): \n\n    \u2022 Chest (Pectorals): For pressing the body up. \n    \u2022 Shoulders (Anterior Deltoids): Also involved in the pressing motion. \n    \u2022 Triceps: Extend the elbows to lift up. \n\n\u2022 Stabilizers (Plank & Transition): \n\n    \u2022 Core (Rectus Abdominis, Transverse Abdominis, Obliques): Keeps the torso rigid and prevents sagging/swaying. \n    \u2022 Glutes & Hamstrings: Engage to maintain hip stability. \n    \u2022 Serratus Anterior: Helps stabilize the shoulder blades. \n    \u2022 Back (Lower Back): Supports the spine. [2, 3, 4, 6, 7, 8, 9, 10]  \n\nMovement Pattern \n\n1. Starting Position (High Plank): Begin in a standard push-up position with hands under shoulders, body in a straight line. \n2. Lower to Forearm Plank: Lower down onto your right forearm, then your left, keeping your core tight and hips level. \n3. Press to High Plank: Place your right hand where your elbow was, then your left hand, pushing back up to the high plank position, alternating the lead arm each repetition. \n4. Transition: Move smoothly between the high plank (hands) and forearm plank (elbows) positions, focusing on core engagement to prevent your hips from dropping or rising too high. [1, 5, 11]  \n\n**Citations:**\n\n[1]\u00a0https://www.youtube.com/watch?v=2kEnT-CdXyE\n[2]\u00a0https://www.masterclass.com/articles/plank-push-up-guide\n[3]\u00a0https://www.bodi.com/blog/plank-push-up\n[4]\u00a0https://www.puregym.com/exercises/abs/plank-to-press-ups/\n[5]\u00a0https://www.trainwell.net/exercises/plank-to-push-up\n[6]\u00a0https://spotebi.com/exercise-guide/up-down-plank/\n[7]\u00a0https://www.byrdie.com/planks-vs-push-ups-7099262\n[8]\u00a0https://www.military.com/military-fitness/try-combo-help-push-ups-and-plank-pose\n[9]\u00a0https://www.girlsgonestrong.com/videos/strength-training/plank-to-push-up/\n[10]\u00a0https://www.physio-pedia.com/Pushups\n[11]\u00a0https://www.adidas.com/us/blog/830788-10-pushup-workouts-for-total-body-strength\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Horizontal Push",
+      "confidence": 0.9
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Anti-Lateral Flexion",
+      "confidence": 0.7
+    },
+    {
+      "name": "Elbow Extension",
+      "confidence": 0.8
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Pectoralis Major",
+      "Deltoid (Anterior)",
+      "Triceps Brachii"
+    ],
+    "secondary": [
+      "Rectus Abdominis",
+      "Transverse Abdominis",
+      "External Obliques",
+      "Internal Obliques",
+      "Gluteus Maximus",
+      "Serratus Anterior",
+      "Erector Spinae"
+    ]
+  },
+  "processed_at": "2026-01-08T08:35:00.158961"
+}

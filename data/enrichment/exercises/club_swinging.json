@@ -1,0 +1,61 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:CLUB_SWINGING",
+  "exercise_name": "Club Swinging",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "indian club swinging muscles worked",
+    "retrieved_at": "Club",
+    "raw_text": "Club swinging is a full-body exercise that builds shoulder stability, grip, and core strength through multi-planar, circular movements, engaging the entire shoulder girdle (rotator cuff, deltoids, lats), arms (biceps, triceps, forearms), core (abdominals, lower back), and even legs and hips for stabilization and power, improving coordination and functional strength rather than isolating muscles. [1, 2, 3, 4, 5, 6]  \nMuscles Worked \n\n\u2022 Shoulders & Upper Back: Deltoids, rotator cuff, lats, rhomboids, traps for stability, mobility, and rotation. \n\u2022 Arms: Biceps (front swings), triceps (downward movements), forearms (grip). \n\u2022 Core: Abdominals and lower back muscles for stabilizing the trunk against momentum. \n\u2022 Lower Body: Glutes, hamstrings, and hips for power transfer and stability. \n\u2022 Grip: Forearm flexors and extensors for constant holding. [1, 2, 3, 4, 6, 7, 8]  \n\nMovement Patterns \n\n\u2022 Multi-Planar Motion: Swings occur in multiple planes (sagittal, frontal, transverse), unlike many traditional exercises. \n\u2022 Circular & Rotational: Emphasizes internal and external shoulder rotation, moving beyond simple up-and-down motions. \n\u2022 Functional Patterns: Mimics natural movements like throwing, requiring the body to work as an integrated unit. \n\u2022 Dynamic Loading: Accelerating and decelerating the club strengthens connective tissues through full ranges of motion, improving joint durability. \n\u2022 Coordination & Rhythm: Develops complex motor skills, coordination, and brain plasticity. [1, 2, 5, 6, 8, 9]  \n\nKey Benefits \n\n\u2022 Shoulder Health: Builds strength, mobility, and stability in the shoulder girdle, preventing injuries. \n\u2022 Grip Strength: Significantly improves grip endurance and strength. \n\u2022 Core Stability: Engages core muscles to control rotational forces. \n\u2022 Functional Strength: Enhances strength for daily activities by training coordinated, whole-body movements. [2, 3, 4, 5, 6, 8]  \n\n**Citations:**\n\n[1]\u00a0https://www.fortifytraining.com/blog/5-reasons-to-add-heavy-club-swinging-in-2025-for-strength-and-longevity\n[2]\u00a0https://www.youtube.com/watch?v=gn8GS0e_gnE\n[3]\u00a0https://www.rockysnyder.com/exploring-the-physical-benefits-of-indian-clubs/\n[4]\u00a0https://dutchflowacademy.com/indian-club/\n[5]\u00a0https://www.dangerouslyfit.com/steel-clubs/\n[6]\u00a0https://dutchflowacademy.com/how-versatile-are-indian-clubs/\n[7]\u00a0https://www.nike.com/a/kettlebell-swings\n[8]\u00a0https://www.artofmanliness.com/health-fitness/fitness/an-introduction-to-indian-club-training/\n[9]\u00a0https://www.youtube.com/shorts/jSNJmAr0xHk\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Shoulder Internal Rotation",
+      "confidence": 0.9
+    },
+    {
+      "name": "Shoulder External Rotation",
+      "confidence": 0.9
+    },
+    {
+      "name": "Trunk Rotation",
+      "confidence": 0.8
+    },
+    {
+      "name": "Anti-Rotation",
+      "confidence": 0.7
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.9
+    },
+    {
+      "name": "Conditioning",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Deltoid (Anterior)",
+      "Deltoid (Lateral)",
+      "Deltoid (Posterior)",
+      "Rotator Cuff",
+      "Forearm Flexors",
+      "External Obliques"
+    ],
+    "secondary": [
+      "Latissimus Dorsi",
+      "Biceps Brachii",
+      "Triceps Brachii",
+      "Rhomboids",
+      "Trapezius",
+      "Rectus Abdominis",
+      "Transverse Abdominis",
+      "Erector Spinae",
+      "Gluteus Maximus",
+      "Forearm Extensors"
+    ]
+  },
+  "processed_at": "2026-01-08T08:34:07.129085"
+}

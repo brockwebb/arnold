@@ -1,0 +1,41 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:ACTIVE_HANG",
+  "exercise_name": "Active Hang",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "active hang muscles worked",
+    "retrieved_at": "An",
+    "raw_text": "An active hang works the upper back (lats, traps, rhomboids), shoulders, forearms/grip, and core, focusing on straight-arm scapular strength by pulling shoulder blades down and back, building stability for pull-ups and improving posture, unlike a passive hang which just relaxes the shoulders. The pattern is an isometric hold, requiring muscle tension to resist gravity, creating full-body engagement, especially in the shoulder girdle. [1, 2, 3, 4, 5]  \nMuscles Worked \n\n\u2022 Back & Shoulders: Latissimus Dorsi (lats), Trapezius (traps), Rhomboids (scapular retractors). \n\u2022 Grip & Arms: Forearm flexors, hand muscles, biceps, triceps (isometric contraction). \n\u2022 Core: Abdominals and obliques (stabilization). [1, 4, 6]  \n\nMovement Pattern \n\n1. Start: Begin in a passive hang (shoulders relaxed to ears). \n2. Engage: Actively pull your shoulder blades down and away from your ears, as if trying to tuck them into your back pockets. \n3. Hold: Maintain straight arms and tension in your upper back and shoulders, resisting the pull of gravity. \n4. Isolate: Focus on scapular depression and retraction (pulling shoulder blades together and down) while keeping arms straight, not bending elbows. [2, 3, 4, 5, 7]  \n\nBenefits \n\n\u2022 Builds foundational strength for pull-ups and chin-ups. \n\u2022 Improves shoulder stability and health, especially for those with injuries. \n\u2022 Increases upper body endurance. \n\u2022 Corrects muscle imbalances. [1, 2, 4, 5]  \n\n**Citations:**\n\n[1]\u00a0https://www.calixpert.com/exercises/active-hang\n[2]\u00a0https://www.youtube.com/watch?v=ShkBXOGK7A8\n[3]\u00a0https://mirafit.co.uk/blog/passive-hang-vs-active-hang-in-the-gym/\n[4]\u00a0https://www.setforset.com/blogs/news/dead-hang\n[5]\u00a0https://www.youtube.com/watch?v=Z1ig81Fm8w0\n[6]\u00a0https://www.goodrx.com/well-being/movement-exercise/dead-hang-benefits\n[7]\u00a0https://www.idoportal.com/blog/hanging/\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Grip / Hang",
+      "confidence": 1.0
+    },
+    {
+      "name": "Scapular Retraction",
+      "confidence": 0.9
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.7
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Latissimus Dorsi",
+      "Trapezius (Lower)",
+      "Rhomboids",
+      "Forearm Flexors"
+    ],
+    "secondary": [
+      "Trapezius (Middle)",
+      "Biceps Brachii",
+      "Rectus Abdominis",
+      "External Obliques"
+    ]
+  },
+  "processed_at": "2026-01-08T08:33:17.772402"
+}

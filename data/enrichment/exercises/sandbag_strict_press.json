@@ -1,0 +1,54 @@
+{
+  "exercise_id": "CUSTOM:Sandbag_Strict_Press",
+  "exercise_name": "Sandbag Strict Press",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "strict press muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Sandbag Strict Press is a compound exercise building total-body strength, heavily targeting the deltoids, triceps, and upper back for the press itself, while engaging the core (abs, obliques, lower back) and legs (glutes, hamstrings) for stabilization, creating a dynamic, functional movement that enhances shoulder stability, grip, and coordination due to the shifting sand load. Key movement patterns include shoulder flexion, scapular stabilization, and intense core bracing to manage the uneven weight. [1, 2, 3, 4, 5]  \nMuscles Worked: \n\n\u2022 Primary Movers (Upper Body): \n\n    \u2022 Deltoids (Shoulders): All three heads (anterior, lateral, posterior) work to lift the weight overhead, especially the front delts. \n    \u2022 Triceps: Extend the elbow to lock out the press. \n    \u2022 Upper Back (Traps, Rhomboids, Serratus Anterior): Stabilize the shoulder blades and maintain posture. \n\n\u2022 Stabilizers (Whole Body): \n\n    \u2022 Core (Abs, Obliques, Lower Back): Constantly brace and adjust to the shifting sand for spinal stability. \n    \u2022 Glutes & Hamstrings: Provide a solid base and help generate force, crucial for overall stability. \n    \u2022 Forearms & Grip: Work hard to maintain control of the unstable sandbag. [1, 2, 4, 5, 6, 7, 8, 9]  \n\nMovement Patterns: \n\n\u2022 Shoulder Flexion: The primary action of raising the arm overhead. \n\u2022 Scapular Stabilization: Retracting and controlling the shoulder blades to create a stable platform. \n\u2022 Core Bracing & Anti-Rotation: The uneven load forces intense core engagement to prevent leaning or twisting. \n\u2022 Hip Hinging (Setup): Often involves a slight hip hinge to get the bag into the rack position. \n\u2022 Full-Body Integration: The sandbag demands total body tension, linking the lower body, core, and upper body for a synergistic effort. [1, 2, 5, 9, 10, 11]  \n\nKey Sandbag Element: \n\n\u2022 Dynamic Load: The shifting sand requires constant micro-adjustments, challenging stabilizer muscles more than a rigid barbell, improving functional strength and coordination. [2, 5, 9]  \n\n**Citations:**\n\n[1]\u00a0https://www.setforset.com/blogs/news/strict-press\n[2]\u00a0https://ultimatesandbagtraining.com/muscles-made-smarter-ultimate-sandbag-exercises/\n[3]\u00a0https://www.dingosandbags.com.au/frequently-asked-questions/sandbag-overhead-press/\n[4]\u00a0https://exercisesforinjuries.com/sandbag-exercises/\n[5]\u00a0https://brickhousenutrition.com/blogs/articles/sandbag-training-101-is-this-the-ultimate-full-body-workout-tool\n[6]\u00a0https://freedomstrength.us/pages/sandbag-training-guides\n[7]\u00a0https://www.garagestrength.com/blogs/news/overhead-strict-press\n[8]\u00a0https://www.youtube.com/watch?v=Y4sfLqqbpVs\n[9]\u00a0https://www.boxrox.com/5-sandbag-exercises-for-a-jacked-and-strong-upper-body/\n[10]\u00a0https://mudgear.com/pages/mudgear-sandbag-training-tips\n[11]\u00a0https://gripzilla.co/blogs/news/best-sandbag-exercise\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Vertical Push",
+      "confidence": 1.0
+    },
+    {
+      "name": "Anti-Rotation",
+      "confidence": 0.9
+    },
+    {
+      "name": "Scapular Retraction",
+      "confidence": 0.8
+    },
+    {
+      "name": "Hip Hinge",
+      "confidence": 0.6
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.7
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Deltoid (Anterior)",
+      "Deltoid (Lateral)",
+      "Triceps Brachii"
+    ],
+    "secondary": [
+      "Deltoid (Posterior)",
+      "Trapezius (Upper)",
+      "Trapezius (Middle)",
+      "Serratus Anterior",
+      "Rhomboids",
+      "Rectus Abdominis",
+      "External Obliques",
+      "Internal Obliques",
+      "Erector Spinae",
+      "Gluteus Maximus",
+      "Forearm Flexors"
+    ]
+  },
+  "processed_at": "2026-01-07T15:09:52.303490"
+}

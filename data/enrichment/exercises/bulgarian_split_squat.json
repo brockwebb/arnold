@@ -1,0 +1,60 @@
+{
+  "exercise_id": "EXERCISE:BULGARIAN_SPLIT_SQUAT",
+  "exercise_name": "Bulgarian Split Squat",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "bulgarian split squat muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Bulgarian Split Squat (BSS) is a unilateral, multi-joint exercise primarily targeting the quadriceps, glutes, and hamstrings, with significant core stabilization and assistance from adductors and calves, performed in the sagittal plane with hip and knee flexion/extension. The movement pattern involves lowering the body in a deep lunge with the back foot elevated, driving up through the front heel, emphasizing hip/knee extension and flexion, requiring balance and control for unilateral strength and stability. [1, 2, 3, 4]  \nThis video provides a form review of the Bulgarian Split Squat: \nMuscles Worked \n\n\u2022 Primary Movers: \n\n    \u2022 Quadriceps: (Rectus Femoris, Vastus Lateralis/Medialis/Intermedius) for knee extension. \n    \u2022 Glutes: (Gluteus Maximus, Medius, Minimus) for hip extension and stabilization, especially the medius to prevent knee collapse. \n    \u2022 Hamstrings: (Biceps Femoris, Semitendinosus, Semimembranosus) for hip extension and eccentric control. \n\n\u2022 Stabilizers & Secondary Muscles: \n\n    \u2022 Core: (Abs, Obliques, Spinal Erectors) to maintain balance and trunk stability. \n    \u2022 Calves: (Gastrocnemius, Soleus) for ankle stability. \n    \u2022 Adductors: (Adductor Magnus) assist with hip extension. [1, 2, 3, 4, 5, 6, 7, 8]  \n\nYou can see the primary muscles targeted in this video: \nMovement Patterns & Biomechanics \n\n\u2022 Plane of Motion: Sagittal plane (forward/backward movement). \n\u2022 Joint Actions: \n\n    \u2022 Eccentric (Downward): Knee flexion and hip flexion. \n    \u2022 Concentric (Upward): Knee extension and hip extension. \n\n\u2022 Key Mechanics: \n\n    \u2022 Unilateral Loading: Works one leg at a time, challenging balance and addressing imbalances. \n    \u2022 Hip Hinge (with forward lean): Angling the torso forward shifts focus to glutes/hamstrings; staying upright targets quads more. \n    \u2022 Controlled Eccentric: Slow lowering under load builds strength and resilience in tendons and connective tissues. \n    \u2022 Balance & Stability: Requires significant activation from core and ankle stabilizers to control movement. [1, 2, 3, 4, 5, 8, 9, 10, 11]  \n\nThis video demonstrates the hip hinge variation of the Bulgarian Split Squat: \n\n**Citations:**\n\n[1]\u00a0https://www.youtube.com/shorts/esY7T8MA4S4\n[2]\u00a0https://repfitness.com/blogs/training/bulgarian-split-squats-how-to\n[3]\u00a0https://www.youtube.com/watch?v=EinYIFIvsrc\n[4]\u00a0https://www.youtube.com/shorts/CNHQ9DXRDwU\n[5]\u00a0https://www.issaonline.com/blog/post/everything-you-need-to-know-about-bulgarian-split-squats\n[6]\u00a0https://www.loseit.com/articles/what-muscles-do-hungarian-split-squats-work/\n[7]\u00a0https://www.strengthlog.com/bulgarian-split-squat/\n[8]\u00a0https://www.youtube.com/watch?v=SISQcKtp6go\n[9]\u00a0https://www.garagegymreviews.com/bulgarian-split-squat\n[10]\u00a0https://learn.athleanx.com/articles/legs-for-men/how-to-do-bulgarian-split-squats\n[11]\u00a0https://www.instagram.com/reel/DPEaVn_jeKK/\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Lunge",
+      "confidence": 1.0
+    },
+    {
+      "name": "Hip Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Knee Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Hip Flexion",
+      "confidence": 0.8
+    },
+    {
+      "name": "Knee Flexion",
+      "confidence": 0.8
+    },
+    {
+      "name": "Anti-Lateral Flexion",
+      "confidence": 0.7
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Rectus Femoris",
+      "Vastus Lateralis",
+      "Vastus Medialis",
+      "Vastus Intermedius",
+      "Gluteus Maximus",
+      "Biceps Femoris",
+      "Semitendinosus",
+      "Semimembranosus"
+    ],
+    "secondary": [
+      "Gluteus Medius",
+      "Gluteus Minimus",
+      "Hip Adductors",
+      "Gastrocnemius",
+      "Soleus",
+      "Rectus Abdominis",
+      "External Obliques",
+      "Erector Spinae"
+    ]
+  },
+  "processed_at": "2026-01-07T15:08:04.573902"
+}

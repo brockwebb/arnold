@@ -1,0 +1,36 @@
+{
+  "exercise_id": "CUSTOM:One-Arm_Dead_Hang",
+  "exercise_name": "One-Arm Dead Hang",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "one arm dead hang muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The One-Arm Dead Hang is an advanced isometric exercise primarily targeting forearm flexors, grip strength, shoulder stabilizers (like rotator cuff), lats, and core to prevent twisting, with significant activation in traps and biceps for stability. The movement pattern involves an isometric hold where your entire body weight is supported by one arm, demanding immense unilateral strength, improving shoulder health, and correcting imbalances, making it a potent preparation for advanced calisthenics like one-arm pull-ups. [1, 2, 3, 4, 5]  \nMuscles Worked \n\n\u2022 Forearms: Deep forearm muscles (flexors) work intensely to maintain the grip. \n\u2022 Grip: Finger flexors and intrinsic hand muscles are heavily challenged. \n\u2022 Shoulders: Rotator cuff, deltoids, and scapular stabilizers (traps, rhomboids) build stability and strength in a deep range of motion. \n\u2022 Back: Latissimus dorsi (lats) and trapezius (traps) engage to keep the shoulder girdle stable and stretched. \n\u2022 Core: Abdominals and obliques work isometrically to prevent your body from swinging or rotating. \n\u2022 Biceps: Engage to assist in stabilizing the elbow and shoulder. [1, 3, 5, 6, 7]  \n\nMovement Pattern \n\n1. Grip: Grab a pull-up bar with one hand, using a pronated (overhand) or supinated (underhand) grip. \n2. Support: Hang with your body suspended, keeping your arm extended or slightly bent. \n3. Stability (Isometric): Your core and upper back muscles contract to keep your torso still and prevent swaying. \n4. Duration: Hold for a set time, focusing on deep breathing and maintaining tension. \n5. Unilateral Challenge: The key is that one arm supports your total body weight, forcing extreme unilateral strength development. [1, 2, 3, 4, 5, 6, 7, 8]  \n\n**Citations:**\n\n[1]\u00a0https://www.calixpert.com/exercises/one-arm-dead-hang\n[2]\u00a0https://dieringe.com/exercises/one-arm-hang\n[3]\u00a0https://www.facebook.com/GuerrillazenFitness/posts/this-is-an-advanced-variation-of-a-single-arm-hang-dead-hanging-just-hanging-fro/1394654312669171/\n[4]\u00a0https://www.anytimefitness.com/blog/dead-hang-benefits\n[5]\u00a0https://www.setforset.com/blogs/news/dead-hang\n[6]\u00a0https://calisteniapp.com/exercises/one_arm_dead_hang/EX195\n[7]\u00a0https://www.hevyapp.com/exercises/dead-hang/\n[8]\u00a0https://www.frontiersin.org/journals/sports-and-active-living/articles/10.3389/fspor.2023.1251089/full\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Grip / Hang",
+      "confidence": 1.0
+    },
+    {
+      "name": "Anti-Rotation",
+      "confidence": 0.8
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Forearm Flexors",
+      "Latissimus Dorsi"
+    ],
+    "secondary": [
+      "Rotator Cuff",
+      "Trapezius",
+      "Biceps Brachii",
+      "External Obliques",
+      "Internal Obliques",
+      "Rhomboids"
+    ]
+  },
+  "processed_at": "2026-01-07T15:09:26.376690"
+}

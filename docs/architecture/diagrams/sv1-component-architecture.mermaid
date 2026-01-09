@@ -1,0 +1,63 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#4A90A4', 'primaryTextColor': '#fff', 'primaryBorderColor': '#2C5F6E', 'lineColor': '#5C6BC0'}}}%%
+
+flowchart TB
+    subgraph Orchestration["Orchestration Layer"]
+        Claude["🤖 Claude Desktop<br/>Reasoning & Synthesis"]
+    end
+
+    subgraph Tools["MCP Tool Layer"]
+        subgraph Core["Core Coaching"]
+            Training["arnold-training-mcp<br/>• create_workout_plan<br/>• complete_as_written<br/>• complete_with_deviations<br/>• resolve_exercises"]
+            Memory["arnold-memory-mcp<br/>• load_briefing<br/>• store_observation<br/>• search_observations<br/>• get_block_summary"]
+        end
+        
+        subgraph Support["Support Services"]
+            Journal["arnold-journal-mcp<br/>• log_entry<br/>• link_to_workout<br/>• get_recent_entries<br/>• create_annotation"]
+            Analytics["arnold-analytics-mcp<br/>• get_readiness_snapshot<br/>• get_training_load<br/>• check_red_flags<br/>• run_sync"]
+            Profile["arnold-profile-mcp<br/>• get_profile<br/>• record_observation<br/>• list_equipment"]
+        end
+    end
+
+    subgraph Data["Data Layer (ADR-001)"]
+        subgraph Graph["Neo4j - Right Brain"]
+            Person["Person"]
+            Goals["Goals"]
+            Modality["Modalities"]
+            Block["Blocks"]
+            Exercise["Exercises (4,242)"]
+            Injury["Injuries"]
+            Observations["Observations"]
+        end
+        
+        subgraph Facts["Postgres - Left Brain"]
+            Strength["strength_sessions (165)<br/>strength_sets (2,482)"]
+            Biometrics["biometric_readings<br/>(3,600+)"]
+            Logs["log_entries"]
+            Annotations["data_annotations"]
+            Traces["decision_traces<br/>(ADR-004)"]
+        end
+    end
+
+    Claude --> Training
+    Claude --> Memory
+    Claude --> Journal
+    Claude --> Analytics
+    Claude --> Profile
+
+    Training --> Graph
+    Training --> Facts
+    Memory --> Graph
+    Journal --> Graph
+    Journal --> Facts
+    Analytics --> Facts
+    Profile --> Graph
+
+    Person --> Goals
+    Goals --> Modality
+    Person --> Block
+    Block --> Modality
+    Exercise --> |"INVOLVES"| Modality
+
+    style Orchestration fill:#E8EAF6,stroke:#3F51B5
+    style Tools fill:#E3F2FD,stroke:#1565C0
+    style Data fill:#FFF8E1,stroke:#FF8F00

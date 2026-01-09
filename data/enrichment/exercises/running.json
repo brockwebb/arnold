@@ -1,0 +1,63 @@
+{
+  "exercise_id": "EXERCISE:Running",
+  "exercise_name": "Running",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "running muscles worked",
+    "retrieved_at": "Running",
+    "raw_text": "Running heavily engages your lower body (glutes, quads, hamstrings, calves) for propulsion and shock absorption, your core (abdominals, obliques, erector spinae) for stability and posture, and your hip flexors to drive the leg forward, all working in coordinated patterns like hip flexion/extension, knee extension/flexion, and ankle plantarflexion through distinct stance (landing, support) and swing (flight) phases to create continuous forward motion. [1, 2, 3, 4]  \nKey Muscles Worked \n\n\u2022 Glutes (Maximus, Medius, Minimus): Extend the hip powerfully and stabilize the pelvis, especially uphill or during flight. \n\u2022 Quadriceps (Vasti, Rectus Femoris): Control impact upon landing and extend the knee for push-off. \n\u2022 Hamstrings: Extend the hip and help bend the knee during the stride cycle, powering forward movement. \n\u2022 Hip Flexors (Iliopsoas, Rectus Femoris): Lift the knee and drive the leg forward during the swing phase. \n\u2022 Calves (Gastrocnemius, Soleus): Store and release elastic energy for the final push-off and absorb ground impact. \n\u2022 Core (Abs, Obliques, Erector Spinae): Maintain upright posture, control trunk rotation, and connect upper and lower body power. [1, 3, 5, 6]  \n\nRunning Movement Patterns (Gait Cycle) \nRunning involves alternating between stance phase (foot on the ground) and swing phase (foot in the air), with key actions: \n\n1. Landing/Stance: Foot strikes, quads and calves absorb shock and stabilize the knee and ankle. \n2. Mid-Stance: Body weight shifts forward, glutes and hamstrings extend the hip. \n3. Toe-Off/Push-Off: Calves and quads powerfully extend the ankle and knee for propulsion. \n4. Swing Phase: Hip flexors and quads lift the leg forward as the hamstring shortens and relaxes the calf, preparing for the next landing. [1, 2, 3, 5, 7]  \n\nHow They Work Together \n\n\u2022 Propulsion: Glutes and hamstrings powerfully extend the hip, while calves push off the ground. \n\u2022 Stability: The core keeps your torso stable, while gluteus medius prevents the pelvis from dropping. \n\u2022 Shock Absorption: Quads and calves control the impact as your foot hits the ground. [1, 3, 5]  \n\n**Citations:**\n\n[1]\u00a0https://www.nike.com/a/what-muscles-does-running-work\n[2]\u00a0https://www.youtube.com/watch?v=FT_irKdG-so\n[3]\u00a0https://www.nike.com/il/a/what-muscles-does-running-work\n[4]\u00a0https://www.nike.com/au/a/what-muscles-does-running-work\n[5]\u00a0https://www.redbull.com/us-en/running-muscle-strengthening-techniques\n[6]\u00a0https://www.nike.com/at/en/a/what-muscles-does-running-work\n[7]\u00a0https://www.researchgate.net/publication/380644324_Gait_Pattern_Identification_Using_Gait_Features\n\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Hip Extension",
+      "confidence": 1.0
+    },
+    {
+      "name": "Hip Flexion",
+      "confidence": 1.0
+    },
+    {
+      "name": "Knee Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Knee Flexion",
+      "confidence": 0.9
+    },
+    {
+      "name": "Ankle Plantarflexion",
+      "confidence": 0.9
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Anti-Lateral Flexion",
+      "confidence": 0.7
+    },
+    {
+      "name": "Conditioning",
+      "confidence": 1.0
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Gluteus Maximus",
+      "Rectus Femoris",
+      "Biceps Femoris",
+      "Iliopsoas",
+      "Gastrocnemius"
+    ],
+    "secondary": [
+      "Gluteus Medius",
+      "Gluteus Minimus",
+      "Soleus",
+      "Rectus Abdominis",
+      "External Obliques",
+      "Erector Spinae"
+    ]
+  },
+  "processed_at": "2026-01-07T15:09:35.304956"
+}

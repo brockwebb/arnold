@@ -1,0 +1,36 @@
+{
+  "exercise_id": "CUSTOM:Prone_Y-Raises",
+  "exercise_name": "Prone Y-Raises",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "prone y raises muscles worked",
+    "retrieved_at": "Prone",
+    "raw_text": "Prone Y-Raises primarily target the lower trapezius, rhomboids, and rear deltoids, strengthening the upper back for posture and shoulder stability, while also engaging the rotator cuff (infraspinatus, teres minor, supraspinatus) and serratus anterior. The movement pattern involves lying face-down and lifting straight arms at a 45-degree angle from the torso (forming a \"Y\"), focusing on squeezing the shoulder blades down and back, and initiating the lift from the scapula for scapular control. [1, 2, 3, 4, 5]  \nMuscles Worked \n\n\u2022 Primary Movers: Lower Trapezius, Rhomboids (major & minor) \n\u2022 Shoulder Stabilizers/Synergists: Rear Deltoids, Serratus Anterior, Rotator Cuff (Supraspinatus, Infraspinatus, Teres Minor) \n\u2022 Core: Engaged for stabilization [1, 2, 3, 4, 5, 6]  \n\nMovement Pattern & Key Cues \n\n1. Starting Position: Lie face down (prone) on a mat or bench, forehead supported (e.g., on a rolled towel). Extend arms at roughly 45 degrees from your body (like a \"Y\"), palms facing down or thumbs up. \n2. Initiation: Engage your core and glutes. Squeeze your shoulder blades down and back (depression and retraction). \n3. The Lift: Lift your arms by contracting your mid-back, keeping arms straight (slight bend in elbow is okay) and neck neutral. \n4. End Range: Reach towards the ceiling, holding briefly at the top to feel the contraction in your upper back. \n5. Controlled Lowering: Slowly lower arms back down with control, resisting gravity. [1, 4, 7]  \n\nBenefits \n\n\u2022 Improves Posture: Balances out forward-pulling chest muscles. \n\u2022 Enhances Shoulder Stability: Strengthens muscles crucial for pain-free overhead movement. \n\u2022 Rehabilitative: Excellent for shoulder injuries and conditions like winged scapula. [1, 2, 3, 5, 6, 7, 8]  \n\n**Citations:**\n\n[1]\u00a0https://fitbod.me/exercises/prone-y-s\n[2]\u00a0https://www.loseit.com/articles/y-raise-exercise/\n[3]\u00a0https://www.instagram.com/reel/DQr2bX5iQtB/\n[4]\u00a0https://www.trainfitness.ai/exercises/proneYraise\n[5]\u00a0https://www.rehabhero.ca/exercise/prone-y-raise\n[6]\u00a0https://hawkesphysiotherapy.co.uk/exercise/shoulder-prone-y-arm-lifts/\n[7]\u00a0https://www.youtube.com/watch?v=dpayCiFb2FY\n[8]\u00a0https://www.instagram.com/reel/DL3AN8OBe_G/\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Scapular Retraction",
+      "confidence": 0.9
+    },
+    {
+      "name": "Horizontal Pull",
+      "confidence": 0.7
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Trapezius (Lower)",
+      "Rhomboids"
+    ],
+    "secondary": [
+      "Deltoid (Posterior)",
+      "Serratus Anterior",
+      "Infraspinatus",
+      "Teres Minor",
+      "Supraspinatus",
+      "Core"
+    ]
+  },
+  "processed_at": "2026-01-07T15:08:26.587908"
+}

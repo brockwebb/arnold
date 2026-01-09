@@ -77,14 +77,33 @@ def decimal_default(obj):
     raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
 
 
-def get_active_overrides(cur):
-    """Get active flag overrides (not expired)."""
+def get_annotations_for_period(cur, start_date: str, end_date: str = None):
+    """
+    Get active annotations that cover a date range.
+    
+    Returns annotations as facts - does NOT suppress or filter.
+    The intelligence layer (Arnold) interprets these.
+    """
+    if end_date is None:
+        end_date = start_date
+    
     cur.execute("""
-        SELECT flag_type, context, reason, expires_at
-        FROM flag_overrides
-        WHERE expires_at IS NULL OR expires_at > CURRENT_DATE
-    """)
-    return {r['flag_type']: r for r in cur.fetchall()}
+        SELECT 
+            id, annotation_date, date_range_end, target_type, target_metric,
+            reason_code, explanation, tags
+        FROM data_annotations
+        WHERE is_active = true
+          AND (
+              -- Single date annotation covers our range
+              (date_range_end IS NULL AND annotation_date BETWEEN %s AND %s)
+              OR
+              -- Range annotation overlaps our range  
+              (date_range_end IS NOT NULL AND annotation_date <= %s AND date_range_end >= %s)
+          )
+        ORDER BY annotation_date DESC
+    """, [start_date, end_date, end_date, start_date])
+    
+    return cur.fetchall()
 
 
 @server.list_tools()
@@ -93,12 +112,11 @@ async def list_tools():
     return [
         Tool(
             name="get_readiness_snapshot",
-            description="""Get current readiness state for coaching decisions.
+            description="""Get current readiness data with computed insights.
             
-Called by Arnold before any training recommendation. Returns HRV, sleep, 
-recovery score, recent training load, and coaching notes.
-
-Returns data completeness indicator (0-4) so Arnold knows confidence level.""",
+Returns HRV (with 7d/30d comparisons), sleep, resting HR, recent load, ACWR.
+Includes coaching_notes with pre-computed threshold checks.
+Reports data completeness (0-4).""",
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -151,10 +169,11 @@ Used when programming specific lifts or assessing progress.""",
         ),
         Tool(
             name="check_red_flags",
-            description="""Check for any concerns Arnold should proactively address.
+            description="""Get observations and annotations for Arnold to synthesize.
             
-Called at conversation start. Surfaces recovery issues, pattern gaps,
-data problems, and anything else requiring attention.""",
+Reports: HRV trend, data gaps, sleep stats, ACWR, pattern coverage.
+Includes active annotations covering recent period as context.
+No suppression - Arnold sees all data and decides what to surface.""",
             inputSchema={
                 "type": "object",
                 "properties": {}
@@ -246,7 +265,10 @@ async def call_tool(name: str, arguments: dict):
 
 
 async def get_readiness_snapshot(date_str: str):
-    """Get readiness snapshot for coaching decisions."""
+    """Get readiness snapshot - facts only, no interpretation.
+    
+    Reports biometric and training load data. Arnold interprets.
+    """
     target_date = parse_date(date_str)
     
     conn = get_db()
@@ -311,9 +333,7 @@ async def get_readiness_snapshot(date_str: str):
     """, [target_date])
     acwr_row = cur.fetchone()
     
-    # Build response
-    coaching_notes = []
-    
+    # Build response - facts only
     result = {
         "date": target_date,
         "hrv": None,
@@ -324,8 +344,10 @@ async def get_readiness_snapshot(date_str: str):
         "data_completeness": 0,
         "data_sources": [],
         "missing": [],
-        "coaching_notes": []
+        "coaching_notes": []  # Computed insights, not interpretation
     }
+    
+    coaching_notes = []
     
     if today_row:
         coverage = today_row['data_coverage'] or ''
@@ -349,7 +371,7 @@ async def get_readiness_snapshot(date_str: str):
         if today_row['sleep_hours'] is None:
             result["missing"].append("sleep")
         
-        # HRV
+        # HRV - facts with comparisons
         if today_row['hrv_ms']:
             hrv_val = float(today_row['hrv_ms'])
             hrv_7d = float(seven_day['hrv_7d']) if seven_day and seven_day['hrv_7d'] else None
@@ -360,17 +382,20 @@ async def get_readiness_snapshot(date_str: str):
             
             result["hrv"] = {
                 "value": round(hrv_val),
-                "vs_7d_avg": round((hrv_val - hrv_7d) / hrv_7d * 100) if hrv_7d else None,
-                "vs_baseline": round((hrv_val - hrv_baseline) / hrv_baseline * 100) if hrv_baseline else None,
+                "avg_7d": round(hrv_7d) if hrv_7d else None,
+                "avg_30d": round(hrv_baseline) if hrv_baseline else None,
+                "vs_7d_pct": round((hrv_val - hrv_7d) / hrv_7d * 100) if hrv_7d else None,
+                "vs_30d_pct": round((hrv_val - hrv_baseline) / hrv_baseline * 100) if hrv_baseline else None,
                 "trend": trend
             }
             
+            # Computed insights (not suppressed - Arnold decides relevance)
             if trend == "declining" and len(hrv_values) >= 3:
                 coaching_notes.append("HRV declining over recent days")
             if hrv_7d and hrv_val < hrv_7d * 0.85:
-                coaching_notes.append("HRV significantly below 7-day average")
+                coaching_notes.append(f"HRV {round(hrv_val)} is {round((1 - hrv_val/hrv_7d) * 100)}% below 7-day avg")
         
-        # Sleep
+        # Sleep - facts only
         if today_row['sleep_hours']:
             sleep_hrs = float(today_row['sleep_hours'])
             total_min = sleep_hrs * 60
@@ -383,16 +408,17 @@ async def get_readiness_snapshot(date_str: str):
                 "deep_pct": deep_pct
             }
             
+            # Computed insights
             if sleep_hrs < 6:
-                coaching_notes.append("Sleep under 6 hours - recovery compromised")
+                coaching_notes.append(f"Sleep {round(sleep_hrs, 1)}hrs - under 6hr recovery threshold")
             elif sleep_hrs < 7:
-                coaching_notes.append("Sleep below 7hr threshold")
+                coaching_notes.append(f"Sleep {round(sleep_hrs, 1)}hrs - below 7hr optimal")
         
         # Resting HR
         if today_row['rhr_bpm']:
             result["resting_hr"] = round(float(today_row['rhr_bpm']))
     
-    # Recent load
+    # Recent load - facts only
     if yesterday:
         result["recent_load"] = {
             "yesterday_sets": yesterday['daily_sets'],
@@ -400,21 +426,18 @@ async def get_readiness_snapshot(date_str: str):
             "volume_acwr": round(float(yesterday['acwr']), 2) if yesterday['acwr'] else None
         }
     
-    # TRIMP-based ACWR (better than volume ACWR)
+    # ACWR - facts with zone classification
     if acwr_row and acwr_row['trimp_acwr']:
         acwr_val = float(acwr_row['trimp_acwr'])
+        zone = "high_risk" if acwr_val > 1.5 else "optimal" if 0.8 <= acwr_val <= 1.3 else "low"
         result["acwr"] = {
             "trimp_based": round(acwr_val, 2),
-            "interpretation": "high_risk" if acwr_val > 1.5 else "optimal" if 0.8 <= acwr_val <= 1.3 else "low"
+            "zone": zone
         }
         
-        # Check for ACWR override before adding to coaching notes
-        overrides = get_active_overrides(cur)
+        # Computed insights (no suppression - Arnold has annotations for context)
         if acwr_val > 1.5:
-            if 'acwr' in overrides:
-                result["acwr"]["override"] = overrides['acwr']['context']
-            else:
-                coaching_notes.append(f"ACWR {round(acwr_val, 2)} - elevated injury risk, consider recovery")
+            coaching_notes.append(f"ACWR {round(acwr_val, 2)} - elevated injury risk zone")
         elif acwr_val < 0.8:
             coaching_notes.append(f"ACWR {round(acwr_val, 2)} - detraining risk, can increase load")
     
@@ -511,19 +534,26 @@ async def get_training_load(days: int):
     
     conn.close()
     
+    # Computed insights for coach
     coaching_notes = []
     
     if pattern_gaps:
-        # Filter out non-essential patterns for gap reporting
+        # Flag core movement pattern gaps
         core_gaps = [p for p in pattern_gaps if p in 
                      {'Hip Hinge', 'Squat', 'Horizontal Pull', 'Horizontal Push', 
                       'Vertical Pull', 'Vertical Push'}]
         if core_gaps:
-            coaching_notes.append(f"Pattern gaps (no recent work): {', '.join(core_gaps)}")
+            coaching_notes.append(f"Pattern gaps (no work in 10d): {', '.join(core_gaps)}")
+    
+    # ACWR insights
+    if trimp_acwr and trimp_acwr['trimp_acwr']:
+        acwr_val = float(trimp_acwr['trimp_acwr'])
+        if acwr_val > 1.5:
+            coaching_notes.append(f"ACWR {round(acwr_val, 2)} - elevated load")
+        elif acwr_val < 0.8:
+            coaching_notes.append(f"ACWR {round(acwr_val, 2)} - can increase load")
     
     # Build response
-    total_pattern_workouts = sum(p['workout_count'] for p in patterns) if patterns else 1
-    
     result = {
         "period": {"start": start_date, "end": end_date},
         "summary": {
@@ -682,19 +712,20 @@ async def get_exercise_history(exercise: str, days: int):
 
 
 async def check_red_flags():
-    """Check for concerns Arnold should proactively address."""
+    """Report observations for Arnold to interpret.
+    
+    This tool reports FACTS only. No suppression, no filtering, no recommendations.
+    Arnold (the intelligence layer) interprets and synthesizes with annotations.
+    """
     today = datetime.now().strftime("%Y-%m-%d")
+    seven_days_ago = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
     
     conn = get_db()
     cur = conn.cursor()
     
-    # Get active overrides
-    overrides = get_active_overrides(cur)
+    observations = []
     
-    flags = []
-    acknowledged = []
-    
-    # Check HRV trend
+    # === HRV TREND ===
     cur.execute("""
         SELECT reading_date, hrv_ms
         FROM readiness_daily
@@ -709,15 +740,23 @@ async def check_red_flags():
         older_vals = [float(h['hrv_ms']) for h in hrv_data[3:]]
         older_avg = sum(older_vals) / len(older_vals) if older_vals else recent_avg
         
-        if older_avg > 0 and (recent_avg / older_avg) < 0.85:
-            flags.append({
-                "type": "recovery",
-                "severity": "moderate",
-                "message": f"HRV down {round((1 - recent_avg/older_avg) * 100)}% over recent days",
-                "recommendation": "Consider lighter session or rest"
+        if older_avg > 0:
+            pct_change = round((recent_avg / older_avg - 1) * 100)
+            trend = "declining" if pct_change < -10 else "improving" if pct_change > 10 else "stable"
+            
+            observations.append({
+                "type": "hrv_trend",
+                "observation": f"HRV {trend}: {pct_change:+d}% vs prior days",
+                "data": {
+                    "recent_avg": round(recent_avg),
+                    "prior_avg": round(older_avg),
+                    "pct_change": pct_change,
+                    "trend": trend,
+                    "dates": [str(h['reading_date']) for h in hrv_data]
+                }
             })
     
-    # Check for data gap
+    # === DATA GAPS ===
     cur.execute("""
         SELECT MAX(reading_date) as last_date
         FROM readiness_daily
@@ -727,15 +766,39 @@ async def check_red_flags():
     
     if last_hrv and last_hrv['last_date']:
         days_since = (datetime.now().date() - last_hrv['last_date']).days
-        if days_since > 3:
-            flags.append({
+        if days_since > 1:  # Report any gap, even 2 days
+            observations.append({
                 "type": "data_gap",
-                "severity": "low",
-                "message": f"No biometric data for {days_since} days",
-                "recommendation": "Check ring charging / wear"
+                "metric": "hrv",
+                "observation": f"No HRV data for {days_since} days",
+                "data": {
+                    "last_reading": str(last_hrv['last_date']),
+                    "days_since": days_since
+                }
             })
     
-    # Check pattern gaps
+    # Check sleep gap separately
+    cur.execute("""
+        SELECT MAX(reading_date) as last_date
+        FROM readiness_daily
+        WHERE sleep_hours IS NOT NULL
+    """)
+    last_sleep = cur.fetchone()
+    
+    if last_sleep and last_sleep['last_date']:
+        days_since = (datetime.now().date() - last_sleep['last_date']).days
+        if days_since > 1:
+            observations.append({
+                "type": "data_gap",
+                "metric": "sleep",
+                "observation": f"No sleep data for {days_since} days",
+                "data": {
+                    "last_reading": str(last_sleep['last_date']),
+                    "days_since": days_since
+                }
+            })
+    
+    # === PATTERN DISTRIBUTION ===
     cur.execute("""
         SELECT DISTINCT pattern
         FROM workout_summaries,
@@ -744,38 +807,49 @@ async def check_red_flags():
     """)
     recent_patterns = {r['pattern'] for r in cur.fetchall()}
     
-    # Core patterns we expect to see
     core_patterns = {"Hip Hinge", "Squat", "Horizontal Pull", "Horizontal Push", "Vertical Pull", "Vertical Push"}
     missing = core_patterns - recent_patterns
     
-    if missing and len(missing) <= 3:  # Only flag if 1-3 missing
-        flags.append({
+    if missing:
+        observations.append({
             "type": "pattern_gap",
-            "severity": "low",
-            "message": f"No recent work: {', '.join(sorted(missing))}",
-            "recommendation": "Consider adding these patterns"
+            "observation": f"No recent work (10d): {', '.join(sorted(missing))}",
+            "data": {
+                "missing_patterns": sorted(list(missing)),
+                "recent_patterns": sorted(list(recent_patterns)),
+                "window_days": 10
+            }
         })
     
-    # Check sleep trend
+    # === SLEEP STATS ===
     cur.execute("""
-        SELECT AVG(sleep_hours) as avg_sleep
+        SELECT 
+            AVG(sleep_hours) as avg_sleep,
+            MIN(sleep_hours) as min_sleep,
+            MAX(sleep_hours) as max_sleep,
+            COUNT(*) as nights
         FROM readiness_daily
         WHERE reading_date >= CURRENT_DATE - INTERVAL '7 days'
           AND sleep_hours IS NOT NULL
     """)
-    sleep_data = cur.fetchone()
+    sleep_stats = cur.fetchone()
     
-    if sleep_data and sleep_data['avg_sleep'] and float(sleep_data['avg_sleep']) < 6:
-        flags.append({
-            "type": "recovery",
-            "severity": "moderate",
-            "message": f"Sleep averaging {round(float(sleep_data['avg_sleep']), 1)} hours",
-            "recommendation": "Prioritize sleep for recovery"
+    if sleep_stats and sleep_stats['avg_sleep']:
+        avg = float(sleep_stats['avg_sleep'])
+        observations.append({
+            "type": "sleep_summary",
+            "observation": f"Sleep averaging {round(avg, 1)} hrs over {sleep_stats['nights']} nights",
+            "data": {
+                "avg_hours": round(avg, 1),
+                "min_hours": round(float(sleep_stats['min_sleep']), 1) if sleep_stats['min_sleep'] else None,
+                "max_hours": round(float(sleep_stats['max_sleep']), 1) if sleep_stats['max_sleep'] else None,
+                "nights": sleep_stats['nights']
+            }
         })
     
-    # Check ACWR
+    # === ACWR ===
     cur.execute("""
-        SELECT trimp_acwr
+        SELECT trimp_acwr, session_date
         FROM trimp_acwr
         WHERE daily_trimp > 0
         ORDER BY session_date DESC
@@ -785,35 +859,38 @@ async def check_red_flags():
     
     if acwr_row and acwr_row['trimp_acwr']:
         acwr = float(acwr_row['trimp_acwr'])
-        if acwr > 1.5:
-            flag_data = {
-                "type": "acwr",
-                "severity": "moderate",
-                "message": f"ACWR at {round(acwr, 2)} - elevated injury risk",
-                "recommendation": "Consider deload or recovery session"
+        zone = "high_risk" if acwr > 1.5 else "optimal" if 0.8 <= acwr <= 1.3 else "low"
+        observations.append({
+            "type": "acwr",
+            "observation": f"ACWR at {round(acwr, 2)} ({zone})",
+            "data": {
+                "value": round(acwr, 2),
+                "zone": zone,
+                "as_of": str(acwr_row['session_date']) if acwr_row['session_date'] else None
             }
-            # Check for override
-            if 'acwr' in overrides:
-                override = overrides['acwr']
-                flag_data["acknowledged"] = True
-                flag_data["override_reason"] = override['reason']
-                flag_data["override_context"] = override['context']
-                flag_data["override_expires"] = str(override['expires_at']) if override['expires_at'] else None
-                acknowledged.append(flag_data)
-            else:
-                flags.append(flag_data)
+        })
+    
+    # === RELEVANT ANNOTATIONS ===
+    # Include active annotations covering recent period as context
+    annotations = get_annotations_for_period(cur, seven_days_ago, today)
+    annotation_list = []
+    for a in annotations:
+        annotation_list.append({
+            "id": a['id'],
+            "date": str(a['annotation_date']),
+            "date_end": str(a['date_range_end']) if a['date_range_end'] else None,
+            "target": f"{a['target_type']}/{a['target_metric']}",
+            "reason": a['reason_code'],
+            "explanation": a['explanation']
+        })
     
     conn.close()
     
     result = {
-        "flags": flags,
-        "acknowledged": acknowledged,
-        "all_clear": len(flags) == 0,
-        "summary": f"{len(flags)} concerns to address" if flags else "All clear"
+        "observations": observations,
+        "annotations": annotation_list,
+        "observation_count": len(observations)
     }
-    
-    if acknowledged:
-        result["summary"] += f" ({len(acknowledged)} acknowledged)"
     
     return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
@@ -852,13 +929,35 @@ async def get_sleep_analysis(days: int):
     """, [start_date, start_date])
     baseline = cur.fetchone()
     
-    conn.close()
-    
     if not sleep_data:
-        return [TextContent(type="text", text=json.dumps({
-            "error": "No sleep data available for this period",
-            "days_requested": days
-        }, indent=2))]
+        # No data in requested period - check if there's an annotation explaining why
+        gap_annotation = check_annotation_covers_gap(
+            cur, 'biometric', 'sleep', start_date, end_date
+        )
+        
+        # Try to get most recent available sleep data instead
+        cur.execute("""
+            SELECT 
+                reading_date,
+                sleep_hours,
+                sleep_deep_min,
+                sleep_rem_min,
+                sleep_quality_pct
+            FROM readiness_daily
+            WHERE sleep_hours IS NOT NULL
+            ORDER BY reading_date DESC
+            LIMIT %s
+        """, [days])
+        sleep_data = cur.fetchall()
+        
+        if not sleep_data:
+            conn.close()
+            result = {"nights_analyzed": 0}
+            if gap_annotation:
+                result["data_gap_context"] = gap_annotation
+            return [TextContent(type="text", text=json.dumps(result, indent=2))]
+    
+    conn.close()
     
     # Calculate stats
     sleep_hrs = [float(s['sleep_hours']) for s in sleep_data if s['sleep_hours']]

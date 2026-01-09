@@ -1,0 +1,41 @@
+{
+  "exercise_id": "CUSTOM:Monster_Walk",
+  "exercise_name": "Monster Walk",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "monster walk exercise muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Monster Walk, performed with a resistance band around the ankles or knees, is a lateral, multi-plane exercise primarily targeting your glutes (medius & minimus), hip abductors, and core, while also engaging quads, hamstrings, and adductors for stability, improving hip/pelvic stability, posture, and functional strength for everyday movements like walking. The movement pattern involves a slight squat with wide, shuffling steps (forward/backward/sideways) in a diagonal or lateral direction, keeping tension on the band to prevent your feet from coming together. [1, 2, 3, 4, 5]  \nMuscles Worked \n\n\u2022 Primary Movers: \n\n    \u2022 Gluteus Medius & Minimus: Key for hip abduction (moving leg out) and stabilizing the pelvis, preventing knee collapse. \n    \u2022 Hip Abductors (Outer Thigh): Work with glutes to control side-to-side motion. \n\n\u2022 Stabilizers & Secondary Muscles: \n\n    \u2022 Gluteus Maximus: Provides power and support. \n    \u2022 Quadriceps & Hamstrings: Support the squat position and leg movement. \n    \u2022 Adductors (Inner Thigh): Help control the inward pull of the band. \n    \u2022 Core Muscles: Maintain upright posture and pelvic stability. [2, 3, 4, 6, 7]  \n\nMovement Pattern \n\n1. Setup: Place a resistance band around your ankles (harder) or just above your knees (easier). Get into a half-squat or \"mini-squat\" position with your chest up and core engaged. \n2. Step & Shuffle: Take a wide step to the side (e.g., 45-degree angle), keeping tension on the band. \n3. Bring Feet Together (Not Fully): Bring your trailing foot to meet the leading foot, but stop just short of bringing them together to maintain constant tension on the band. \n4. Repeat: Continue stepping in one direction (forward/sideways) and then reverse the pattern to step back, maintaining the squat and band tension. [1, 2, 4, 5, 8]  \n\nBenefits \n\n\u2022 Strengthens often-neglected stabilizing muscles. \n\u2022 Improves hip and pelvic stability, reducing lower back and knee pain. \n\u2022 Enhances functional movement and athletic performance in multi-directional sports. [2, 4, 8]  \n\n**Citations:**\n\n[1]\u00a0https://www.hingehealth.com/resources/articles/monster-walk/\n[2]\u00a0https://backmusclesolutions.com/blogs/the-ql-blawg/monster-walk\n[3]\u00a0https://www.fittux.com/blogs/journal/what-are-monster-walks\n[4]\u00a0https://www.yahoo.com/lifestyle/tried-3-minute-monster-walks-083000701.html\n[5]\u00a0https://www.youtube.com/watch?v=Iv4IsdtpcdI\n[6]\u00a0https://www.hingehealth.com/resources/articles/power-walking/\n[7]\u00a0https://takeactionchiro.com/maximizing-glute-strength-with-chiropractic-sessions/\n[8]\u00a0https://burlingtonsportstherapy.com/blog/hip-strengthening-exercise/\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Hip Abduction",
+      "confidence": 1.0
+    },
+    {
+      "name": "Squat",
+      "confidence": 0.7
+    },
+    {
+      "name": "Anti-Lateral Flexion",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Gluteus Medius",
+      "Gluteus Minimus",
+      "Hip Abductors"
+    ],
+    "secondary": [
+      "Gluteus Maximus",
+      "Rectus Femoris",
+      "Biceps Femoris",
+      "Hip Adductors",
+      "Transverse Abdominis"
+    ]
+  },
+  "processed_at": "2026-01-07T22:03:46.376299"
+}

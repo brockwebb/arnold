@@ -1,0 +1,33 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:SUPINE_KNEES_TO_CHEST",
+  "exercise_name": "Supine Knees-to-Chest",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "supine knees to chest stretch muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Supine Knees-to-Chest (KTC) is a flexibility exercise stretching the lower back (lumbar spine), glutes, and hamstrings, with hip flexion as the primary movement pattern, helping relieve tension and improve mobility by gently bringing knees to the chest while lying on your back. [1, 2, 3, 4]  \nMuscles Worked (Primarily Stretched) \n\n\u2022 Lower Back (Lumbar Spine): Releases tightness and increases range of motion in the lower back. \n\u2022 Glutes: Gently stretches and tones the gluteal muscles. \n\u2022 Hamstrings: Helps to loosen tight hamstrings. \n\u2022 Hip Flexors: Mobilizes the hip joints. [1, 2, 4, 5, 6, 7]  \n\nMovement Pattern \n\n1. Starting Position: Lie flat on your back (supine) with legs extended. \n2. Engage: Bend one knee (single KTC) or both knees (double KTC) and gently pull it/them towards your chest using your hands. \n3. Maintain: Keep your lower back pressed into the floor to avoid arching, ensuring a gentle stretch. \n4. Hold: Hold the stretch for a few seconds. \n5. Release: Slowly return to the starting position and repeat. [1, 3]  \n\nKey Benefits & Purpose \n\n\u2022 Reduces Tension: Alleviates lower back stiffness, common from sitting. \n\u2022 Improves Mobility: Enhances flexibility in the lower back, hips, and hamstrings. \n\u2022 Aids Recovery: A great cool-down stretch to reduce muscle tightness. [2, 3, 4, 6]  \n\n**Citations:**\n\n[1]\u00a0https://www.youtube.com/shorts/kv0_T28nPno\n[2]\u00a0https://fitbod.me/exercises/supine-back-stretch\n[3]\u00a0https://movementredefinedaz.com/exercises-library/stretch-spotlight-supine-single-knee-to-chest-sktc/\n[4]\u00a0https://www.verywellhealth.com/knees-to-chest-exercise-296870\n[5]\u00a0https://www.tummee.com/yoga-poses/supine-knees-to-chest-pose\n[6]\u00a0https://www.hingehealth.com/resources/articles/knee-to-chest/\n[7]\u00a0https://www.verywellhealth.com/the-hip-flexors-definition-3120388\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Hip Flexion",
+      "confidence": 0.9
+    },
+    {
+      "name": "Mobility",
+      "confidence": 1.0
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Erector Spinae",
+      "Gluteus Maximus",
+      "Hamstrings"
+    ],
+    "secondary": [
+      "Iliopsoas"
+    ]
+  },
+  "processed_at": "2026-01-08T08:36:11.232870"
+}

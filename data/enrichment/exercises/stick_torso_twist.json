@@ -1,0 +1,35 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:STICK_TORSO_TWIST",
+  "exercise_name": "Stick Torso Twist",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "stick torso twist stretch muscles worked",
+    "retrieved_at": "A",
+    "raw_text": "A Stick Torso Twist primarily targets your obliques (internal & external), rectus abdominis, transverse abdominis, latissimus dorsi, and erector spinae, focusing on spinal rotation and core stability, working the trunk through a twisting (rotational) movement pattern to improve mobility and strength. The stick helps isolate the twist to the torso, preventing shoulder/arm dominance and ensuring the core initiates the movement, often done with feet together and toes forward for stability. [1, 2, 3, 4, 5]  \nMuscles Worked \n\n\u2022 Primary: \n\n    \u2022 Internal & External Obliques: The main muscles responsible for twisting the torso side-to-side. \n\n\u2022 Secondary/Stabilizers: \n\n    \u2022 Rectus Abdominis: The \"six-pack\" muscles, stabilizing the core. \n    \u2022 Transverse Abdominis: Deep core muscles for spinal stability. \n    \u2022 Latissimus Dorsi (Lats): Muscles on the sides of your back, assisting in rotation. \n    \u2022 Erector Spinae: Muscles running along the spine, stabilizing and assisting. \n    \u2022 Glutes & Hamstrings: Help stabilize the lower body, especially when performed with feet together. [1, 2, 4, 5, 6, 7, 8, 9]  \n\nMovement Pattern \n\n1. Setup: Hold a stick across your upper back/shoulders, keeping arms relaxed and shoulder blades engaged. Feet are usually together, toes forward, hips stable. \n2. Rotation: Initiate the twist from your core, rotating your upper body (rib cage and shoulders) to one side, keeping your hips facing forward. \n3. Isolation: The stick keeps your arms and shoulders moving with your torso, forcing the rotation from the spine. \n4. Range: Rotate to a comfortable, pain-free range, looking over the shoulder as you twist. \n5. Return & Repeat: Return to center and twist to the other side. [3, 4, 10, 11, 12]  \n\nBenefits \n\n\u2022 Improves mobility in the thoracic (mid-upper) spine. \n\u2022 Strengthens core and obliques. \n\u2022 Enhances body awareness and control. \n\u2022 Prepares the spine for dynamic movements. [1, 2, 3, 4, 5, 10, 13, 14]  \n\n**Citations:**\n\n[1]\u00a0https://www.wikihow.com/Torso-Rotation-Machine\n[2]\u00a0https://www.hingehealth.com/resources/articles/oblique-twist/\n[3]\u00a0https://www.tummee.com/yoga-poses/standing-spinal-twist-pose-ii-hands-stick/benefits\n[4]\u00a0https://www.youtube.com/watch?v=EfU_KNcze6U\n[5]\u00a0https://www.t3.com/how-to/i-did-100-russian-twists-a-day-for-a-week\n[6]\u00a0https://www.youtube.com/watch?v=C_685Owwa8Q\n[7]\u00a0https://www.hss.edu/health-library/move-better/what-are-core-muscles\n[8]\u00a0https://my.clevelandclinic.org/health/body/21755-abdominal-muscles\n[9]\u00a0https://pubmed.ncbi.nlm.nih.gov/9779398/\n[10]\u00a0https://www.youtube.com/watch?v=h6XyzlM8m24\n[11]\u00a0https://www.youtube.com/watch?v=f4Qah0bQTIo\n[12]\u00a0https://www.thepolephysio.com/post/twisted-grip\n[13]\u00a0https://m.youtube.com/watch?v=BOExEgio5Kw\n[14]\u00a0https://www.tiktok.com/@alejandromatias674/video/7528986731211689247\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Trunk Rotation",
+      "confidence": 1.0
+    },
+    {
+      "name": "Mobility",
+      "confidence": 0.8
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "External Obliques",
+      "Internal Obliques"
+    ],
+    "secondary": [
+      "Rectus Abdominis",
+      "Transverse Abdominis",
+      "Latissimus Dorsi",
+      "Erector Spinae"
+    ]
+  },
+  "processed_at": "2026-01-08T08:37:01.923829"
+}

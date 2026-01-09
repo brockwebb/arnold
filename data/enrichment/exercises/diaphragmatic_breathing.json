@@ -1,0 +1,31 @@
+{
+  "exercise_id": "CUSTOM:Diaphragmatic_Breathing",
+  "exercise_name": "Diaphragmatic Breathing",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "diaphragmatic breathing muscles worked",
+    "retrieved_at": "Diaphragmatic",
+    "raw_text": "Diaphragmatic breathing primarily uses the diaphragm, the main breathing muscle, which contracts and flattens on inhale (causing abdominal expansion) and relaxes and domes up on exhale (allowing abdominal contraction), coordinating with the pelvic floor and transverse abdominis for core stability, creating a \"canister\" movement for better oxygenation and core support, unlike shallow chest breathing that overuses upper chest muscles. [1, 2, 3, 4]  \nMuscles Worked \n\n\u2022 Primary Muscle: \n\n    \u2022 Diaphragm: The dome-shaped muscle below the lungs; it contracts and moves down to draw air in (inhale) and relaxes and moves up to push air out (exhale). \n\n\u2022 Core Stabilizers (Working in Coordination): \n\n    \u2022 Pelvic Floor Muscles: Lengthen and relax on inhale, contract gently on exhale to manage pressure. \n    \u2022 Transverse Abdominis (Deep Abdominal Muscles): Gently contract inward as you exhale, like a corset, to stabilize the core. \n\n\u2022 Muscles Not Overused (as in shallow breathing): \n\n    \u2022 Upper Trapezius, Scalenes, Pectoralis Minor (accessory muscles in the neck and chest) are less taxed, preventing tension. [1, 2, 3, 4, 5, 6]  \n\nMovement Patterns (The Core Canister) \n\n1. Inhale (Belly Expands): \n\n    \u2022 Diaphragm contracts and descends (flattens). \n    \u2022 Creates negative pressure, pulling air into lungs. \n    \u2022 Increases intra-abdominal pressure, causing the abdomen to gently expand outward (forward, sideways, backward). \n    \u2022 Pelvic floor lengthens and relaxes to accommodate this downward pressure. \n\n2. Exhale (Belly Contracts): \n\n    \u2022 Diaphragm relaxes and moves upward (domes). \n    \u2022 Air passively leaves the lungs. \n    \u2022 Abdominal muscles gently contract inward (navel to spine). \n    \u2022 Pelvic floor gently contracts and moves upward. [1, 2, 3, 4, 5, 6, 7, 8]  \n\nThis creates a coordinated piston-like action from the top (diaphragm) to the bottom (pelvic floor) of your core, providing stability and efficient breathing. [2, 4]  \n\n**Citations:**\n\n[1]\u00a0https://www.anchorptnh.com/blog/what-is-diaphragmatic-breathing\n[2]\u00a0https://releasept.com/diaphragm-and-pelvic-floor/\n[3]\u00a0https://www.aptapelvichealth.org/info/why-diaphragmatic-breathing-is-one-of-the-best-exercises-pelvic-health-therapists-can-give-patients\n[4]\u00a0https://compassptnc.com/diaphragmatic-breathing-why-is-it-important/\n[5]\u00a0https://athleterestorationcompany.com/diaphragmatic-breathing/\n[6]\u00a0https://www.youtube.com/watch?v=YauKps6MGIE\n[7]\u00a0https://www.va.gov/WHOLEHEALTHLIBRARY/tools/diaphragmatic-breathing.asp\n[8]\u00a0https://my.clevelandclinic.org/health/articles/9445-diaphragmatic-breathing\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.7
+    },
+    {
+      "name": "Mobility",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Transverse Abdominis"
+    ],
+    "secondary": [
+      "Pectoralis Minor"
+    ]
+  },
+  "processed_at": "2026-01-07T22:04:16.328230"
+}

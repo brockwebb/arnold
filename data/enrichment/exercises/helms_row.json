@@ -1,0 +1,37 @@
+{
+  "exercise_id": "CUSTOM:Helms_Row",
+  "exercise_name": "Helms Row",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "helms row muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Helms Row, a chest-supported incline dumbbell row, primarily targets the Latissimus Dorsi (Lats) for back width, while also engaging the Rhomboids, Traps, and Rear Deltoids, with Biceps assisting elbow flexion, focusing on shoulder extension and scapular retraction for a strong lat-focused pull. Its movement pattern is a controlled pulling motion, initiating from the lats by pulling elbows back toward the hips/ribs, emphasizing lat engagement by removing lower back stabilization and allowing for greater focus on upper back development. [1, 2, 3, 4, 5]  \nMuscles Worked \n\n\u2022 Primary Movers: \n\n    \u2022 Latissimus Dorsi (Lats): The main muscle for that \"V-taper\" look, responsible for pulling the arms down and back. \n\n\u2022 Synergists (Assisting Muscles): \n\n    \u2022 Rhomboids: Help retract the shoulder blades. \n    \u2022 Traps (Trapezius): Stabilize the shoulder girdle and upper back. \n    \u2022 Rear Deltoids (Posterior Deltoids): Assist with shoulder extension. \n    \u2022 Biceps: Flex the elbow as you pull. [1, 2, 4, 6, 7, 8]  \n\nMovement Pattern (How it Works) \n\n1. Setup: Lie chest-down on an incline bench (around 30-45 degrees) with dumbbells hanging, palms neutral (facing in). \n2. Initiation: Pull the dumbbells up by driving your elbows back towards your hips, focusing on squeezing your shoulder blades together. \n3. Focus: The key is shoulder extension (pulling back) rather than pulling the weight too far forward or up towards your neck, which shifts focus away from the lats. \n4. Control: Slowly lower the weight back down, getting a full stretch in the lats before the next repetition. \n5. Benefit: Chest support eliminates lower back strain, allowing for maximal lat activation and heavier lifting without compromising form. [2, 3, 5]  \n\n**Citations:**\n\n[1]\u00a0https://backmusclesolutions.com/blogs/the-ql-blawg/helms-row\n[2]\u00a0https://www.youtube.com/watch?v=_6pZhoLgO5o\n[3]\u00a0https://www.youtube.com/watch?v=CeK9JbbTcpg\n[4]\u00a0https://www.setforset.com/blogs/news/dumbbell-rows\n[5]\u00a0https://sportcoaching.com.au/helms-row-exercise-guide/\n[6]\u00a0https://www.tiktok.com/@jpgcoaching/video/7530874588750810382\n[7]\u00a0https://barbend.com/rowing-machine-muscles-worked/\n[8]\u00a0https://health.clevelandclinic.org/dumbbell-rows\n\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Horizontal Pull",
+      "confidence": 0.95
+    },
+    {
+      "name": "Scapular Retraction",
+      "confidence": 0.9
+    },
+    {
+      "name": "Elbow Flexion",
+      "confidence": 0.75
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Latissimus Dorsi"
+    ],
+    "secondary": [
+      "Rhomboids",
+      "Trapezius (Middle)",
+      "Deltoid (Posterior)",
+      "Biceps Brachii"
+    ]
+  },
+  "processed_at": "2026-01-07T15:10:52.820064"
+}

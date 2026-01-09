@@ -1,0 +1,47 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:SINGLE_LEG_TOE_TOUCHES",
+  "exercise_name": "Single-Leg Toe Touches",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "single leg toe touch muscles worked",
+    "retrieved_at": "Single-Leg",
+    "raw_text": "Single-Leg Toe Touches primarily target the hamstrings, glutes, and core (abs), while improving balance, stability, and hip mobility through a hip-hinge pattern, working muscles dynamically for stretching and strengthening, especially the posterior chain and stabilizers, and enhancing proprioception for better body awareness. [1, 2, 3, 4]  \nMuscles Worked (Primary & Secondary) \n\n\u2022 Hamstrings: (Biceps Femoris, Semitendinosus, Semimembranosus) \u2013 Key muscles for stretching and eccentric control. \n\u2022 Glutes: (Gluteus Maximus) \u2013 Activates to help drive you back up and stabilize the hip. \n\u2022 Core: (Rectus Abdominis, Obliques, Transverse Abdominis) \u2013 Stabilizes the torso and prevents excessive spinal rounding. \n\u2022 Calves & Ankles: Act as stabilizers during the single-leg stance. \n\u2022 Lower Back: (Spinal Erectors) \u2013 Involved in maintaining spinal posture during the hinge. [1, 2, 3, 4, 5, 6, 7, 8]  \n\nMovement Pattern \n\n1. Starting Position: Stand on one leg, keeping a slight bend in the supporting knee; the other leg is lifted behind you. \n2. The Hinge: Hinge forward at the hip (not by rounding the spine), reaching the opposite hand towards the floor or your standing foot. \n3. Dynamic Stretch: Feel the stretch in the hamstring of the standing leg and the glute/lower back of the lifted leg. \n4. Return: Drive through the glute and hamstring to return to the starting position, squeezing at the top. \n5. Balance Focus: The movement emphasizes controlling the descent and ascent, challenging balance and motor control. [1, 3, 6, 9, 10]  \n\nBenefits \n\n\u2022 Dynamic Warm-Up: Great for preparing for sports and lifting. \n\u2022 Improves Balance & Proprioception: Enhances body awareness and joint stability. \n\u2022 Strengthens Posterior Chain: Activates hamstrings, glutes, and core. \n\u2022 Increases Flexibility: Stretches hamstrings and hips. \n\u2022 Injury Prevention: Strengthens stabilizing muscles around the knee, ankle, and hip. [1, 2, 3, 4, 5, 6]  \n\n**Citations:**\n\n[1]\u00a0https://www.rehabhero.ca/exercise/single-leg-toe-touch\n[2]\u00a0https://www.gymaholic.co/exercises/827/single-leg-toe-touch\n[3]\u00a0https://www.instagram.com/reel/DOtyqxVkveV/\n[4]\u00a0https://www.physitrack.com/exercise-library/how-to-perform-single-leg-toe-touch\n[5]\u00a0https://www.trainfitness.ai/exercises/walkingSingleLegToeTouch\n[6]\u00a0https://drjohnrusin.com/5-best-single-leg-exercises/\n[7]\u00a0https://www.stylist.co.uk/fitness-health/workouts/improve-flexibility-stretches-touch-toes/585625\n[8]\u00a0https://www.puregym.com/exercises/abs/toe-touches/\n[9]\u00a0https://www.youtube.com/watch?v=zpyRPLPMRqw\n[10]\u00a0https://www.youtube.com/watch?v=6XM-Jzq-pOA\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Hip Hinge",
+      "confidence": 1.0
+    },
+    {
+      "name": "Hip Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.7
+    },
+    {
+      "name": "Mobility",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Biceps Femoris",
+      "Gluteus Maximus",
+      "Semitendinosus",
+      "Semimembranosus"
+    ],
+    "secondary": [
+      "Rectus Abdominis",
+      "External Obliques",
+      "Transverse Abdominis",
+      "Erector Spinae",
+      "Gastrocnemius",
+      "Gluteus Medius"
+    ]
+  },
+  "processed_at": "2026-01-08T08:35:52.604067"
+}

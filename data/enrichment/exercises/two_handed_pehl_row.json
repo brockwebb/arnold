@@ -1,0 +1,53 @@
+{
+  "exercise_id": "CUSTOM:Two-Handed_Pehl_Row",
+  "exercise_name": "Two-Handed Pehl Row",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "seal row muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Two-Handed Pehl (Pendlay) Row is a powerful horizontal pulling movement targeting the lats, rhomboids, traps, rear delts, and biceps, strengthening the entire upper back for posture, while the lower back, core, glutes, and forearms act as stabilizers, emphasizing explosive strength and power through a full range of motion from a dead stop on the floor. [1, 2, 3]  \nMuscles Worked \n\n\u2022 Primary Movers (Pulling): \n\n    \u2022 Latissimus Dorsi (Lats): Main back muscle for pulling the weight towards the torso. \n    \u2022 Rhomboids & Traps (Trapezius): Squeeze shoulder blades together, retracting the upper back. \n    \u2022 Posterior Deltoids (Rear Delts): Assist in pulling the weight, especially with slightly flared elbows. \n    \u2022 Biceps & Brachialis: Flex the elbow to bring the bar towards the body. \n\n\u2022 Stabilizers (Isometric Contraction): \n\n    \u2022 Spinal Erectors: Maintain a neutral, stable spine. \n    \u2022 Core (Abs, Obliques): Keep the torso rigid. \n    \u2022 Glutes & Hamstrings: Help stabilize the hips and lower body. \n    \u2022 Forearms & Grip Muscles: Hold onto the barbell. [1, 2, 3, 4, 5]  \n\nMovement Pattern \n\n1. Starting Position (Dead Stop): From a hip-hinged, torso-parallel position (or slightly angled), the barbell rests on the floor. \n2. Concentric (Pulling Phase): explosively pull the barbell from the floor to the lower chest/upper abdomen by driving the elbows back and squeezing the shoulder blades. \n3. Eccentric (Lowering Phase): Slowly and with control, lower the barbell back to a dead stop on the floor. \n4. Horizontal Pull: It's a horizontal pull because the weight moves towards the torso, not overhead. \n5. Power & Full Range: The dead stop and floor-to-chest movement build explosive power and strength throughout the entire pulling range, preventing momentum-based cheating. [1, 2, 3, 6, 7, 8]  \n\n**Citations:**\n\n[1]\u00a0https://www.nifs.org/blog/movement-pattern-variations-the-pull\n[2]\u00a0https://www.gymshark.com/blog/article/how-to-pendlay-row-everything-you-need-to-know\n[3]\u00a0https://www.hevyapp.com/exercises/pendlay-row/\n[4]\u00a0https://www.youtube.com/watch?v=x5jwg87PxJQ\n[5]\u00a0https://www.youtube.com/watch?v=Weu9HMHdiDA\n[6]\u00a0https://www.facebook.com/HumanKinetics/videos/unleash-landmine-power/1122855073252047/\n[7]\u00a0https://www.instagram.com/reel/DKt4LV1RYdG/\n[8]\u00a0https://m.youtube.com/watch?v=x5jwg87PxJQ\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Horizontal Pull",
+      "confidence": 1.0
+    },
+    {
+      "name": "Scapular Retraction",
+      "confidence": 0.9
+    },
+    {
+      "name": "Hip Hinge",
+      "confidence": 0.8
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.7
+    },
+    {
+      "name": "Elbow Flexion",
+      "confidence": 0.8
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Latissimus Dorsi",
+      "Rhomboids",
+      "Trapezius (Middle)",
+      "Deltoid (Posterior)",
+      "Biceps Brachii"
+    ],
+    "secondary": [
+      "Erector Spinae",
+      "External Obliques",
+      "Internal Obliques",
+      "Gluteus Maximus",
+      "Hamstrings",
+      "Forearm Flexors",
+      "Brachialis"
+    ]
+  },
+  "processed_at": "2026-01-07T22:05:34.767266"
+}

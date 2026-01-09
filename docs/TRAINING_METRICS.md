@@ -162,8 +162,36 @@ Monotony = Mean(Daily Load over 7 days) / SD(Daily Load over 7 days)
 Strain = Weekly Load × Monotony
 ```
 
-**Interpretation**:
-High strain values are associated with illness and injury. Used as early warning system.
+**Foster's Original Formula** (sRPE-based):
+```
+Session Load = session_RPE × Duration (minutes)
+Weekly Load = Σ(Session Load) over 7 days
+Strain = Weekly Load × Monotony
+```
+
+**sRPE Thresholds** (calibrated for original formula):
+| Strain (AU) | Risk Level | Interpretation |
+|-------------|------------|----------------|
+| < 2000 | Low | Conservative training |
+| 2000-4000 | Moderate | Productive training |
+| 4000-6000 | High | Monitor recovery closely |
+| > 6000 | Very High | Illness/injury risk elevated |
+
+**Implementation Notes**:
+
+Arnold implements **two strain calculations**:
+1. **sRPE Strain** (`srpe_monotony_strain` view) — Foster's original using RPE × Duration
+2. **Volume Strain** (`training_monotony_strain` view) — Uses volume load (lbs) instead of sRPE
+
+**Data Cascade for sRPE**:
+| Priority | Duration Source | RPE Source |
+|----------|----------------|------------|
+| 1 | Polar actual | User-provided session_rpe |
+| 2 | Logged estimate | Average set RPE |
+| 3 | Default 45 min | Type-based estimate (strength=6, conditioning=7, etc.) |
+
+**Coaching Calibration Loop**:
+Coach provides time/RPE estimates at plan time → Actual data captured → System learns calibration factors.
 
 **Citation**:
 > Foster, C. (1998). Monitoring training in athletes with reference to overtraining syndrome. *Medicine & Science in Sports & Exercise*, 30(7), 1164-1168.
@@ -219,7 +247,82 @@ These metrics require wearable data from Ultrahuman, Apple Health, or similar so
 
 ---
 
-### 2.2 hrTSS (Heart Rate Training Stress Score)
+### 2.2 HRV Coefficient of Variation (HRV CV)
+
+**Definition**: Measure of autonomic flexibility — how much day-to-day HRV varies relative to its mean.
+
+```
+HRV_CV = (SD(HRV over 7 days) / Mean(HRV over 7 days)) × 100
+```
+
+**Interpretation**:
+
+| HRV CV | State | Interpretation |
+|--------|-------|----------------|
+| < 3% | Very low | Suppressed autonomic flexibility, possible overreaching |
+| 3-10% | Normal | Healthy autonomic regulation |
+| 10-15% | Elevated | High variability, may indicate stress or inconsistent recovery |
+| > 15% | Very high | Recovery inconsistency, lifestyle factors affecting HRV |
+
+**Key Insight**: CV is more predictive than absolute HRV values because:
+1. Individual baselines vary widely (30-100ms is "normal")
+2. CV normalizes for individual differences
+3. Low CV during heavy training = autonomic saturation = overreaching
+
+**Use Case**:
+- Detect functional overreaching before performance declines
+- Validate recovery protocols are working
+- Identify lifestyle factors disrupting recovery consistency
+
+**Citations**:
+> Plews, D.J., Laursen, P.B., Kilding, A.E., & Buchheit, M. (2012). Heart rate variability in elite triathletes, is variation in variability the key to effective training? A case comparison. *European Journal of Applied Physiology*, 112(11), 3729-3741.
+
+> Le Meur, Y., Pichon, A., Schaal, K., Schmitt, L., Louis, J., Gueneron, J., ... & Hausswirth, C. (2013). Evidence of parasympathetic hyperactivity in functionally overreached athletes. *Medicine & Science in Sports & Exercise*, 45(11), 2061-2071.
+
+---
+
+### 2.3 Sleep Debt
+
+**Definition**: Cumulative sleep deficit over a rolling window.
+
+```
+Sleep_Debt = Σ (Target_Hours - Actual_Hours) over 7 days
+
+Where:
+- Target_Hours = 7.5 (configurable, research supports 7-9 for adults)
+- Negative values mean sleep surplus
+```
+
+**Interpretation**:
+
+| Sleep Debt | State | Interpretation |
+|------------|-------|----------------|
+| < 0 | Surplus | Well-rested, banking sleep |
+| 0-3 hrs | Normal | Minor deficit, easily recovered |
+| 3-5 hrs | Moderate | Performance impact likely, prioritize sleep |
+| 5-10 hrs | Significant | Cognitive and physical impairment, recovery compromised |
+| > 10 hrs | Critical | Accumulated debt, may take weeks to recover |
+
+**Key Insight**: Sleep debt is cumulative but NOT linear:
+- 2 nights of 5 hours ≠ 1 night of 3 hours (fragmentation matters)
+- Recovery from debt takes longer than the debt accumulated
+- Chronic debt (>7 days) affects hormones, not just fatigue
+
+**Use Case**:
+- Explain unexpected HRV drops or elevated RHR
+- Guide deload decisions (high debt = forced recovery)
+- Correlate with training performance trends
+
+**Citations**:
+> Spiegel, K., Leproult, R., & Van Cauter, E. (1999). Impact of sleep debt on metabolic and endocrine function. *The Lancet*, 354(9188), 1435-1439.
+
+> Mah, C.D., Mah, K.E., Kezirian, E.J., & Dement, W.C. (2011). The effects of sleep extension on the athletic performance of collegiate basketball players. *Sleep*, 34(7), 943-950.
+
+> Simpson, N.S., Gibbs, E.L., & Matheson, G.O. (2017). Optimizing sleep to maximize performance: implications and recommendations for elite athletes. *Scandinavian Journal of Medicine & Science in Sports*, 27(3), 266-274.
+
+---
+
+### 2.4 hrTSS (Heart Rate Training Stress Score)
 
 **Definition**: Training load quantification for cardio activities based on heart rate.
 
@@ -254,7 +357,7 @@ Where:
 
 ---
 
-### 2.3 ATL (Acute Training Load) / Fatigue
+### 2.5 ATL (Acute Training Load) / Fatigue
 
 **Definition**: Short-term training stress accumulation.
 
@@ -266,7 +369,7 @@ Represents recent training load / current fatigue level.
 
 ---
 
-### 2.4 CTL (Chronic Training Load) / Fitness
+### 2.6 CTL (Chronic Training Load) / Fitness
 
 **Definition**: Long-term training stress accumulation.
 
@@ -281,7 +384,7 @@ Represents training base / fitness level.
 
 ---
 
-### 2.5 TSB (Training Stress Balance) / Form
+### 2.7 TSB (Training Stress Balance) / Form
 
 **Definition**: Balance between fitness and fatigue.
 
@@ -423,11 +526,16 @@ Quad:Ham = Quadriceps volume / Hamstring volume
 | ACWR > 1.5 | 🔴 | Reduce volume 20-30%, prioritize recovery |
 | ACWR < 0.8 | 🟡 | Increase volume gradually (10%/week max) |
 | Monotony > 2.0 | 🟡 | Add variation, change exercises or rep ranges |
+| Strain > 6000 | 🔴 | High illness/injury risk, reduce load or add rest day |
 | Pattern gap > 7d | 🟡 | Prioritize that pattern in next session |
 | Sets/muscle/week < 4 | 🟡 | Insufficient stimulus, add volume |
 | Sets/muscle/week > 20 | 🟡 | Potential overtraining, monitor recovery |
 | HRV -20% from baseline | 🔴 | Recovery day or light movement only |
+| HRV CV < 3% | 🟡 | Autonomic suppression, may be overreaching, reduce intensity |
+| HRV CV > 15% | 🟡 | Recovery inconsistency, investigate lifestyle factors |
 | Sleep < 6h | 🟡 | Reduce intensity, extend warmup |
+| Sleep Debt > 5h (7d) | 🟡 | Prioritize sleep, consider reducing training volume |
+| Sleep Debt > 10h (7d) | 🔴 | Significant impairment, recovery day recommended |
 | TSB < -30 | 🔴 | Planned overreach or deload needed |
 
 ---
@@ -478,9 +586,66 @@ Quad:Ham = Quadriceps volume / Hamstring volume
 
 16. Plews, D.J., Laursen, P.B., Stanley, J., Kilding, A.E., & Buchheit, M. (2013). Training adaptation and heart rate variability in elite endurance athletes: opening the door to effective monitoring. *Sports Medicine*, 43(9), 773-781.
 
+17. Plews, D.J., Laursen, P.B., Kilding, A.E., & Buchheit, M. (2012). Heart rate variability in elite triathletes, is variation in variability the key to effective training? A case comparison. *European Journal of Applied Physiology*, 112(11), 3729-3741.
+
+18. Le Meur, Y., Pichon, A., Schaal, K., Schmitt, L., Louis, J., Gueneron, J., ... & Hausswirth, C. (2013). Evidence of parasympathetic hyperactivity in functionally overreached athletes. *Medicine & Science in Sports & Exercise*, 45(11), 2061-2071.
+
+### Sleep Science
+
+19. Spiegel, K., Leproult, R., & Van Cauter, E. (1999). Impact of sleep debt on metabolic and endocrine function. *The Lancet*, 354(9188), 1435-1439.
+
+20. Mah, C.D., Mah, K.E., Kezirian, E.J., & Dement, W.C. (2011). The effects of sleep extension on the athletic performance of collegiate basketball players. *Sleep*, 34(7), 943-950.
+
+21. Simpson, N.S., Gibbs, E.L., & Matheson, G.O. (2017). Optimizing sleep to maximize performance: implications and recommendations for elite athletes. *Scandinavian Journal of Medicine & Science in Sports*, 27(3), 266-274.
+
 ### Strength Prediction
 
-17. Brzycki, M. (1993). Strength Testing—Predicting a One-Rep Max from Reps-to-Fatigue. *Journal of Physical Education, Recreation & Dance*, 64(1), 88-90.
+22. Brzycki, M. (1993). Strength Testing—Predicting a One-Rep Max from Reps-to-Fatigue. *Journal of Physical Education, Recreation & Dance*, 64(1), 88-90.
+
+---
+
+## Implementation Status
+
+Tracking what's documented vs. actually implemented in Postgres views.
+
+### Tier 1 (Strength Training)
+
+| Metric | Documented | Implemented | View/Table | Notes |
+|--------|------------|-------------|------------|-------|
+| Volume Load | ✅ | ✅ | `strength_sessions.total_volume_lbs` | Per-session |
+| Sets/Muscle/Week | ✅ | ❌ | - | Needs muscle → exercise mapping |
+| Pattern Frequency | ✅ | ✅ | `workout_summaries.patterns` | Via Neo4j sync |
+| ACWR (Volume) | ✅ | ✅ | `training_load_daily.acwr` | Rolling 7/28 day |
+| Monotony (Volume) | ✅ | ✅ | `training_monotony_strain.monotony` | Migration 011 |
+| Strain (Volume) | ✅ | ✅ | `training_monotony_strain.strain` | Migration 011 |
+| **sRPE Load** | ✅ | ✅ | `srpe_training_load` | RPE × Duration with cascade |
+| **Monotony (sRPE)** | ✅ | ✅ | `srpe_monotony_strain.monotony` | Foster original formula |
+| **Strain (sRPE)** | ✅ | ✅ | `srpe_monotony_strain.strain` | Foster original formula |
+| Exercise Progression | ✅ | ✅ | `exercise_history()` function | e1RM calculation |
+
+### Tier 2 (Biometric-Enhanced)
+
+| Metric | Documented | Implemented | View/Table | Notes |
+|--------|------------|-------------|------------|-------|
+| Readiness Score | ✅ | ✅ | `readiness_composite` | Migration 011 |
+| HRV CV | ✅ | ✅ | `biometric_derived.hrv_cv_7d` | Migration 011 |
+| Sleep Debt | ✅ | ✅ | `biometric_derived.sleep_debt_hours_7d` | Migration 011 |
+| hrTSS | ✅ | ❌ | - | Needs HR + workout linkage |
+| ATL/CTL/TSB | ✅ | ❌ | - | Depends on hrTSS |
+| ACWR (TRIMP) | ✅ | ✅ | `trimp_acwr` | From Polar HR sessions |
+
+### Tier 3 (External Import)
+
+| Metric | Documented | Implemented | Notes |
+|--------|------------|-------------|-------|
+| Suunto TSS | ✅ | ❌ | Needs FIT file parsing |
+| rTSS | ✅ | ❌ | Needs pace data from FIT |
+
+### Context Metrics (Lifestyle/NEAT)
+
+| Metric | Documented | Implemented | View/Table | Notes |
+|--------|------------|-------------|------------|-------|
+| Daily Steps | ✅ | ✅ | `daily_activity_context` | Baseline comparison, deviation detection |
 
 ---
 
@@ -488,4 +653,6 @@ Quad:Ham = Quadriceps volume / Hamstring volume
 
 | Date | Change |
 |------|--------|
+| 2026-01-06 | **Migration 011 implemented**: Monotony, Strain, HRV CV, Sleep Debt, Readiness Composite |
+| 2026-01-06 | Added HRV CV (2.2), Sleep Debt (2.3), implementation status tracking |
 | 2026-01-01 | Initial specification created |

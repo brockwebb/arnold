@@ -109,6 +109,7 @@ The primary analytics database. Connect via `postgres-mcp` or `psql -d arnold_an
 | prescribed_rpe | DECIMAL | Target RPE (if from plan) |
 | is_deviation | BOOLEAN | Did this deviate from plan? |
 | deviation_reason | VARCHAR(50) | fatigue, pain, equipment, time, technique |
+| set_type | VARCHAR(20) | working, warmup, backoff, amrap, drop, cluster, rest_pause, timed, isometric |
 | notes | TEXT | Set-specific notes |
 
 - **Rows**: 2,482
@@ -532,6 +533,60 @@ SELECT * FROM active_data_issues;
 | Dec 7, 2025 → | sleep | device_issue | **ongoing** (ring app closed) |
 | Nov 8-21, 2025 | all | surgery | bounded (knee surgery) |
 | May 14 - Dec 6, 2025 | hrv | data_quality | bounded (source cleanup) |
+
+---
+
+## Neo4j Relationship Cache Tables (ADR-001)
+
+Neo4j relationships synced to Postgres for analytics JOINs. **Neo4j is source of truth.**
+
+### neo4j_cache_exercise_patterns
+**Caches (Exercise)-[:INVOLVES]->(MovementPattern) relationships**
+
+| Column | Type | Description |
+|--------|------|-------------|
+| exercise_id | TEXT | Exercise ID (PK with pattern_name) |
+| exercise_name | TEXT | Human-readable name |
+| pattern_name | TEXT | MovementPattern name (PK with exercise_id) |
+| confidence | FLOAT | Relationship confidence score |
+| synced_at | TIMESTAMPTZ | Last sync timestamp |
+
+- **Rows**: 4,952
+- **Unique Exercises**: 4,136
+- **Unique Patterns**: 30
+- **Sync**: `sync_pipeline.py --step relationships`
+
+---
+
+### neo4j_cache_exercise_muscles
+**Caches (Exercise)-[:TARGETS]->(Muscle|MuscleGroup) relationships**
+
+| Column | Type | Description |
+|--------|------|-------------|
+| exercise_id | TEXT | Exercise ID (PK with muscle_name, role) |
+| exercise_name | TEXT | Human-readable name |
+| muscle_name | TEXT | Target muscle name |
+| muscle_type | TEXT | 'Muscle' or 'MuscleGroup' |
+| role | TEXT | 'primary', 'secondary', or 'unknown' |
+| confidence | FLOAT | Relationship confidence score |
+| synced_at | TIMESTAMPTZ | Last sync timestamp |
+
+- **Rows**: 13,430
+- **Unique Exercises**: 4,240
+- **Unique Muscles**: 45
+- **Primary targets**: 5,741 | **Secondary targets**: 7,684
+- **Sync**: `sync_pipeline.py --step relationships`
+
+---
+
+### Views Built on Cache
+
+| View | Purpose | Query |
+|------|---------|-------|
+| `pattern_last_trained` | Days since each movement pattern | `SELECT * FROM pattern_last_trained` |
+| `muscle_volume_weekly` | Sets/reps/volume per muscle per week | `SELECT * FROM muscle_volume_weekly WHERE role = 'primary'` |
+
+**Sync Script**: `scripts/sync_exercise_relationships.py`
 
 ---
 

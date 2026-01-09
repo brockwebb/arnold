@@ -1,0 +1,58 @@
+{
+  "exercise_id": "CUSTOM:Bear-Hug_Step-Over",
+  "exercise_name": "Bear-Hug Step-Over",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "bear hug carry step over muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Bear-Hug Step-Over, a functional movement, primarily targets your core, glutes, and quads (legs) while improving posture, balance, and upper back mobility by mimicking carrying a heavy object (like with a sandbag or kettlebell) and stepping over an obstacle. It works the pectoralis major, anterior deltoids, and biceps for the \"hug\" and serratus anterior, rhomboids, and traps for shoulder blade control, enhancing overall full-body strength and coordination. [1, 2, 3, 4, 5, 6]  \nMuscles Worked \n\n\u2022 Primary Movers (Legs & Core): \n\n    \u2022 Glutes & Quadriceps (Quads): Essential for lifting the leg over the obstacle and stabilizing the body. \n    \u2022 Core (Abs, Obliques, Lower Back): Maintains torso stability and prevents rounding during the carry and step. \n\n\u2022 Supporting & Stabilizing Muscles (Upper Body): \n\n    \u2022 Pectoralis Major & Anterior Deltoids (Chest & Front Shoulders): Engaged to maintain the \"hug\" position, squeezing the load. \n    \u2022 Serratus Anterior, Rhomboids, Trapezius (Upper Back): Work to control and protract the shoulder blades, crucial for wrapping them around the load. \n    \u2022 Biceps: Assist in flexing the elbows to hold the object close. \n    \u2022 Forearms/Grip: Key for holding the weight (sandbag, kettlebell). [1, 2, 3, 4, 5, 7, 8, 9]  \n\nMovement Patterns & Benefits \n\n\u2022 Loaded Carry Pattern: Simulates carrying heavy, awkward objects, building functional strength and improving grip and core endurance. \n\u2022 Dynamic Mobility: Improves thoracic (upper back) mobility and scapular (shoulder blade) protraction, helping with posture and breathing. \n\u2022 Full-Body Integration: Connects lower body power with upper body stability, training the body to move as one unit. \n\u2022 Balance & Coordination: The uneven load and stepping motion challenge balance and coordination, translating to real-life movements. [2, 3, 6, 8]  \n\nHow it Works (General Steps) \n\n1. Load: Secure a weight (sandbag, kettlebell) in a bear hug position (clutched to your chest). \n2. Carry/Walk: Walk with the weight held tight, focusing on bracing your core and squeezing the load. \n3. Step-Over: Step over an imaginary or physical obstacle, lifting your knees high and maintaining the hug. \n4. Repeat: Alternate sides for a continuous, full-body challenge. [3, 4, 5, 6, 10]  \n\n**Citations:**\n\n[1]\u00a0https://www.dailymotion.com/video/x3gq2kb\n[2]\u00a0https://www.youtube.com/watch?v=blmPW-pZc6k\n[3]\u00a0https://www.instagram.com/reel/C1JXNK7tEpr/\n[4]\u00a0https://www.instagram.com/reel/DRuyGSrCroo/\n[5]\u00a0https://fitnessvolt.com/bear-hug-squats/\n[6]\u00a0https://gmb.io/bear/\n[7]\u00a0https://www.tampabay.com/news/aging/lifetimes/get-your-hugging-muscles-tuned-up/1231670/\n[8]\u00a0https://www.youtube.com/watch?v=4vgCwN60MQo\n[9]\u00a0https://exercises.virtuagym.com/exercise/sandbag-bear-hug-lunge/\n[10]\u00a0https://www.youtube.com/watch?v=kolt5gVvgsM\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Loaded Carry",
+      "confidence": 1.0
+    },
+    {
+      "name": "Hip Flexion",
+      "confidence": 0.8
+    },
+    {
+      "name": "Knee Extension",
+      "confidence": 0.7
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Anti-Lateral Flexion",
+      "confidence": 0.7
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.8
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Gluteus Maximus",
+      "Rectus Femoris",
+      "Rectus Abdominis",
+      "External Obliques",
+      "Erector Spinae"
+    ],
+    "secondary": [
+      "Pectoralis Major",
+      "Deltoid (Anterior)",
+      "Biceps Brachii",
+      "Serratus Anterior",
+      "Rhomboids",
+      "Trapezius",
+      "Forearm Flexors",
+      "Transverse Abdominis"
+    ]
+  },
+  "processed_at": "2026-01-07T22:04:29.210655"
+}

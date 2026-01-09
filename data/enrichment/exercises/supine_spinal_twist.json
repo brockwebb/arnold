@@ -1,0 +1,35 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:SUPINE_SPINAL_TWIST",
+  "exercise_name": "Supine Spinal Twist",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "supine spinal twist muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Supine Spinal Twist works core muscles (obliques, lower back), glutes, hips, and shoulders while stretching the spine, chest, and hamstrings, improving spinal mobility through a gentle rotation (thoracic and lumbar) and hip release, making it great for tension relief, digestion, and cool-downs. [1, 2, 3, 4]  \nMuscles Worked (Stretched & Engaged) \n\n\u2022 Primary: Obliques (side abs), Lower Back (Quadratus Lumborum - QL). \n\u2022 Secondary: Glutes (especially Piriformis), Hips, Shoulders, Chest, Hamstrings, Abdominal muscles (toned). [1, 2, 3, 5, 6, 7, 8]  \n\nMovement Patterns \n\n\u2022 Spinal Rotation (Torso): The primary movement is a gentle twist or rotation of the thoracic (upper) and lumbar (lower) spine. \n\u2022 Hip External Rotation: The hips rotate as the knees drop to one side. \n\u2022 Core Stabilization: The core muscles (obliques, transverse abdominis) engage to control the movement and keep the upper body stable. \n\u2022 Shoulder Stabilization & Chest Opening: The arms extend, stretching the shoulders and opening the chest. \n\u2022 Gentle Lengthening: Deep stretches occur in the glutes, hips, QL, and hamstrings. [2, 3, 4, 7, 8, 9, 10]  \n\nKey Benefits \n\n\u2022 Releases tension in the back, hips, and shoulders. \n\u2022 Improves spinal mobility and flexibility. \n\u2022 Massages abdominal organs, aiding digestion. \n\u2022 Aids in relaxation and stress relief. [2, 4, 7, 11]  \n\nHow to Perform (Basic Movement) \n\n1. Lie on your back (supine). \n2. Hug knees to chest or extend arms out to the sides (T-shape). \n3. Slowly drop bent knees to one side, keeping shoulders grounded. \n4. Turn your head away from the knees (optional). \n5. Hold, breathing deeply, then switch sides. [3, 4, 12]  \n\n**Citations:**\n\n[1]\u00a0https://www.trainfitness.ai/exercises/supineSpinalTwistPose\n[2]\u00a0https://www.today.com/health/diet-fitness/supine-spinal-twist-rcna148101\n[3]\u00a0https://liforme.com/blogs/blog/how-to-do-supine-spinal-twist-pose-supta-matsyendrasana\n[4]\u00a0https://myyogateacher.com/yoga-asana/supta-matsyendrasana-supine-spinal-twist\n[5]\u00a0https://www.tummee.com/yoga-poses/supine-spinal-twist-yoga-pose-i\n[6]\u00a0https://www.tummee.com/yoga-poses/supine-spinal-twist-pose-ii\n[7]\u00a0https://www.verywellfit.com/supine-spinal-twist-supta-matsyendrasana-3567125\n[8]\u00a0https://homeworkouts.org/exercise/supine-spinal-twist-pose/\n[9]\u00a0https://www.yogabasics.com/asana/knee-down-twist/\n[10]\u00a0https://www.physioelementsny.com/blog/2017/03/01/pilates-exercise-dissection-spine-twist-supine/\n[11]\u00a0https://www.youtube.com/watch?v=ezyMaQEaVaI\n[12]\u00a0https://dieringe.com/exercises/spine-twist\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Trunk Rotation",
+      "confidence": 0.9
+    },
+    {
+      "name": "Mobility",
+      "confidence": 0.8
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "External Obliques",
+      "Internal Obliques",
+      "Quadratus Lumborum"
+    ],
+    "secondary": [
+      "Gluteus Maximus",
+      "Transverse Abdominis",
+      "Erector Spinae"
+    ]
+  },
+  "processed_at": "2026-01-08T08:36:14.396800"
+}

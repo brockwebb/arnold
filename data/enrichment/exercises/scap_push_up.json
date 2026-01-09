@@ -1,0 +1,37 @@
+{
+  "exercise_id": "CUSTOM:Scap_Push-Up",
+  "exercise_name": "Scap Push-Up",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "scapular push-up muscles worked",
+    "retrieved_at": "Scap",
+    "raw_text": "Scap Push-Ups primarily target the Serratus Anterior (protraction) and Rhomboids (retraction) for shoulder blade stability, alongside the Traps, Pecs, and Core, using a movement pattern of scapular protraction (pushing shoulder blades apart) and retraction (squeezing them together) in a plank, focusing on shoulder movement without bending elbows to build shoulder health and posture. [1, 2, 3, 4]  \nMuscles Worked \n\n\u2022 Primary Movers: \n\n    \u2022 Serratus Anterior: Key for pushing shoulder blades away from the spine (protraction). \n    \u2022 Rhomboids (Major & Minor): Squeeze shoulder blades together (retraction). \n\n\u2022 Stabilizers & Synergists: \n\n    \u2022 Trapezius (Upper, Middle, Lower): Assists in elevation, depression, and stabilization. \n    \u2022 Pectoralis Minor: Helps with protraction. \n    \u2022 Levator Scapulae: Connects shoulder blade to neck, aids elevation. \n    \u2022 Core (Abs, Obliques): Keeps the body in a rigid plank. [1, 2, 3, 5]  \n\nMovement Pattern \n\n1. Starting Position: High plank with hands under shoulders, elbows straight, body in a straight line. \n2. Protraction (Pushing Away): Push your upper body away from the floor by spreading your shoulder blades apart, rounding your upper back slightly; keep elbows locked. \n3. Retraction (Squeezing In): Allow your chest to sink towards the floor as you squeeze your shoulder blades together, bringing your body lower. \n4. Repetition: Smoothly transition between protraction and retraction, moving only the shoulder blades, not bending elbows or sagging the back. [1, 3, 6, 7]  \n\n**Citations:**\n\n[1]\u00a0https://www.instagram.com/reel/DRO9gzsADBA/\n[2]\u00a0https://nielasher.com/blogs/strength-and-conditioning/the-scapula-push-up\n[3]\u00a0https://www.masterclass.com/articles/scapular-push-ups-guide\n[4]\u00a0https://www.instagram.com/reel/DAWeEcgvg0y/\n[5]\u00a0https://backmusclesolutions.com/blogs/the-ql-blawg/scapular-push-ups\n[6]\u00a0https://blog.overtimeathletes.com/try-scap-push-ups/\n[7]\u00a0https://www.youtube.com/watch?v=LeMk15TN0No\n\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Scapular Retraction",
+      "confidence": 1.0
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.7
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Serratus Anterior",
+      "Rhomboids"
+    ],
+    "secondary": [
+      "Trapezius (Upper)",
+      "Trapezius (Middle)",
+      "Trapezius (Lower)",
+      "Pectoralis Minor",
+      "Rectus Abdominis",
+      "External Obliques",
+      "Transverse Abdominis"
+    ]
+  },
+  "processed_at": "2026-01-07T15:09:38.482994"
+}

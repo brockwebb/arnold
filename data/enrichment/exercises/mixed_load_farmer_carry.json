@@ -1,0 +1,54 @@
+{
+  "exercise_id": "CUSTOM:Mixed_Load_Farmer_Carry",
+  "exercise_name": "Mixed Load Farmer Carry",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "farmer carry muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Mixed Load Farmer's Carry is a full-body functional exercise that develops grip, core stability, and overall strength by working nearly every major muscle group, including forearms, traps, shoulders, lats, core (abs, obliques, erectors), glutes, quads, hamstrings, and calves, as you walk while holding heavy, potentially mismatched, weights (e.g., a dumbbell in one hand and a kettlebell in the other). The movement pattern is a dynamic, braced walk, emphasizing posture, anti-rotation, and hip/spine stability under load, making it highly transferable to real-life strength demands. [1, 2, 3, 4, 5, 6]  \nMuscles Worked \n\n\u2022 Grip & Forearms: Finger flexors, extensors, and wrist stabilizers (limiting factor for many). \n\u2022 Upper Back: Traps, lats, and rhomboids for shoulder stability and upright posture. \n\u2022 Shoulders: Deltoids (anterior, lateral, posterior) for stability. \n\u2022 Core: Rectus abdominis, obliques, transverse abdominis, and erector spinae (spinal extensors) to resist sway and rotation. \n\u2022 Glutes: Hip extensors and stabilizers (medius/minimus) for powerful strides and hip levelness. \n\u2022 Legs: Quadriceps, hamstrings, and calves for stabilization and forward propulsion with each step. [1, 3, 4, 5, 7, 8, 9]  \n\nThis video demonstrates how to perform the Farmer's Carry: \nMovement Pattern \n\n1. Setup: Hinge at the hips to grip heavy weights (different types/sizes for \"mixed load\") with a neutral spine, chest up, shoulders packed down and back. \n2. Initiation: Stand tall, squeezing glutes and bracing core before taking the first step. \n3. Locomotion: Walk with controlled, deliberate steps, maintaining upright posture and preventing weights from swinging or hitting legs. \n4. Core Engagement: Actively resist lateral flexion (leaning to the side) and rotation, especially crucial with unequal loads (like a suitcase carry variation). \n5. Finish: Walk for distance or time, focusing on smooth, rhythmic movement and maintaining tension. [2, 3, 8, 10, 11]  \n\nKey Benefits \n\n\u2022 Total Body Strength: Functional strength transferable to daily life. \n\u2022 Grip Endurance: Builds incredible hand and forearm strength. \n\u2022 Core Stability: Enhances ability to stabilize the spine and resist movement. \n\u2022 Posture Improvement: Strengthens muscles that support an upright stance. [1, 3, 4, 6, 8]  \n\n**Citations:**\n\n[1]\u00a0https://www.gymshark.com/blog/article/guide-to-the-farmers-carry\n[2]\u00a0https://learn.athleanx.com/articles/how-to-do-the-farmers-carry\n[3]\u00a0https://pmc.ncbi.nlm.nih.gov/articles/PMC11042841/\n[4]\u00a0https://www.verywellfit.com/how-to-do-a-farmer-carry-techniques-benefits-variations-4796615\n[5]\u00a0https://defined.com/what-is-a-farmers-carry/\n[6]\u00a0https://mtntough.com/blogs/mtntough-blog/farmer-walk-benefits\n[7]\u00a0https://bulldoggear.com/blogs/news/copy-of-minimal-kit-maximum-progress\n[8]\u00a0https://www.youtube.com/watch?v=JgiEIPi7g7Y\n[9]\u00a0https://www.healthline.com/nutrition/farmers-walk-benefits\n[10]\u00a0https://www.catalystathletics.com/exercise/514/Single-Arm-Farmer-Carry/\n[11]\u00a0https://www.soletreadmills.com/blogs/news/farmers-walk-vs-suitcase-carry-differences-weight-muscles-worked\n\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Loaded Carry",
+      "confidence": 1.0
+    },
+    {
+      "name": "Anti-Lateral Flexion",
+      "confidence": 0.9
+    },
+    {
+      "name": "Anti-Rotation",
+      "confidence": 0.8
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.9
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Forearm Flexors",
+      "Trapezius (Upper)",
+      "Erector Spinae",
+      "Rectus Abdominis",
+      "External Obliques"
+    ],
+    "secondary": [
+      "Forearm Extensors",
+      "Deltoid (Anterior)",
+      "Deltoid (Lateral)",
+      "Deltoid (Posterior)",
+      "Latissimus Dorsi",
+      "Rhomboids",
+      "Internal Obliques",
+      "Transverse Abdominis",
+      "Gluteus Maximus",
+      "Gluteus Medius",
+      "Rectus Femoris",
+      "Biceps Femoris",
+      "Gastrocnemius"
+    ]
+  },
+  "processed_at": "2026-01-07T15:08:31.536056"
+}

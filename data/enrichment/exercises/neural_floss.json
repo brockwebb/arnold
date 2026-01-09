@@ -1,0 +1,56 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:NEURAL_FLOSS",
+  "exercise_name": "Neural Floss",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "nerve flossing muscles worked benefits",
+    "retrieved_at": "Nerve",
+    "raw_text": "Nerve flossing (or gliding) targets major nerves (Median, Ulnar, Radial, Sciatic) by using gentle, alternating movements to help them slide through tight tissues, not primarily working muscles, but mobilizing nerves, improving blood flow, and restoring function, often alleviating pain/tingling from conditions like sciatica or carpal tunnel by reducing nerve compression, using movement patterns like extending/flexing joints to relieve tension along the nerve's path. [1, 2, 3, 4]  \nMuscles Worked (Indirectly) \n\n\u2022 Nerve flossing focuses on the nerves themselves, but the surrounding muscles facilitate the movements, including: \n\n    \u2022 Upper Body: Shoulder depressors/elevators, elbow flexors/extensors (triceps/biceps), wrist/finger extensors/flexors (forearm muscles). \n    \u2022 Lower Body: Hip flexors/extensors, hamstrings, glutes, calf muscles, depending on the nerve being flossed (e.g., sciatic nerve). [2, 3, 5, 6, 7]  \n\nMovement Patterns (Nerve Gliding) \n\n\u2022 Principle: Creates a back-and-forth motion, alternately lengthening and shortening the nerve's path, unlike a static stretch. \n\u2022 Key Patterns: \n\n    \u2022 Tension & Release: Gently pulling one end of the nerve taut (e.g., extending elbow) and then relaxing it (e.g., flexing elbow/wrist). \n    \u2022 Glide & Slide: Moving joints in sequence to help the nerve \"floss\" through surrounding muscle and fascia. \n\n\u2022 Examples by Nerve: \n\n    \u2022 Sciatic Nerve: Sitting/standing, extending/flexing the knee and ankle, or tilting head while moving leg. \n    \u2022 Median/Ulnar/Radial Nerves (Arm): Moving shoulder, elbow, wrist, and fingers together in a coordinated sequence (e.g., depressing shoulder, flexing elbow, extending wrist/fingers). [1, 2, 3, 5, 6, 7, 8, 9, 10]  \n\nGoal & Sensation \n\n\u2022 Goal: Improve nerve mobility, reduce adhesions/inflammation, restore blood flow, relieve pain/tingling/numbness. \n\u2022 Sensation: Should feel like a gentle tension or \"glide,\" not sharp pain; any numbness/tingling should disappear quickly after the movement. [1, 5, 8, 11, 12]  \n\n**Citations:**\n\n[1]\u00a0https://myevolvechiropractor.com/introduction-to-nerve-flossing/\n[2]\u00a0https://www.medicalnewstoday.com/articles/nerve-flossing\n[3]\u00a0https://www.yogajournal.com/practice/yoga-sequences/gentle-yoga-sequence-to-target-your-nerves/\n[4]\u00a0https://www.verywellhealth.com/nerve-flossing-in-physical-therapy-4797516\n[5]\u00a0https://chiroup.com/blog/the-top-3-nerve-flossing-techniques-every-chiropractor-must-know-and-why-you-cant-ignore-them\n[6]\u00a0https://www.goodmancampbell.com/2025/12/sciatic-nerve-flossing/\n[7]\u00a0https://www.tummee.com/yoga-poses/seated-sciatic-nerve-floss-exercise\n[8]\u00a0https://www.benchmarkpt.com/blog/non-surgical-solutions-for-nerve-pain-relief/\n[9]\u00a0https://apexptwellness.com/nerve-flossing-the-key-to-pain-relief-flexibility-and-improved-functioning/\n[10]\u00a0https://www.hingehealth.com/resources/articles/nerve-flossing/\n[11]\u00a0https://www.peakperformancechiropracticwny.com/how-to-floss-your-nerves\n[12]\u00a0https://www.youtube.com/watch?v=AzHm4rti6D0\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Mobility",
+      "confidence": 1.0
+    },
+    {
+      "name": "Elbow Extension",
+      "confidence": 0.7
+    },
+    {
+      "name": "Elbow Flexion",
+      "confidence": 0.7
+    },
+    {
+      "name": "Knee Extension",
+      "confidence": 0.6
+    },
+    {
+      "name": "Knee Flexion",
+      "confidence": 0.6
+    },
+    {
+      "name": "Ankle Dorsiflexion",
+      "confidence": 0.6
+    },
+    {
+      "name": "Ankle Plantarflexion",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [],
+    "secondary": [
+      "Biceps Brachii",
+      "Triceps Brachii",
+      "Forearm Flexors",
+      "Forearm Extensors",
+      "Hamstrings",
+      "Gluteus Maximus",
+      "Gastrocnemius",
+      "Soleus"
+    ]
+  },
+  "processed_at": "2026-01-08T08:34:40.936489"
+}

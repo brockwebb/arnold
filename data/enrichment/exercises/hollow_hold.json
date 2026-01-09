@@ -1,0 +1,35 @@
+{
+  "exercise_id": "CUSTOM:Hollow_Hold",
+  "exercise_name": "Hollow Hold",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "hollow hold muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Hollow Hold is a full-body isometric exercise, primarily working your core (rectus abdominis, transverse abdominis, obliques) to stabilize the spine by preventing arching, while also engaging hip flexors, quads, lower back muscles (erector spinae, quadratus lumborum), shoulders (deltoids, pecs), and neck muscles to maintain the static, \"hollow\" shape against gravity, teaching core tension and spinal bracing for other movements. [1, 2, 3, 4, 5]  \nMuscles Worked \n\n\u2022 Core (Primary): Rectus Abdominis, Transverse Abdominis, Obliques. \n\u2022 Legs: Quadriceps, Hip Flexors (to keep legs lifted and straight). \n\u2022 Back: Erector Spinae, Quadratus Lumborum (to press lower back down). \n\u2022 Shoulders/Chest: Deltoids, Pectorals (to keep arms overhead). \n\u2022 Neck: Muscles stabilizing the head. [1, 2, 3, 4]  \n\nMovement Pattern \n\n\u2022 Type: Isometric Anti-Extension. \n\u2022 Action: Your core muscles contract to resist extension (arching) of the lower back, creating a rigid, braced posture. \n\u2022 Goal: To maintain a \"hollow\" shape where the lower back is pressed flat to the floor, ribs down, with limbs extended away from the body, challenging your entire anterior chain. [2, 5, 6, 7, 8]  \n\nHow it Works \nYou hold a static position, preventing movement, forcing deep core muscles to work hard to keep your spine stable and protect it from gravity's pull, building essential bracing skills for exercises like squats, deadlifts, and handstands. [2, 5, 6, 8]  \n\n**Citations:**\n\n[1]\u00a0https://www.onepeloton.com/blog/hollow-hold\n[2]\u00a0https://barbend.com/hollow-hold/\n[3]\u00a0https://www.muscleandfitness.com/workouts/abs-and-core-exercises/hollow-hold-exercise-how-to-benefits-variant/\n[4]\u00a0https://www.hingehealth.com/resources/articles/hollow-body-hold/\n[5]\u00a0https://dieringe.com/exercises/hollow-body-hold\n[6]\u00a0https://www.youtube.com/watch?v=HAfUt2Cco74\n[7]\u00a0https://www.muscleandstrength.com/exercises/hollow-body-hold\n[8]\u00a0https://www.bodi.com/blog/hollow-body-hold\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Anti-Extension",
+      "confidence": 1.0
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Rectus Abdominis",
+      "Transverse Abdominis",
+      "External Obliques",
+      "Internal Obliques"
+    ],
+    "secondary": [
+      "Iliopsoas",
+      "Rectus Femoris",
+      "Erector Spinae",
+      "Quadratus Lumborum",
+      "Deltoid (Anterior)",
+      "Pectoralis Major"
+    ]
+  },
+  "processed_at": "2026-01-07T22:06:06.569694"
+}

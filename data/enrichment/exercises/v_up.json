@@ -1,0 +1,39 @@
+{
+  "exercise_id": "CUSTOM:V-Up",
+  "exercise_name": "V-Up",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "v-up exercise muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The V-Up is a full-body core exercise primarily targeting the rectus abdominis, obliques, and hip flexors, while also engaging legs (hamstrings, quads, glutes) and shoulders for stabilization, requiring simultaneous lifting of the torso and legs into a 'V' shape from a flat starting position, demanding significant core strength and coordination for controlled movement. [1, 2, 3, 4]  \nMuscles Worked \n\n\u2022 Primary: Rectus Abdominis (the \"six-pack\" muscles). \n\u2022 Secondary: Obliques, Transverse Abdominis (deeper core), Hip Flexors (iliopsoas, rectus femoris). \n\u2022 Stabilizers: Glutes, Hamstrings, Quadriceps, Shoulders (Deltoids), Upper Back (Erector Spinae). [3, 4]  \n\nMovement Pattern \n\n1. Starting Position: Lie flat on your back, arms extended overhead, legs straight, forming a line with your body. \n2. Concentric (Lifting) Phase: Exhale as you simultaneously lift your legs and torso off the floor, keeping your legs relatively straight, crunching your abs to bring your hands towards your feet (or shins) to form a 'V' shape. \n3. Peak Contraction: Squeeze your abs at the top, keeping your back straight to avoid arching. \n4. Eccentric (Lowering) Phase: Inhale as you slowly and controlled lower your torso and legs back to the starting position, maintaining core tension. [2, 3, 4, 5, 6]  \n\nKey Technique Points \n\n\u2022 Coordination: This is a full-body movement requiring simultaneous lift. \n\u2022 Control: Avoid using momentum; focus on slow, controlled movements to maximize core engagement. \n\u2022 Breathing: Exhale on exertion (lifting), inhale on return (lowering). \n\u2022 Progression: Start with variations like reverse crunches or bent-knee leg raises to build strength before attempting full V-ups. [5, 6, 7, 8]  \n\n**Citations:**\n\n\n[1]\u00a0https://www.masterclass.com/articles/v-ups-exercise-guide\n[2]\u00a0https://classpass.com/movements/v-up\n[3]\u00a0https://www.hevyapp.com/exercises/how-to-v-up/\n[4]\u00a0https://www.webmd.com/fitness-exercise/how-to-do-v-ups\n[5]\u00a0https://fitbod.me/exercises/v-up\n[6]\u00a0https://spotebi.com/exercise-guide/v-ups/\n[7]\u00a0https://www.youtube.com/watch?v=IVT6jzZdxz0\n[8]\u00a0https://www.youtube.com/watch?v=nfWQihJo-Mc\n\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Spinal Flexion",
+      "confidence": 0.95
+    },
+    {
+      "name": "Hip Flexion",
+      "confidence": 0.9
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Rectus Abdominis",
+      "Iliopsoas"
+    ],
+    "secondary": [
+      "External Obliques",
+      "Internal Obliques",
+      "Transverse Abdominis",
+      "Rectus Femoris",
+      "Hamstrings",
+      "Gluteus Maximus",
+      "Deltoid (Anterior)",
+      "Erector Spinae"
+    ]
+  },
+  "processed_at": "2026-01-07T22:05:30.578063"
+}

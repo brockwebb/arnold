@@ -1,0 +1,43 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:TUCKED_HANG",
+  "exercise_name": "Tucked Hang",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "tucked hang muscles worked",
+    "retrieved_at": "A",
+    "raw_text": "A Tucked Hang (or Hanging Knee Tuck) primarily targets your core (abs, obliques), hip flexors, and grip strength (forearms), while also engaging the lats and upper back for stability; the movement pattern involves a controlled lift of the knees to the chest (hip flexion/spinal flexion) from a dead hang, requiring isometric strength and control to prevent swinging. [1, 2, 3, 4, 5]  \nMuscles Worked \n\n\u2022 Primary: \n\n    \u2022 Rectus Abdominis & Transverse Abdominis: For spinal flexion and core bracing. \n    \u2022 Hip Flexors (Iliopsoas): To bring the knees up. \n    \u2022 Forearms: For grip endurance. \n\n\u2022 Secondary/Stabilizers: \n\n    \u2022 Latissimus Dorsi (Lats): Engage to keep the body stable and control the descent. \n    \u2022 Obliques: For rotational stability (especially in twisting variations) and core bracing. \n    \u2022 Scapular Stabilizers (Rhomboids, Traps): To keep shoulders down and packed. \n    \u2022 Biceps: Isometrically to stabilize the arms. [1, 2, 3, 5, 6, 7, 8]  \n\nMovement Patterns \n\n1. Start: Begin in a full dead hang, gripping the bar with palms facing forward (or neutral grip for more lat activation). \n2. Engage: Pull your shoulder blades down (scapular depression) and brace your core, tucking your pelvis slightly. \n3. Lift (Hip & Spinal Flexion): Drive your knees up towards your chest (thighs parallel to the floor or higher), bending at the hips and flexing the spine. \n4. Control: Lower back down slowly and with resistance, preventing your body from swinging like a pendulum. \n5. Core Focus: Think about rounding your spine and bringing your pelvis to your ribs, rather than just pulling with your legs. [1, 2, 3, 6, 9]  \n\nThis exercise is excellent for building foundational core and grip strength needed for more advanced calisthenics like L-sits and front levers. [1, 7]  \n\n**Citations:**\n\n[1]\u00a0https://www.youtube.com/watch?v=DtH3vuh65Iw\n[2]\u00a0https://www.facebook.com/muscleandmotion/videos/leg-tuck-ltk-anatomical-kinesiological-analysis/613713696232534/\n[3]\u00a0https://www.youtube.com/watch?v=RhO6hiQyGiI\n[4]\u00a0https://www.masterclass.com/articles/tuck-ups-exercise-guide\n[5]\u00a0https://www.puregym.com/exercises/abs/hanging-knee-raises/\n[6]\u00a0https://www.youtube.com/watch?v=X-ACS9vpRyU\n[7]\u00a0https://calisthenics.com/exercise/advanced-tuck-front-lever/\n[8]\u00a0https://www.youtube.com/watch?v=7rWHfNTmEuo\n[9]\u00a0https://www.youtube.com/watch?v=DtH3vuh65Iw\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Hip Flexion",
+      "confidence": 0.9
+    },
+    {
+      "name": "Spinal Flexion",
+      "confidence": 0.8
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.9
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Rectus Abdominis",
+      "Iliopsoas",
+      "Forearm Flexors"
+    ],
+    "secondary": [
+      "Latissimus Dorsi",
+      "External Obliques",
+      "Internal Obliques",
+      "Transverse Abdominis",
+      "Biceps Brachii",
+      "Rhomboids",
+      "Trapezius (Lower)"
+    ]
+  },
+  "processed_at": "2026-01-08T08:36:27.579524"
+}

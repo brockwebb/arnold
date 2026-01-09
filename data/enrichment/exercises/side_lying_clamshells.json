@@ -1,0 +1,33 @@
+{
+  "exercise_id": "CUSTOM:Side-Lying_Clamshells",
+  "exercise_name": "Side-Lying Clamshells",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "clamshell exercise muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Side-Lying Clamshell primarily targets the gluteus medius, responsible for hip abduction (lifting the knee out) and stabilization, with secondary activation of the gluteus maximus, minimus, and tensor fasciae latae (TFL) for hip rotation and stability, working the movement pattern of hip abduction with external rotation while keeping the pelvis still for core control. It's excellent for hip and lower back health, teaching proper glute engagement for walking, running, and preventing knee/back pain. [1, 2, 3, 4, 5, 6]  \nMuscles Worked \n\n\u2022 Primary: Gluteus Medius (hip abductor, stabilizer) \n\u2022 Secondary: Gluteus Maximus, Gluteus Minimus, Tensor Fasciae Latae (TFL) (hip stabilizers, rotators) \n\u2022 Core: External Obliques (for pelvic stability) [1, 2, 4, 6, 7]  \n\nMovement Pattern \n\n1. Starting Position: Lie on your side with knees bent (around 45-60 degrees), feet stacked, and hips/shoulders aligned. \n2. Action (Hip Abduction & External Rotation): Keeping your heels together and hips stable (no rolling back), lift your top knee upward, opening your legs like a clamshell. \n3. Control: Exhale as you lift, focusing on the glute, and slowly lower back down, maintaining core engagement. \n4. Key Focus: Prevent your torso from rotating backward to ensure glute activation over momentum. [2, 7, 8, 9]  \n\nBenefits & Purpose \n\n\u2022 Glute Activation: Teaches the glutes to fire correctly, improving squats and functional movement. \n\u2022 Injury Prevention: Strengthens stabilizing muscles around the hip, protecting the lower back and knees. \n\u2022 Rehabilitation: Used for hip/back injuries because it's low-impact and isolates key muscles. [1, 3, 5, 10, 11]  \n\n**Citations:**\n\n[1]\u00a0https://www.bodi.com/blog/clamshell-exercise\n[2]\u00a0https://www.muscleandstrength.com/exercises/side-lying-clam\n[3]\u00a0https://www.hingehealth.com/resources/articles/clamshell/\n[4]\u00a0https://www.issaonline.com/blog/post/why-you-should-be-doing-the-clamshell-exercise-regularly\n[5]\u00a0https://www.sports-injury-physio.com/post/the-clamshells-exercise-benefits-variation-and-progressions\n[6]\u00a0https://pmc.ncbi.nlm.nih.gov/articles/PMC10315199/\n[7]\u00a0https://www.hawkstonept.com/exercise-of-the-month/clamshells-the-best-exercise-youre-probably-doing-wrong\n[8]\u00a0https://www.nmrnj.com/side-lying-bridge-with-clamshell/\n[9]\u00a0https://muscleandhealth.com/muscle/all-you-need-to-know-about-the-side-lying-clam/\n[10]\u00a0https://pmc.ncbi.nlm.nih.gov/articles/PMC3418110/\n[11]\u00a0https://www.setforset.com/blogs/news/clamshell-exercises\n\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Hip Abduction",
+      "confidence": 0.95
+    },
+    {
+      "name": "Anti-Lateral Flexion",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Gluteus Medius"
+    ],
+    "secondary": [
+      "Gluteus Maximus",
+      "Gluteus Minimus",
+      "Tensor Fasciae Latae",
+      "External Obliques"
+    ]
+  },
+  "processed_at": "2026-01-07T15:11:00.291429"
+}

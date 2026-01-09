@@ -1,0 +1,49 @@
+{
+  "exercise_id": "CUSTOM:Box_Step-Up",
+  "exercise_name": "Box Step-Up",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "box step up muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Box Step-Up is a unilateral compound exercise primarily working the glutes, quadriceps, and hamstrings, with significant core engagement for stability, mimicking climbing stairs or jumping for functional strength, balance, and power in the lower body. Key muscles include the gluteus maximus, quads, hamstrings, calves, and hip flexors, while the core (abdominals, spinal erectors) stabilizes the torso. The movement pattern involves driving up through the heel of the working leg, extending the hip and knee, and controlling the descent, improving unilateral strength and coordination. [1, 2, 3, 4, 5]  \nThis video demonstrates the correct form for a box step-up: \nMuscles Worked \n\n\u2022 Primary Movers (Working Leg): \n\n    \u2022 Glutes (Gluteus Maximus): For hip extension to lift the body. \n    \u2022 Quadriceps: For knee extension. \n    \u2022 Hamstrings: Assists in hip extension and knee flexion control. \n\n\u2022 Stabilizers & Secondary Muscles: \n\n    \u2022 Core (Rectus Abdominis, Obliques, Erector Spinae): To keep the torso upright and stable. \n    \u2022 Hip Flexors: Assist in lifting the leg onto the box. \n    \u2022 Calves (Gastrocnemius, Soleus): Aid in ankle stability and final push-off. [1, 2, 4, 6, 7]  \n\nMovement Pattern \n\n1. Setup: Stand facing a sturdy box or bench, placing one foot fully on top. \n2. Ascent (Concentric): Drive through the heel of the foot on the box, extending the hip and knee to lift your entire body onto the platform. Keep your chest up and torso stable. \n3. Top: Briefly pause at the top, squeezing the glutes. \n4. Descent (Eccentric): Control the movement back down by slowly bending the hip and knee, returning the foot to the floor. \n5. Repetition: Continue with the same leg or alternate, ensuring full foot contact and controlled motion. [1, 2, 4, 8]  \n\nThis video shows how to perform a lateral box step-up: \nFunctional Benefits \n\n\u2022 Functional Strength: Mimics climbing stairs, jumping, and everyday movements. \n\u2022 Balance & Stability: Unilateral nature improves single-leg control. \n\u2022 Power: Develops hip extension power for sports like sprinting. \n\u2022 Corrects Imbalances: Addresses strength differences between legs. [2, 3, 4, 5, 9]  \n\nVariations \n\n\u2022 Low Box: Emphasizes quad development and knee extension. \n\u2022 Lateral Step-Up: Stepping up from the side for hip stability. \n\u2022 Weighted: Holding dumbbells or a barbell for increased resistance. [3, 4, 9, 10, 11]  \n\n**Citations:**\n\n[1]\u00a0https://www.crossfit.com/essentials/the-box-step-up\n[2]\u00a0https://www.groundforcestrength.com/post/exercises-to-improve-sprinting-the-box-step-up\n[3]\u00a0https://blog.overtimeathletes.com/mastering-dumbbell-step-ups/\n[4]\u00a0https://www.instagram.com/reel/DGV6tLSRCwg/\n[5]\u00a0https://www.amrapantics.com/post/how-to-do-step-ups\n[6]\u00a0https://www.facebook.com/groups/GoFitzy/posts/1762445053887838/\n[7]\u00a0https://outdoor-fit.com/plyo-box-station/step\n[8]\u00a0https://www.facebook.com/Shift4Life/videos/june-movement-of-the-month-curtsy-step-up-the-curtsy-step-up-is-an-excellent-low/1255836006222099/\n[9]\u00a0https://www.masterclass.com/articles/step-ups-exercise-guide\n[10]\u00a0https://www.instagram.com/reel/DGQVpplqHXi/\n[11]\u00a0https://www.opexfit.com/blog/the-step-up-exercise-select\n\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Hip Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Knee Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Hip Flexion",
+      "confidence": 0.7
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.6
+    },
+    {
+      "name": "Anti-Lateral Flexion",
+      "confidence": 0.5
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Gluteus Maximus",
+      "Rectus Femoris",
+      "Biceps Femoris"
+    ],
+    "secondary": [
+      "Iliopsoas",
+      "Gastrocnemius",
+      "Soleus",
+      "Rectus Abdominis",
+      "External Obliques",
+      "Erector Spinae"
+    ]
+  },
+  "processed_at": "2026-01-07T15:08:35.811763"
+}

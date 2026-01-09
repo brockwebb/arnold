@@ -1,0 +1,51 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:SPIDERMAN_LUNGES",
+  "exercise_name": "Spiderman Lunges",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "spiderman lunge stretch muscles worked",
+    "retrieved_at": "Spiderman",
+    "raw_text": "Spiderman Lunges are a dynamic mobility exercise primarily targeting hip flexors, glutes, hamstrings, and inner thighs (adductors), while also engaging the core, lower back, and even chest/shoulders (especially with rotations) for stabilization, improving overall hip flexibility and range of motion from a high plank position with forward foot placement and deep hip movement. The movement pattern involves transitioning from a plank, stepping one foot outside the hand, and deepening the lunge, often adding torso rotations for a full-body stretch and core engagement. [1, 2, 3, 4, 5, 6]  \nThis video demonstrates the basic Spiderman Lunge: \nMuscles Worked \n\n\u2022 Primary Movers/Stretch Targets: Hip Flexors (Iliopsoas), Glutes (Maximus, Medius), Hamstrings, Adductors (inner thighs). \n\u2022 Stabilizers/Secondary: Core (Abdominals, Obliques), Lower Back, Chest, Shoulders, Triceps (especially with rotation variations). [1, 2, 3, 4, 7, 8]  \n\nMovement Pattern & Benefits \n\n\u2022 Start: High plank position, hands under shoulders, body in a straight line. \n\u2022 Action: Step one foot forward to the outside of the hand, lowering hips. \n\u2022 Deepening (Optional): Lower elbow/forearm towards the instep (same side as front foot) for a deeper stretch. \n\u2022 Rotation (Optional): Extend the same arm towards the ceiling, rotating the torso. \n\u2022 Return: Push off the front foot to return to the plank. \n\u2022 Key Benefit: Great for unlocking tight hips, improving hamstring/hip flexor flexibility, and core stabilization during movement. [2, 5, 6, 9, 10, 11]  \n\nThis video shows how to perform the Spiderman Lunge with a torso rotation: \n\n**Citations:**\n\n[1]\u00a0https://www.trainfitness.ai/exercises/spidermanLunge\n[2]\u00a0https://www.bodi.com/blog/spider-lunges\n[3]\u00a0https://www.rehabhero.ca/exercise/spiderman-lunge-stretch\n[4]\u00a0https://health.yahoo.com/wellness/fitness/exercise/articles/leapt-action-spiderman-stretch-week-084500138.html\n[5]\u00a0https://www.youtube.com/watch?v=AbLguLU9t34\n[6]\u00a0https://www.youtube.com/watch?v=-9R9aJuq7Vc\n[7]\u00a0https://www.youtube.com/watch?v=R1UvsRbMTGQ\n[8]\u00a0https://dieringe.com/exercises/spiderman-push-ups\n[9]\u00a0https://trifocusfitnessacademy.co.za/personal-fitness-training-blog/what-is-the-spiderman-lunge-exercise-learn-more-in-this-article/\n[10]\u00a0https://alloypersonaltraining.com/mobility-drill-spiderman/\n[11]\u00a0https://www.themanualtherapist.com/2020/11/top-5-fridays-5-spiderman-mobility.html\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Mobility",
+      "confidence": 1.0
+    },
+    {
+      "name": "Lunge",
+      "confidence": 0.9
+    },
+    {
+      "name": "Hip Flexion",
+      "confidence": 0.8
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.6
+    },
+    {
+      "name": "Trunk Rotation",
+      "confidence": 0.5
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Iliopsoas",
+      "Gluteus Maximus",
+      "Hamstrings",
+      "Hip Adductors"
+    ],
+    "secondary": [
+      "Rectus Abdominis",
+      "External Obliques",
+      "Erector Spinae",
+      "Pectoralis Major",
+      "Deltoid (Anterior)",
+      "Triceps Brachii"
+    ]
+  },
+  "processed_at": "2026-01-08T08:35:57.416955"
+}

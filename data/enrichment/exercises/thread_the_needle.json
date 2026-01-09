@@ -1,0 +1,41 @@
+{
+  "exercise_id": "CUSTOM:Thread-the-Needle",
+  "exercise_name": "Thread-the-Needle",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "thread the needle stretch muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Thread-the-Needle is a spinal rotation stretch from a tabletop position that targets the upper back (thoracic spine), shoulders (deltoids, rotator cuff), and latissimus dorsi, improving mobility and releasing tension by mimicking threading an arm under the body, opening the chest, and rotating the spine to improve posture and shoulder/mid-back flexibility. [1, 2, 3]  \nThis video demonstrates how to perform the Thread the Needle stretch: \nMuscles Worked/Stretched \n\n\u2022 Upper Back: Thoracic Spine (mid-back), Erector Spinae. \n\u2022 Shoulders: Deltoids (rear), Rotator Cuff. \n\u2022 Back: Latissimus Dorsi (lats). \n\u2022 Neck: Upper Trapezius, Levator Scapulae (helps relax these tension-prone muscles). \n\u2022 Chest: Pectorals (stretched as the chest opens). \n\u2022 Core: Stabilizers engaged to keep hips level (Serratus Anterior, abdominals). [1, 2, 3, 4, 5, 6]  \n\nMovement Pattern \n\n1. Start: Hands and knees (tabletop position), hands under shoulders, knees under hips, core engaged. \n2. Inhale & Open: Lift one arm (e.g., right) towards the ceiling, rotating the upper back and opening the chest. \n3. Exhale & Thread: Thread that arm under the supporting arm (left), bringing the shoulder and side of the head towards the floor. \n4. Hold/Deepen: Pause in the stretch, feeling the rotation; optionally reach the top arm forward or rotate the palm for a deeper stretch. \n5. Return: Inhale to lift back up, then exhale to return to tabletop. \n6. Repeat: Switch sides. [2, 6, 7, 8]  \n\nBenefits \n\n\u2022 Improves thoracic spine mobility (crucial for posture). \n\u2022 Relieves tension in shoulders, neck, and mid-back. \n\u2022 Enhances range of motion in the shoulder joint. \n\u2022 Connects mind and body for relaxation. [1, 2, 5, 9, 10]  \n\n**Citations:**\n\n[1]\u00a0https://www.hingehealth.com/resources/articles/thread-the-needle/\n[2]\u00a0https://www.onepeloton.com/blog/thread-the-needle-stretch\n[3]\u00a0https://www.threepillarsoffitness.com/how-to/thread-the-needle\n[4]\u00a0https://www.sandandsteelfitness.com/beginner-warmups-mobility/\n[5]\u00a0http://www.easyvigour.net.nz/fitness/h_Thread_Needle.htm\n[6]\u00a0https://www.youtube.com/watch?v=M8-bBGOilms\n[7]\u00a0https://www.youtube.com/watch?v=UomKzkyp6kQ\n[8]\u00a0https://www.youtube.com/watch?v=rmPP1bVn5XM\n[9]\u00a0https://complete-pilates.co.uk/thread-the-needle/\n[10]\u00a0https://www.olivianewstead.com/journal/poses-101-thread-the-needle\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Trunk Rotation",
+      "confidence": 0.95
+    },
+    {
+      "name": "Mobility",
+      "confidence": 0.9
+    },
+    {
+      "name": "Shoulder External Rotation",
+      "confidence": 0.7
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Erector Spinae",
+      "Deltoid (Posterior)",
+      "Rotator Cuff"
+    ],
+    "secondary": [
+      "Latissimus Dorsi",
+      "Trapezius (Upper)",
+      "Pectoralis Major",
+      "Serratus Anterior",
+      "External Obliques"
+    ]
+  },
+  "processed_at": "2026-01-07T22:03:25.543201"
+}

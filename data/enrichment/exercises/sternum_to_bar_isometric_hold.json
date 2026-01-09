@@ -1,0 +1,52 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:STERNUM_TO_BAR_ISOMETRIC_HOLD",
+  "exercise_name": "Sternum-to-Bar Isometric Hold",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "sternum to bar pull up hold muscles worked",
+    "retrieved_at": "A",
+    "raw_text": "A Sternum-to-Bar Isometric Hold, a variation of the Chest-to-Bar Pull-up, intensely activates your back (lats, rhomboids, traps), biceps, rear delts, forearms, and core (abs/obliques), holding at the top where your sternum touches the bar. This isometric (no movement) hold builds static strength and time under tension, focusing on deep mid-back engagement, scapular stability, and core bracing, making it excellent for developing pulling power for advanced calisthenics. [1, 2, 3, 4, 5]  \nMuscles Worked (Primary & Secondary) \n\n\u2022 Back: Latissimus Dorsi, Rhomboids, Trapezius (upper/mid). \n\u2022 Arms: Biceps, Brachialis, Brachioradialis (forearms). \n\u2022 Shoulders: Rear Deltoids, Rotator Cuff. \n\u2022 Core: Rectus Abdominis, Transverse Abdominis, Obliques (for torso stability). [1, 2, 4, 5, 6]  \n\nMovement Pattern & Key Focus \n\n1. Isometrics: The hold involves creating tension in the muscles without changing their length (no joint movement). \n2. Scapular Retraction & Depression: You're actively pulling your shoulder blades down and back (retraction) to bring the chest to the bar, engaging the mid-back. \n3. Elbow Flexion & Adduction: Biceps and lats work hard to keep the elbows bent and pulled back towards your body. \n4. Core Bracing: Your abdominals contract to prevent your lower back from arching (lumbar extension), keeping your torso stable. \n5. Time Under Tension: The goal is to hold this peak contraction for a set duration (e.g., 10-30 seconds), building strength in that specific pulling position. [1, 2, 3, 4, 5, 7, 8]  \n\nHow It Differs from Regular Pull-ups \n\n\u2022 Increased Range of Motion (ROM): Reaching the sternum requires pulling higher than a standard pull-up. \n\u2022 Greater Mid-Back Activation: More focus on upper back and scapular control. \n\u2022 Builds Strength in a Weak Point: Strengthens the top, most challenging part of the pull-up. [2, 8]  \n\n**Citations:**\n\n[1]\u00a0https://www.strengthlog.com/chest-to-bar/\n[2]\u00a0https://www.youtube.com/watch?v=Uvk1Zdjjtz8\n[3]\u00a0https://www.youtube.com/shorts/jXlRRMmdHMw\n[4]\u00a0https://www.hevyapp.com/exercises/sternum-pull-up-gironda/\n[5]\u00a0https://blog.nasm.org/isometric-exercises\n[6]\u00a0https://pmc.ncbi.nlm.nih.gov/articles/PMC9316832/\n[7]\u00a0https://bodyglide.com/blog/6-essential-functional-movements/\n[8]\u00a0https://www.youtube.com/watch?v=o6WyEEvWMOQ\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Vertical Pull",
+      "confidence": 1.0
+    },
+    {
+      "name": "Scapular Retraction",
+      "confidence": 0.9
+    },
+    {
+      "name": "Elbow Flexion",
+      "confidence": 0.8
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.7
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Latissimus Dorsi",
+      "Rhomboids",
+      "Trapezius (Middle)",
+      "Biceps Brachii"
+    ],
+    "secondary": [
+      "Trapezius (Upper)",
+      "Deltoid (Posterior)",
+      "Brachialis",
+      "Forearm Flexors",
+      "Rectus Abdominis",
+      "External Obliques",
+      "Transverse Abdominis"
+    ]
+  },
+  "processed_at": "2026-01-08T08:36:05.811544"
+}

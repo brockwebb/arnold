@@ -1,0 +1,40 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:ARM_SWINGS",
+  "exercise_name": "Arm Swings",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "arm swings warm up muscles worked",
+    "retrieved_at": "Arm",
+    "raw_text": "Arm swings primarily work the shoulder muscles (deltoids, pectorals), upper back (traps, rhomboids), and chest, acting as a dynamic warm-up to improve mobility and circulation through shoulder flexion and adduction. The movement pattern involves rhythmic, alternating forward and backward motion, engaging shoulder girdle muscles to propel the arms across the body and return them, preparing joints for activity. [1, 2, 3]  \nMuscles Worked \n\n\u2022 Primary Movers: \n\n    \u2022 Deltoids (Anterior): Front of the shoulders, responsible for lifting the arm forward and across the body (flexion/horizontal adduction). \n    \u2022 Pectoralis Major (Sternal Head): Chest muscles, also involved in bringing the arms across the body (adduction). \n    \u2022 Serratus Anterior: Helps stabilize the shoulder blade. \n\n\u2022 Secondary & Stabilizers: \n\n    \u2022 Trapezius & Rhomboids: Upper back muscles that help stabilize the shoulder blades. \n    \u2022 Latissimus Dorsi (Lats): Involved in pulling the arms down and back, especially in more dynamic versions. \n    \u2022 Triceps: Assist in extending the elbow and contributing to overall arm movement. [1, 2, 4, 5, 6]  \n\nMovement Pattern \n\n\u2022 Action: A smooth, controlled oscillation of the arms, typically swinging them forward across the chest and then backward. \n\u2022 Coordination: Involves coordinated flexion and extension at the shoulder joint. \n\u2022 Purpose: To dynamically stretch muscles, increase blood flow, lubricate joints, and activate the nervous system for exercise. \n\u2022 Variations: Can range from gentle swings for mobility to more powerful swings (like with an RMT club or kettlebell) to build strength and stability, engaging the core and posterior chain more intensely. [1, 2, 3, 4, 7, 8, 9]  \n\n**Citations:**\n\n[1]\u00a0https://www.endomondo.com/exercise/dynamic-arm-swing\n[2]\u00a0https://spotebi.com/exercise-guide/arm-swings/\n[3]\u00a0https://www.facebook.com/groups/goallinmypeakperformance/posts/2585064864973932/\n[4]\u00a0https://www.youtube.com/watch?v=oMbsTuT5BKY\n[5]\u00a0https://www.reddit.com/r/Sprinting/comments/15vds44/what_arm_muscles_are_involved_most_heavily_in/\n[6]\u00a0https://www.nike.com/a/kettlebell-swings\n[7]\u00a0https://www.tiktok.com/@justin_agustin/video/7263179858534993157\n[8]\u00a0https://strengthambassadors.com/blog/all-the-muscles-kettlebell-swing-variations-work/\n[9]\u00a0https://www.facebook.com/justinagustinFB/videos/arms-swings-are-a-simple-and-effective-mobility-exercise-that-can-provide-severa/308163008319915/\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Mobility",
+      "confidence": 1.0
+    },
+    {
+      "name": "Shoulder External Rotation",
+      "confidence": 0.7
+    },
+    {
+      "name": "Shoulder Internal Rotation",
+      "confidence": 0.7
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Deltoid (Anterior)",
+      "Pectoralis Major",
+      "Serratus Anterior"
+    ],
+    "secondary": [
+      "Trapezius",
+      "Rhomboids",
+      "Latissimus Dorsi",
+      "Triceps Brachii"
+    ]
+  },
+  "processed_at": "2026-01-08T08:33:21.868234"
+}

@@ -1,0 +1,36 @@
+{
+  "exercise_id": "CUSTOM:Paused_Bench_Press",
+  "exercise_name": "Paused Bench Press",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "paused bench press muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Paused Bench Press is a compound push movement targeting the Pectoralis Major (chest), Anterior Deltoids (front shoulders), and Triceps, with stabilizers like the serratus anterior, enhancing strength at the bottom by removing momentum, improving muscle recruitment through increased time under tension (TUT), building reversal strength, and fixing weak points off the chest, making it ideal for power development. The key movement pattern involves a controlled descent, a 1-2 second pause at the chest (or an inch above), and an explosive press back up, forcing muscles to work harder from a dead stop. [1, 2, 3, 4, 5, 6]  \nMuscles Worked (Prime Movers & Synergists) \n\n\u2022 Pectoralis Major (Pecs): Primary chest muscle responsible for horizontal adduction of the shoulder. \n\u2022 Anterior Deltoids (Front Shoulders): Assist in shoulder flexion and pressing. \n\u2022 Triceps Brachii: Extend the elbow, crucial for lockout. \n\u2022 Stabilizers: Rotator cuffs, serratus anterior, and upper back muscles (like rhomboids and traps) keep the shoulder blades retracted and stable. [1, 2, 5, 7, 8]  \n\nMovement Pattern & Biomechanics \n\n1. Setup: Lie flat, feet planted, shoulder blades pinched back and down into the bench for tightness. \n2. Descent: Lower the bar slowly and controlled to the mid-chest, keeping elbows at a ~45-degree angle to the torso. \n3. The Pause: Hold the bar motionless on the chest (or slightly above) for 1-2 seconds, engaging isometric strength. \n4. The Press: Explode the bar upward from the dead stop, driving through the chest, shoulders, and triceps. \n5. Lockout: Fully extend the elbows at the top, resetting for the next rep. [1, 2, 3, 4]  \n\nWhy the Pause Matters (Benefits) \n\n\u2022 Eliminates Momentum: Forces muscles to initiate the lift from a dead stop, building strength from the bottom. \n\u2022 Increases TUT: More time under tension for muscle growth (hypertrophy). \n\u2022 Builds Reversal Strength: Develops power to overcome the sticking point just off the chest. \n\u2022 Improves Stability & Control: Enhances overall form and prevents form breakdown. [1, 2, 3, 4, 6, 9]  \n\n**Citations:**\n\n[1]\u00a0https://fitbod.me/exercises/pause-bench-press\n[2]\u00a0https://gym-mikolo.com/blogs/home-gym/the-top-reason-you-need-to-incorporate-paused-reps-in-bench-press\n[3]\u00a0https://www.muscleandstrength.com/exercises/paused-barbell-bench-press\n[4]\u00a0https://www.strongfirst.com/bench-press-pause/\n[5]\u00a0https://www.drivelinebaseball.com/2018/11/bench-press-deep-dive-programming-considerations/\n[6]\u00a0https://generationiron.com/pause-bench-press/\n[7]\u00a0https://steelsupplements.com/blogs/steel-blog/how-to-do-the-paused-bench-press-form-benefits\n[8]\u00a0https://en.wikipedia.org/wiki/Bench_press\n[9]\u00a0https://www.youtube.com/watch?v=_DNKxqqwsqU\n\n\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Horizontal Push",
+      "confidence": 1.0
+    },
+    {
+      "name": "Elbow Extension",
+      "confidence": 0.8
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Pectoralis Major",
+      "Deltoid (Anterior)",
+      "Triceps Brachii"
+    ],
+    "secondary": [
+      "Serratus Anterior",
+      "Rotator Cuff",
+      "Rhomboids",
+      "Trapezius (Middle)"
+    ]
+  },
+  "processed_at": "2026-01-07T22:03:21.339424"
+}

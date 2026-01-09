@@ -1,0 +1,54 @@
+{
+  "exercise_id": "CUSTOM:Farmer_Carry",
+  "exercise_name": "Farmer Carry",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "farmer carry muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Farmer's Carry is a full-body functional movement that intensely works grip, traps, core (abs, obliques, spinal erectors), shoulders, and back (lats, rhomboids) isometrically, while also engaging legs (glutes, hamstrings, quads, calves) for stability and movement, all within a pattern of loaded locomotion that mimics real-life lifting and carrying for improved strength, posture, and endurance. [1, 2, 3, 4, 5]  \nMuscles Worked (Isometric & Dynamic) \n\n\u2022 Grip & Arms: Forearms, hands, biceps, triceps. \n\u2022 Upper Back & Shoulders: Trapezius (traps), Rhomboids, Lats, Rotator Cuff, Deltoids (front/side). \n\u2022 Core: Rectus Abdominis, Obliques (internal/external), Transverse Abdominis, Spinal Erectors. \n\u2022 Lower Body: Glutes, Hamstrings, Quadriceps, Calves (for stabilization and stepping). [1, 2, 3, 5, 6, 7, 8, 9, 10]  \n\nMovement Pattern: Loaded Locomotion \n\n\u2022 Foundation: A compound, full-body pattern involving holding heavy implements (dumbbells, kettlebells, etc.) in each hand. \n\u2022 Action: Walking a set distance or time while maintaining a rigid, upright posture with shoulders back and chest up. \n\u2022 Key Function: To challenge your body's ability to stabilize the spine and maintain balance while moving a heavy load, promoting real-world strength and core endurance. [2, 3, 4, 6, 10, 11, 12]  \n\nBenefits \n\n\u2022 Builds functional strength (carrying groceries, luggage). \n\u2022 Improves grip strength and endurance. \n\u2022 Enhances core stability and posture. \n\u2022 Boosts cardiovascular conditioning and work capacity. [1, 2, 4, 7, 10]  \n\n**Citations:**\n\n[1]\u00a0https://www.gymshark.com/blog/article/guide-to-the-farmers-carry\n[2]\u00a0https://www.healthline.com/nutrition/farmers-walk-benefits\n[3]\u00a0https://barbend.com/farmers-carry/\n[4]\u00a0https://defined.com/what-is-a-farmers-carry/\n[5]\u00a0https://www.onepeloton.com/blog/farmers-carry\n[6]\u00a0https://pubmed.ncbi.nlm.nih.gov/38665162/\n[7]\u00a0https://www.verywellfit.com/how-to-do-a-farmer-carry-techniques-benefits-variations-4796615\n[8]\u00a0https://learn.athleanx.com/articles/how-to-do-the-farmers-carry\n[9]\u00a0https://www.muscleandfitness.com/workouts/full-body-exercises/the-farmers-carry-exercise-how-to-benefits-variations/\n[10]\u00a0https://swolverine.com/blogs/blog/mastering-the-farmer-s-carry-unlock-strength-and-stability-with-this-essential-exercise-4\n[11]\u00a0https://www.muscleandstrength.com/exercises/farmers-walk\n[12]\u00a0https://barbell-logic.com/farmer-carry-gym-shorts-how-to/\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Loaded Carry",
+      "confidence": 1.0
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.9
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Anti-Lateral Flexion",
+      "confidence": 0.8
+    },
+    {
+      "name": "Conditioning",
+      "confidence": 0.7
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Forearm Flexors",
+      "Trapezius (Upper)",
+      "Erector Spinae",
+      "Rectus Abdominis",
+      "External Obliques"
+    ],
+    "secondary": [
+      "Deltoid (Lateral)",
+      "Rhomboids",
+      "Latissimus Dorsi",
+      "Internal Obliques",
+      "Transverse Abdominis",
+      "Gluteus Maximus",
+      "Rectus Femoris",
+      "Biceps Femoris",
+      "Gastrocnemius"
+    ]
+  },
+  "processed_at": "2026-01-07T15:10:02.131052"
+}

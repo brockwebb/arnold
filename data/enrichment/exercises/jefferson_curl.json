@@ -1,0 +1,39 @@
+{
+  "exercise_id": "CUSTOM:Jefferson_Curl",
+  "exercise_name": "Jefferson Curl",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "jefferson curl muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Jefferson Curl works the entire posterior chain (hamstrings, glutes, erector spinae, calves) and core, emphasizing spinal articulation through controlled vertebral flexion (forward bending), improving mobility, resilience, and end-range strength in the spine and hamstrings, while strengthening the back eccentrically as you lower and concentrically as you lift. [1, 2, 3, 4]  \nMuscles Worked \n\n\u2022 Posterior Chain: Hamstrings, glutes, calves, erector spinae (lower and upper back). \n\u2022 Core: Deep spinal stabilizers, promoting trunk control. [1, 3, 4]  \n\nMovement Pattern: Controlled Spinal Articulation \n\n1. Setup: Stand on a raised surface (box, step) holding a light weight (kettlebell/dumbbell) with straight arms, feet hip-width apart, knees locked. \n2. Descent (Eccentric): Tuck chin to chest, then slowly roll down one vertebra at a time, rounding the spine segment by segment (upper back, mid-back, lower back), pushing the weight forward to deepen the stretch. \n3. Bottom: Reach the weight forward, pause briefly, and breathe calmly. \n4. Ascent (Concentric): Uncurl back up one vertebra at a time, reversing the motion from the lower back up to the neck. [3, 5, 6, 7, 8]  \n\nKey Aspects \n\n\u2022 Loaded Stretch: It's a deep, loaded stretch for the hamstrings and spine. \n\u2022 Spinal Mobility: Enhances flexibility and control through spinal flexion and extension. \n\u2022 Eccentric Strength: Builds strength in the back muscles as they lengthen under load. \n\u2022 Progressive: Start with bodyweight or very light weight, prioritizing form over load, and gradually increase weight or range of motion. [2, 3, 4, 6, 9]  \n\n**Citations:**\n\n[1]\u00a0https://www.919spine.com/blog/the-jefferson-curl\n[2]\u00a0https://www.instagram.com/reel/DPBO88vCMWf/\n[3]\u00a0https://missionmvmt.com/project/jefferson-curl/\n[4]\u00a0https://www.garagestrength.com/blogs/news/jefferson-curl\n[5]\u00a0https://www.yahoo.com/lifestyle/jefferson-curls-unusual-exercise-strengthen-140000224.html\n[6]\u00a0https://www.youtube.com/watch?v=rJfehSZOZyU\n[7]\u00a0https://thebarbellphysio.com/the-best-jefferson-curl-variations/\n[8]\u00a0https://www.instagram.com/reel/C10ah-NPTUA/\n[9]\u00a0https://www.garagegymreviews.com/jefferson-curl\n\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Spinal Flexion",
+      "confidence": 1.0
+    },
+    {
+      "name": "Hip Hinge",
+      "confidence": 0.7
+    },
+    {
+      "name": "Mobility",
+      "confidence": 0.8
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Erector Spinae",
+      "Biceps Femoris",
+      "Gluteus Maximus"
+    ],
+    "secondary": [
+      "Gastrocnemius",
+      "Transverse Abdominis",
+      "External Obliques",
+      "Forearm Flexors"
+    ]
+  },
+  "processed_at": "2026-01-07T15:10:49.236581"
+}

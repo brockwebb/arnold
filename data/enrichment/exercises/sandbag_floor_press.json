@@ -1,0 +1,42 @@
+{
+  "exercise_id": "CUSTOM:Sandbag_Floor_Press",
+  "exercise_name": "Sandbag Floor Press",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "floor press muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Sandbag Floor Press primarily targets the chest (pectorals), shoulders (deltoids), and triceps, with significant core engagement due to the unstable, shifting load that challenges stabilization and promotes a strong mind-muscle connection by forcing you to \"squeeze the bag\". The movement pattern is a horizontal pressing motion, like a bench press but limited by the floor, requiring you to press straight up from the chest until arm lockout and lower until elbows touch down, building functional pushing strength and shoulder stability. [1, 2, 3, 4, 5]  \nMuscles Worked (Primary & Secondary) \n\n\u2022 Primary: \n\n    \u2022 Pectoralis Major (Chest): The main driver for pushing the weight up. \n    \u2022 Deltoids (Shoulders): Assists in pressing overhead and stabilizing. \n    \u2022 Triceps: Extends the elbows to finish the press. \n\n\u2022 Secondary/Stabilizers: \n\n    \u2022 Core (Abs, Obliques, Transverse Abdominis): Crucial for maintaining stability as the sand shifts. \n    \u2022 Lats & Upper Back: Engaged to control the weight down and provide stability. [1, 3, 4, 6, 7, 8]  \n\nMovement Pattern (Pushing Pattern) \n\n1. Setup: Lie on your back with knees bent, feet flat, and the sandbag on your hips/chest. \n2. Initiation: Press the bag up by extending your arms, keeping elbows at a controlled angle, not flared out. \n3. Press: Drive the bag straight up, squeezing it to create tension, controlling the unstable load. \n4. Descent: Lower the bag with control until your elbows lightly touch the floor, maintaining tension. \n5. Function: This pattern builds pushing power and improves shoulder health by eliminating over-extension, making it great for athletes with shoulder issues or those seeking functional strength. [1, 2, 5, 7, 9, 10]  \n\n**Citations:**\n\n[1]\u00a0https://www.youtube.com/watch?v=rV-3Q6ZYz5g\n[2]\u00a0https://www.dingosandbags.com.au/frequently-asked-questions/sandbag-floor-press/\n[3]\u00a0https://barbend.com/floor-press/\n[4]\u00a0https://www.instagram.com/reel/DSEE_vMD9gV/\n[5]\u00a0https://www.strongfirst.com/using-the-floor-to-strengthen-your-press/\n[6]\u00a0https://www.boxrox.com/5-sandbag-exercises-for-a-jacked-and-strong-upper-body/\n[7]\u00a0https://www.living.fit/blogs/news/dumbbell-floor-press-or-movement-breakdown\n[8]\u00a0https://www.setforset.com/blogs/news/sandbag-workouts\n[9]\u00a0https://www.youtube.com/watch?v=RGe-Htbtnm8\n[10]\u00a0https://freedomstrength.us/pages/sandbag-training-guides\n\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Horizontal Push",
+      "confidence": 1.0
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.7
+    },
+    {
+      "name": "Anti-Rotation",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Pectoralis Major",
+      "Deltoid (Anterior)",
+      "Triceps Brachii"
+    ],
+    "secondary": [
+      "Rectus Abdominis",
+      "External Obliques",
+      "Internal Obliques",
+      "Transverse Abdominis",
+      "Latissimus Dorsi",
+      "Trapezius (Middle)",
+      "Rhomboids"
+    ]
+  },
+  "processed_at": "2026-01-07T15:09:17.586515"
+}

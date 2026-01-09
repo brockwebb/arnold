@@ -1,0 +1,44 @@
+{
+  "exercise_id": "CUSTOM:KB_V-Sit_Pass-Over",
+  "exercise_name": "KB V-Sit Pass-Over",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "v-sit kettlebell pass muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Kettlebell (KB) V-Sit Pass-Over (also known as a V-sit with pass the weight, or a variation of a kettlebell figure-eight in a V-sit) is a demanding core exercise that primarily engages your abdominal muscles and hip flexors through controlled rotation and stability. [1, 2]  \nMuscles Worked \n\n\u2022 Primary: \n\n    \u2022 Rectus Abdominis: The \"six-pack\" muscles are heavily engaged to maintain the V-sit position and stabilize the torso. \n    \u2022 Obliques (External and Internal): These muscles are targeted as you twist and pass the kettlebell from side to side, controlling the rotational movement. \n    \u2022 Hip Flexors: These muscles work hard to keep your legs elevated and maintain the \"V\" shape. \n    \u2022 Transverse Abdominis: The deep core muscles act as stabilizers to protect the spine and maintain balance throughout the movement. \n\n\u2022 Secondary/Stabilizers: \n\n    \u2022 Erector Spinae: These lower back muscles help maintain an upright posture and prevent the back from rounding. \n    \u2022 Shoulders and Arms: The muscles in your shoulders, biceps, triceps, and forearms are engaged to hold and control the kettlebell, improving grip strength and shoulder stability. [1, 2, 3, 4, 5, 6, 7]  \n\nMovement Patterns \nThe KB V-Sit Pass-Over incorporates several functional movement patterns: \n\n\u2022 Trunk Rotation/Anti-Rotation: The core must stabilize the body while the upper body rotates to pass the weight, building core control and strength. \n\u2022 Core Stabilization: The exercise requires significant isometric strength to hold the V-sit position and resist the force of the moving kettlebell trying to pull you off balance. \n\u2022 Flexion/Extension Control: Maintaining the balance in the V-sit requires continuous control over the flexion of the hips and stabilization of the spine. \n\u2022 Coordination and Balance: The dynamic nature of passing the kettlebell around and between the legs challenges balance and hand-eye coordination. [1, 5, 6, 7, 9]  \n\n**Citations:**\n\n[1]\u00a0https://www.onepeloton.com/blog/v-sit\n[2]\u00a0https://www.youtube.com/watch?v=Q0o4UHV_tVo\n[3]\u00a0https://www.gymshark.com/blog/article/kettlebell-core-workouts\n[4]\u00a0https://www.usa-iron.com/pages/kettlebell-carry\n[5]\u00a0https://www.youtube.com/watch?v=N4mMVG8S5Kg\n[6]\u00a0https://www.verywellfit.com/v-sit-ab-exercise-3120059\n[7]\u00a0https://www.gymreapers.com/blogs/news/kettlebell-russian-twist\n[8]\u00a0https://australianfootballstrengthcoach.com.au/circuit-compound-sets-for-footy-training/\n[9]\u00a0https://row.gymshark.com/blog/article/kettlebell-core-workouts\n\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Trunk Rotation",
+      "confidence": 0.9
+    },
+    {
+      "name": "Anti-Rotation",
+      "confidence": 0.8
+    },
+    {
+      "name": "Hip Flexion",
+      "confidence": 0.7
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Rectus Abdominis",
+      "External Obliques",
+      "Internal Obliques",
+      "Iliopsoas"
+    ],
+    "secondary": [
+      "Transverse Abdominis",
+      "Erector Spinae",
+      "Shoulders",
+      "Forearm Flexors"
+    ]
+  },
+  "processed_at": "2026-01-07T15:10:07.354630"
+}

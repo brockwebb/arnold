@@ -1,0 +1,37 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:THORACIC_ROTATIONS",
+  "exercise_name": "Thoracic Rotations",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "thoracic rotation exercise muscles worked",
+    "retrieved_at": "Thoracic",
+    "raw_text": "Thoracic rotations work muscles like the Trapezius, Rhomboids, Latissimus Dorsi, Erector Spinae, and Obliques, alongside stabilizers like the Rotatores, enhancing fundamental twisting and turning movement patterns crucial for daily life, sports, and preventing lower back strain by improving spinal health and core connection. [1, 2, 3, 4, 5, 6]  \nMuscles Worked \n\n\u2022 Superficial/Intermediate Back Muscles: Trapezius, Latissimus Dorsi, Rhomboids, Serratus Posterior Superior. \n\u2022 Deep Spinal Muscles: Erector Spinae (Spinalis), Transversospinalis Group (including Rotatores, Multifidus). \n\u2022 Core/Abdominal Muscles: External Obliques, Internal Obliques, Rectus Abdominis, Transversus Abdominis (assist with stabilization and rotation). \n\u2022 Chest Muscles: Pectorals (can be tight and restrict movement). [1, 4, 5, 7, 8, 9, 10]  \n\nMovement Patterns \n\n\u2022 Fundamental Motion: Rotation (twisting) of the thoracic spine (mid-back). \n\u2022 Combined Movements: Often combined with side bending (lateral flexion) and extension (arching) for fluid, circular motions. \n\u2022 Daily Activities: Enables reaching, twisting to get out of bed, gardening, and core-related tasks. \n\u2022 Sports: Essential for golf swings, throwing, surfing, and weight transfer in athletic movements. [2, 4, 6, 11]  \n\nWhy It's Important \n\n\u2022 Reduces Compensation: Prevents lower back and shoulder pain by reducing strain from restricted movement. \n\u2022 Improves Core Function: Enhances core connection, breathing, and stability. \n\u2022 Enhances Performance: Improves power transfer from lower to upper body. \n\u2022 Addresses Stiffness: Counteracts stiffness from prolonged sitting or poor posture. [2, 3, 6]  \n\n**Citations:**\n\n[1]\u00a0https://www.physio-pedia.com/Thoracic_Spine_Major_Muscles\n[2]\u00a0https://www.healthline.com/health/fitness/thoracic-mobility-exercises\n[3]\u00a0https://www.youtube.com/watch?v=rfaczpMPxKo\n[4]\u00a0https://pmc.ncbi.nlm.nih.gov/articles/PMC4793016/\n[5]\u00a0https://centenoschultz.com/understanding-the-role-of-the-thoracic-spine-muscles/\n[6]\u00a0https://www.instagram.com/reel/DJZwmCQvEKM/\n[7]\u00a0https://pliability.com/stories/thoracic-mobility-exercises\n[8]\u00a0https://www.fscsportsclub.com/2021/05/06/spotlight-on-the-torso-rotation-machine/\n[9]\u00a0https://www.physio-pedia.com/Rotatores_Muscles\n[10]\u00a0https://www.rehabhero.ca/exercise/thoracic-rotations\n[11]\u00a0https://www.youtube.com/watch?v=FArRPm5avBA\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Trunk Rotation",
+      "confidence": 1.0
+    },
+    {
+      "name": "Mobility",
+      "confidence": 0.9
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "External Obliques",
+      "Internal Obliques",
+      "Erector Spinae"
+    ],
+    "secondary": [
+      "Trapezius",
+      "Rhomboids",
+      "Latissimus Dorsi",
+      "Transverse Abdominis",
+      "Rectus Abdominis"
+    ]
+  },
+  "processed_at": "2026-01-08T08:36:23.451224"
+}

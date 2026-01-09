@@ -1,0 +1,41 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:WALL_ANGELS",
+  "exercise_name": "Wall Angels",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "wall angels exercise muscles worked",
+    "retrieved_at": "Wall",
+    "raw_text": "Wall Angels are excellent for improving posture, targeting upper back muscles like the Traps (trapezius) and Rhomboids, shoulder muscles (Deltoids, Rotator Cuff), and Serratus Anterior, while also engaging the core and hamstrings to stabilize the body against the wall in a smooth, controlled sliding motion (like making a snow angel) to counter hunching. [1, 2, 3]  \nMuscles Worked \n\n\u2022 Primary: Upper Traps, Rhomboids, Serratus Anterior, Deltoids (shoulder), Rotator Cuff muscles. \n\u2022 Secondary/Stabilizers: Core muscles (abs), Hamstrings, Lower Traps. [1, 2, 3, 4]  \n\nMovement Pattern \n\n1. Setup: Stand with your back, head, shoulders, and hips against a wall, feet a few inches away, knees slightly bent. \n2. Starting Position: Arms bent at 90 degrees (like a goalpost), backs of arms, hands, and elbows touching the wall. \n3. Ascending Phase (Upward Motion): Slowly slide your arms overhead, aiming to keep your elbows, wrists, and hands in contact with the wall, mimicking a snow angel motion. \n4. Descending Phase (Downward Motion): Slowly lower your arms back to the starting 90-degree position, maintaining wall contact. \n5. Focus: The movement emphasizes smooth, controlled scapular (shoulder blade) upward and downward rotation, along with shoulder flexion and extension, while fighting the urge to lift your lower back off the wall. [1, 3, 5, 6, 7]  \n\nBenefits \n\n\u2022 Strengthens postural muscles to combat desk hunching. \n\u2022 Increases shoulder and thoracic (mid-back) mobility. \n\u2022 Helps retrain proper shoulder blade positioning. \n\u2022 Improves spinal alignment and reduces neck/shoulder tension. [3, 5, 7, 8, 9]  \n\n**Citations:**\n\n[1]\u00a0https://www.bestphysicaltherapistnyc.com/wall-angels-the-ultimate-guide-to-perfecting-this-effective-exercise/\n[2]\u00a0https://www.hingehealth.com/resources/articles/how-to-do-wall-angels/\n[3]\u00a0https://www.healthline.com/health/fitness/wall-angels\n[4]\u00a0https://betterme.world/articles/wall-angel-exercise/\n[5]\u00a0https://myrangemaster.com/star-exercise-of-the-week-wall-angel/\n[6]\u00a0https://workoutlabs.com/exercise-guide/wall-angles/\n[7]\u00a0https://fitfxtraining.ca/posture-strengthening-exercises/wall-angels\n[8]\u00a0https://lifeinmotionlivonia.com/rehab-library/wall-angel/\n[9]\u00a0https://www.fitandwell.com/exercise/flexibility/wall-angel\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Scapular Retraction",
+      "confidence": 0.9
+    },
+    {
+      "name": "Mobility",
+      "confidence": 0.8
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Trapezius (Upper)",
+      "Rhomboids",
+      "Serratus Anterior",
+      "Deltoid (Posterior)",
+      "Rotator Cuff"
+    ],
+    "secondary": [
+      "Trapezius (Lower)",
+      "Rectus Abdominis",
+      "Hamstrings"
+    ]
+  },
+  "processed_at": "2026-01-08T08:36:31.217743"
+}

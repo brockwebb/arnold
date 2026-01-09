@@ -1,0 +1,67 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:JUMPING_JACK",
+  "exercise_name": "Jumping Jack",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "jumping jacks muscles worked",
+    "retrieved_at": "Jumping",
+    "raw_text": "Jumping jacks are a full-body cardio exercise engaging calves, quads, hamstrings, glutes (lower body), deltoids, and shoulder muscles (upper body) for propulsion and arm movement, alongside core and hip stabilizers; the movement pattern involves rhythmic jumping (hip/knee/ankle extension) and arm abduction/adduction (raising/lowering arms), requiring coordination and working as a plyometric warm-up or conditioning exercise. [1, 2, 3, 4, 5]  \nMuscles Worked: \n\n\u2022 Lower Body: Calves (gastrocnemius, soleus), Quadriceps (vastus muscles), Hamstrings, Glutes. \n\u2022 Upper Body: Shoulders (deltoids, supraspinatus), Arms (biceps/triceps stabilize). \n\u2022 Core & Hips: Core muscles, Hip abductors, Hip flexors for stability and movement control. [1, 2, 4, 5, 6, 7]  \n\nMovement Patterns (Phases): \n\n1. Starting Position: Standing with feet together, arms at sides. \n2. Upward/Outward (Propel/Abduction): \n\n    \u2022 Jumping feet out wide (hip and knee extension). \n    \u2022 Swinging arms overhead (shoulder abduction). \n\n3. Middle Position (Peak): Feet wide, arms overhead, body engaged. \n4. Downward/Inward (Return/Adduction): \n\n    \u2022 Jumping feet back together (hip and knee flexion, ankle dorsiflexion for landing). \n    \u2022 Bringing arms back down to sides (shoulder adduction). \n\n5. Rhythm: This cycle repeats continuously, making it a great plyometric and cardiovascular exercise. [1, 2, 5, 6, 7]  \n\n*Citations:**\n\n[1]\u00a0https://www.webmd.com/fitness-exercise/how-to-do-jumping-jacks\n[2]\u00a0https://melmagazine.com/en-us/story/what-muscles-do-jumping-jacks-work\n[3]\u00a0https://sworkit.com/fitness-goals/exercise-spotlight-jumping-jacks\n[4]\u00a0https://squatwolf.com/en-ca/blogs/fitness/jumping-jacks\n[5]\u00a0https://squatwolf.com/blogs/fitness/jumping-jacks\n[6]\u00a0https://prezi.com/v1npg59eg392/movement-analysis-jumping-jacks/\n[7]\u00a0https://www.cartwrightfitness.co.uk/what-muscles-are-used-in-jumping/\n\n\n*\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Hip Abduction",
+      "confidence": 0.9
+    },
+    {
+      "name": "Hip Adduction",
+      "confidence": 0.9
+    },
+    {
+      "name": "Hip Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Knee Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Knee Flexion",
+      "confidence": 0.7
+    },
+    {
+      "name": "Ankle Plantarflexion",
+      "confidence": 0.8
+    },
+    {
+      "name": "Ankle Dorsiflexion",
+      "confidence": 0.7
+    },
+    {
+      "name": "Conditioning",
+      "confidence": 1.0
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Gastrocnemius",
+      "Soleus",
+      "Rectus Femoris",
+      "Gluteus Maximus",
+      "Deltoid (Lateral)",
+      "Deltoid (Anterior)"
+    ],
+    "secondary": [
+      "Hamstrings",
+      "Gluteus Medius",
+      "Biceps Brachii",
+      "Triceps Brachii",
+      "Rectus Abdominis",
+      "External Obliques",
+      "Hip Adductors",
+      "Iliopsoas"
+    ]
+  },
+  "processed_at": "2026-01-08T08:34:32.425739"
+}

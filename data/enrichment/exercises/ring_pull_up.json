@@ -1,0 +1,53 @@
+{
+  "exercise_id": "CUSTOM:Ring_Pull-Up",
+  "exercise_name": "Ring Pull-Up",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "ring pull-up muscles worked",
+    "retrieved_at": "Ring",
+    "raw_text": "Ring pull-ups work major back and arm muscles (lats, biceps, traps, rhomboids) and require significant stabilization from your core (abs, glutes, lower back) and forearms, challenging your grip, due to the unstable nature of the rings, which demands constant adjustment and control through a natural, compound pulling motion that emphasizes scapular stabilization more than bar pull-ups. [1, 2, 3]  \nMuscles Worked \n\n\u2022 Primary Movers: \n\n    \u2022 Latissimus Dorsi (Lats): The main pulling muscle for bringing your chest towards the rings. \n    \u2022 Biceps Brachii: Assists in elbow flexion (bending the arm). \n    \u2022 Brachialis/Brachioradialis: Deeper arm muscles aiding biceps. \n\n\u2022 Secondary & Stabilizers: \n\n    \u2022 Trapezius (Upper & Lower): Help with scapular movement and stability. \n    \u2022 Rhomboids: Retract the shoulder blades. \n    \u2022 Serratus Anterior: Stabilizes the scapula. \n    \u2022 Forearms & Grip Muscles: Essential for holding the unstable rings. \n    \u2022 Core (Abs, Obliques, Lower Back): Prevents swinging and keeps the body rigid. \n    \u2022 Glutes & Hip Flexors: Contribute to core stability. [1, 2, 3, 4]  \n\nMovement Pattern \n\n1. Starting Position: Hang from the rings with an overhand grip (palms facing you or away), body straight, core tight, and arms extended. \n2. Concentric (Pulling Up): Pull your body up by driving your elbows down and back, squeezing your shoulder blades together. The rings will rotate inward (pronate) as you pull. \n3. Peak Contraction: At the top, your chin should be above the rings, chest puffed out, with maximum muscle engagement. \n4. Eccentric (Lowering Down): Control your descent slowly and deliberately, resisting gravity and allowing the rings to rotate back out to the starting position. \n5. Key Feature: The independent movement of the rings forces your stabilizing muscles to work harder than on a fixed bar, promoting natural wrist and shoulder movement. [1, 2, 3, 5, 6]  \n\n**Citations:**\n\n[1]\u00a0https://au.thegravgear.com/blogs/gymnastic-ring-training/gymnastic-ring-pull-ups\n[2]\u00a0https://pmc.ncbi.nlm.nih.gov/articles/PMC10824315/\n[3]\u00a0https://marmati.com/de-it/blogs/merakee/home-workout-with-gymnastic-rings-ring-pull-ups-guide\n[4]\u00a0https://exigosports.com/blogs/blog/how-to-use-the-pullover-machine-muscles-worked-benefits\n[5]\u00a0https://bulldoggear.com/blogs/news/progressions-regressions-muscle-ups\n[6]\u00a0https://medium.com/in-fitness-and-in-health/will-we-build-more-muscle-with-a-partial-range-of-motion-e322d5da923e\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Vertical Pull",
+      "confidence": 1.0
+    },
+    {
+      "name": "Scapular Retraction",
+      "confidence": 0.9
+    },
+    {
+      "name": "Elbow Flexion",
+      "confidence": 0.8
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.9
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.7
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Latissimus Dorsi",
+      "Biceps Brachii",
+      "Brachialis"
+    ],
+    "secondary": [
+      "Trapezius (Upper)",
+      "Trapezius (Lower)",
+      "Rhomboids",
+      "Serratus Anterior",
+      "Forearm Flexors",
+      "Rectus Abdominis",
+      "External Obliques",
+      "Erector Spinae",
+      "Gluteus Maximus"
+    ]
+  },
+  "processed_at": "2026-01-07T22:03:42.433808"
+}

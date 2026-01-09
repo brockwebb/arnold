@@ -1,0 +1,46 @@
+{
+  "exercise_id": "CUSTOM:Plank_with_Weighted_Drag",
+  "exercise_name": "Plank with Weighted Drag",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "plank drag muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Plank with Weighted Drag is a full-body exercise that builds core stability (abs, obliques, lower back), shoulder strength (deltoids, traps), upper back (lats, rhomboids), arms (triceps, biceps), and glutes/legs, challenging anti-rotation and balance while you drag a weight (dumbbell/kettlebell) across your body in a plank position, moving from isometric holds to isotonic pulls. [1, 2, 3, 4]  \nMuscles Worked \n\n\u2022 Core: Transversus abdominis, rectus abdominis, obliques (primary stabilizers). \n\u2022 Shoulders: Deltoids, trapezius (for stability and pulling). \n\u2022 Upper Back: Lats, rhomboids (for pulling action). \n\u2022 Arms: Triceps, biceps (assisting the pull). \n\u2022 Chest: Pectorals (stabilization). \n\u2022 Lower Body: Glutes, hamstrings, quads (for hip stabilization and preventing rotation). [1, 3, 4, 5, 6]  \n\nMovement Patterns & Benefits \n\n\u2022 Isometric Core Engagement: The plank itself requires constant core contraction to maintain a straight line. \n\u2022 Isotonic Pulling: The act of dragging the weight involves concentric (pulling) and eccentric (lowering) muscle contractions in the pulling arm. \n\u2022 Anti-Rotation: Your core and hips resist the urge to rotate as the weight shifts, building anti-rotational strength. \n\u2022 Stability & Coordination: Moving under load while staying stable enhances balance and control. \n\u2022 Full Body Integration: Combines isometric (static) and isotonic (dynamic) movements for a comprehensive workout. [2, 3, 7, 8, 9]  \n\nHow it Works (Movement Pattern) \n\n1. Start in a high plank with hands under shoulders, feet slightly wider than hip-width, and weight next to one hand. \n2. Reach under your torso with the opposite hand to grab the weight. \n3. Drag the weight across your body to the other side, keeping hips level and core tight. \n4. Place the weight down and repeat with the other arm, alternating sides. [2, 5, 10]  \n\n**Citations:**\n\n[1]\u00a0https://www.endomondo.com/exercise/kettlebell-plank-drag\n[2]\u00a0https://www.trainwell.net/exercises/dumbbell-plank-weight-drag-through\n[3]\u00a0https://www.instagram.com/reel/DGOI-RLA4SZ/\n[4]\u00a0https://www.shape.com/what-muscles-do-planks-work-8350322\n[5]\u00a0https://madepossiblept.com/blog/perform-the-plank-kettlebell-drag-through/\n[6]\u00a0https://speede.fit/blogs/news/vertical-push-exercises\n[7]\u00a0https://generationiron.com/plank-drag-exercise-guide/\n[8]\u00a0https://www.nike.com/au/a/what-muscles-do-planks-work\n[9]\u00a0https://support.runna.com/en/articles/6382899-plank-pull-through-exercise-tutorial\n[10]\u00a0https://www.youtube.com/watch?v=T6RGyIzZ6M8\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Anti-Rotation",
+      "confidence": 0.95
+    },
+    {
+      "name": "Horizontal Pull",
+      "confidence": 0.8
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Transverse Abdominis",
+      "External Obliques",
+      "Internal Obliques",
+      "Rectus Abdominis"
+    ],
+    "secondary": [
+      "Latissimus Dorsi",
+      "Rhomboids",
+      "Deltoid (Posterior)",
+      "Deltoid (Anterior)",
+      "Triceps Brachii",
+      "Biceps Brachii",
+      "Gluteus Maximus",
+      "Rectus Femoris",
+      "Pectoralis Major"
+    ]
+  },
+  "processed_at": "2026-01-07T22:04:40.806103"
+}

@@ -1,0 +1,35 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:PRONE_W_Y_LIFTS",
+  "exercise_name": "Prone W-Y Lifts",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "prone Y W raises muscles worked",
+    "retrieved_at": "Prone",
+    "raw_text": "Prone W-Y lifts target your upper back (rhomboids, traps) and rear shoulders (rear delts), improving shoulder stability, posture, and overhead mobility by strengthening scapular stabilizers and the rotator cuff through controlled lifting motions, primarily focusing on scapular retraction and upward rotation as you transition from a \"Y\" (arms out) to a \"W\" (arms bent) position. [1, 2, 3, 4]  \nMuscles Worked \n\n\u2022 Primary: Lower Trapezius, Rhomboids, Rear Deltoids. \n\u2022 Secondary: Serratus Anterior, Rotator Cuff (Supraspinatus). [1, 2, 3, 5]  \n\nMovement Pattern (Prone Y-W) \n\n1. Starting Position: Lie face down (prone) on a bench or the floor, with your forehead supported (e.g., on a towel). \n2. Y Phase: Extend your arms diagonally overhead into a \"Y\" shape, thumbs pointing up. Lift your arms by squeezing your shoulder blades together and down, keeping your neck relaxed. \n3. Transition to W: Keeping your arms elevated, bend your elbows to bring your hands towards your shoulders, forming a \"W\" shape. \n4. Return to Y: Extend your arms back out to the \"Y\" position. \n5. Lower: Slowly lower your arms back to the starting position. [2, 3, 6, 7, 8, 9]  \n\nKey Focus Points \n\n\u2022 Scapular Control: Focus on moving your shoulder blades (scapulae) together (retraction) and upward (upward rotation). \n\u2022 Thumb Position: Keep your thumbs pointed towards the ceiling for optimal shoulder mechanics. \n\u2022 Control: Avoid shrugging your shoulders to your ears; keep them down and back. \n\u2022 Progression: Use light weights or resistance bands for increased challenge and muscle activation. [3, 6, 7, 10, 11]  \n\n**Citations:**\n\n[1]\u00a0https://fitbod.me/exercises/prone-y-s\n[2]\u00a0https://fitfxtraining.ca/upper-body-exercises/prone-y-raises-exercise\n[3]\u00a0https://www.rehabhero.ca/exercise/prone-y-raise\n[4]\u00a0https://www.youtube.com/watch?v=Yv6sUKOwOY8\n[5]\u00a0https://hawkesphysiotherapy.co.uk/exercise/shoulder-prone-y-arm-lifts/\n[6]\u00a0https://www.youtube.com/watch?v=JRsYoEeiwho\n[7]\u00a0https://www.youtube.com/watch?v=rKVuKuR4SA4\n[8]\u00a0https://www.youtube.com/watch?v=QdGTI4Lshg4\n[9]\u00a0http://bodydojo.com/exercises/prone-w-to-y/\n[10]\u00a0https://puori.com/blogs/puorilife/shoulder-mobility-tips-7-exercises-to-improve-range-of-motion-and-stability\n[11]\u00a0https://www.instagram.com/reel/DRwjS7nDUZ7/\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Scapular Retraction",
+      "confidence": 1.0
+    },
+    {
+      "name": "Shoulder External Rotation",
+      "confidence": 0.7
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Trapezius (Lower)",
+      "Rhomboids",
+      "Deltoid (Posterior)"
+    ],
+    "secondary": [
+      "Serratus Anterior",
+      "Supraspinatus",
+      "Trapezius (Middle)"
+    ]
+  },
+  "processed_at": "2026-01-08T08:34:55.876653"
+}

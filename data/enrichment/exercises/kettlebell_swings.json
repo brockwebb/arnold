@@ -1,0 +1,55 @@
+{
+  "exercise_id": "CUSTOM:Kettlebell_Swings",
+  "exercise_name": "Kettlebell Swings",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "kettlebell swings muscles worked",
+    "retrieved_at": "Kettlebell",
+    "raw_text": "Kettlebell swings are a ballistic hip-hinge movement that powerfully targets the posterior chain (glutes, hamstrings, lower back) for explosive power, while also engaging the core (abdominals, obliques, erectors) for stabilization and the upper back, shoulders, and forearms for control, making it a full-body exercise for strength, power, and conditioning. The primary action is an explosive hip thrust, not a squat, driving the bell upward, with the arms merely guiding it. [1, 2, 3, 4, 5]  \nPrimary Muscles Worked (Posterior Chain) \n\n\u2022 Glutes (Gluteus Maximus): The main driver, responsible for explosive hip extension. \n\u2022 Hamstrings: Assist with hip extension and stabilize the knees. \n\u2022 Erector Spinae (Lower Back): Work isometrically to keep the spine neutral and stable. [1, 4, 5, 6, 7]  \n\nSecondary & Stabilizing Muscles \n\n\u2022 Core (Transverse Abdominis, Obliques, Rectus Abdominis): Brace and stabilize the spine and pelvis. \n\u2022 Lats & Upper Back (Traps, Rhomboids, Posterior Deltoids): Control the kettlebell's path and maintain posture. \n\u2022 Shoulders (Anterior Deltoids, Rotator Cuffs): Control the kettlebell's arc. \n\u2022 Forearms & Grip Muscles: Maintain a strong grip. \n\u2022 Quadriceps: Assist with knee extension, especially at the bottom. \n\u2022 Adductors: Aid in hip extension. [1, 2, 5, 7, 8, 9]  \n\nMovement Pattern: The Hip Hinge \n\n1. Hinge, Don't Squat: The movement starts by pushing the hips back (hinging) with a soft bend in the knees, keeping your chest up and back flat, not by squatting down. \n2. Explosive Hip Drive: Power comes from powerfully extending the hips forward (like thrusting your hips into a wall), not pulling with the arms. \n3. Arm Control: Your arms are essentially ropes; they don't pull the bell up; the hip drive propels it. \n4. Dynamic Stability: Your core and back muscles work hard to keep your spine rigid as the bell swings forward and then back through your legs. [1, 3, 4, 5, 6, 10]  \n\nTypes of Swings \n\n\u2022 Russian Swing: Kettlebell travels to eye or shoulder height. \n\u2022 American Swing: Kettlebell travels overhead, requiring more shoulder mobility and range of motion. [11, 12, 13]  \n\n**Citations:**\n\n[1]\u00a0https://www.acefitness.org/continuing-education/certified/january-2025/8788/the-ace-do-it-better-series-the-two-handed-kettlebell-swing/\n[2]\u00a0https://www.nike.com/a/kettlebell-swings\n[3]\u00a0https://www.youtube.com/watch?v=acUlmjKbnAw\n[4]\u00a0https://www.setforset.com/blogs/news/kettlebell-swing-muscles-worked\n[5]\u00a0https://ironbullstrength.com/blogs/training/kettlebell-swings\n[6]\u00a0https://www.youtube.com/watch?v=n7PWyZl9q-w\n[7]\u00a0https://www.kettlebellkings.eu/en/blogs/default-blog/blogwhat-muscles-does-a-kettlebell-swing-work\n[8]\u00a0https://www.nike.com/ph/a/kettlebell-swings\n[9]\u00a0https://strengthambassadors.com/blog/all-the-muscles-kettlebell-swing-variations-work/\n[10]\u00a0https://www.nike.com/au/a/kettlebell-swings\n[11]\u00a0https://www.nike.com/jp/en/a/kettlebell-swings\n[12]\u00a0https://strengthambassadors.com/blog/all-the-muscles-kettlebell-swing-variations-work/\n[13]\u00a0https://www.youtube.com/watch?v=X-IkixSf7jo\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Hip Hinge",
+      "confidence": 1.0
+    },
+    {
+      "name": "Hip Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.7
+    },
+    {
+      "name": "Conditioning",
+      "confidence": 0.8
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Gluteus Maximus",
+      "Biceps Femoris",
+      "Erector Spinae"
+    ],
+    "secondary": [
+      "Transverse Abdominis",
+      "External Obliques",
+      "Internal Obliques",
+      "Latissimus Dorsi",
+      "Trapezius (Middle)",
+      "Rhomboids",
+      "Deltoid (Posterior)",
+      "Deltoid (Anterior)",
+      "Rotator Cuff",
+      "Forearm Flexors",
+      "Rectus Femoris",
+      "Hip Adductors"
+    ]
+  },
+  "processed_at": "2026-01-07T15:07:35.547047"
+}

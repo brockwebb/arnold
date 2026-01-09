@@ -1,0 +1,55 @@
+{
+  "exercise_id": "CUSTOM:Overhead_Keg_Walk",
+  "exercise_name": "Overhead Keg Walk",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "overhead carry muscles worked",
+    "retrieved_at": "An",
+    "raw_text": "An Overhead Keg Walk (or similar overhead carry/lunge) works shoulder stability, core bracing, glutes, quads, hamstrings, calves, and upper back, combining loaded carry, lunge, and overhead stabilization patterns, focusing on anti-rotation and unilateral strength for overall stability and endurance. [1, 2, 3, 4]  \nMuscles Worked \n\n\u2022 Primary Movers: Deltoids (shoulders), Traps, Rhomboids, Lats (upper back), Glutes, Quadriceps, Triceps. \n\u2022 Stabilizers: Core (Transverse Abdominis, Obliques), Erector Spinae (lower back), Rotator Cuff, Calves, Hamstrings. [1, 3, 4, 5, 6]  \n\nMovement Patterns Engaged \n\n\u2022 Loaded Carry: Holding weight overhead challenges shoulder and trunk stability, preventing collapse. \n\u2022 Lunge (Unilateral): Alternating legs builds balance and strength in each leg, targeting quads, glutes, and hamstrings. \n\u2022 Overhead Stability/Push: The act of holding the weight overhead engages the entire shoulder girdle and upper back to keep the weight stacked. \n\u2022 Core Bracing: Requires deep core engagement (abs and obliques) to prevent the spine from arching or rotating, especially with one leg moving. \n\u2022 Glute/Hamstring Engagement: Critical for stability in the standing leg and power during the lunge step. [1, 2, 3, 4, 5, 6, 7, 8]  \n\nKey Takeaways \n\n\u2022 Integration: It's a full-body exercise, integrating lower body power (lunge) with upper body stability (overhead hold) and core control. \n\u2022 Balance & Coordination: Excellent for improving unilateral strength and coordination, as noted in GarageGymReviews.com (https://www.garagegymreviews.com/fundamental-movement-patterns) and Impulse Chiropractic and Rehab (https://impulsechiropractic.net/wp-content/uploads/2023/12/Guide-to-the-7-Functional-Movements.pdf). \n\u2022 Stabilization: Particularly useful for strengthening the shoulder joint and core, as explained in Body Glide (https://bodyglide.com/blog/6-essential-functional-movements/) and Hertfordshire Sports Village (https://www.hertssportsvillage.co.uk/news-exercise-of-the-month-waiters-carrywalk-1370). [1, 2, 3, 4, 7]  \n\n**Citations:**\n\n[1]\u00a0https://www.youtube.com/watch?v=saH2XwCsvjI\n[2]\u00a0https://www.garagegymreviews.com/fundamental-movement-patterns\n[3]\u00a0https://impulsechiropractic.net/wp-content/uploads/2023/12/Guide-to-the-7-Functional-Movements.pdf\n[4]\u00a0https://www.hertssportsvillage.co.uk/news-exercise-of-the-month-waiters-carrywalk-1370\n[5]\u00a0https://www.crossfit.com/essentials/the-push-press\n[6]\u00a0https://www.youtube.com/watch?v=J8YaoUpH-qg\n[7]\u00a0https://bodyglide.com/blog/6-essential-functional-movements/\n[8]\u00a0https://www.youtube.com/shorts/h9mJOoMDe-w\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Loaded Carry",
+      "confidence": 1.0
+    },
+    {
+      "name": "Lunge",
+      "confidence": 0.9
+    },
+    {
+      "name": "Anti-Rotation",
+      "confidence": 0.8
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.7
+    },
+    {
+      "name": "Vertical Push",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Deltoid (Anterior)",
+      "Deltoid (Lateral)",
+      "Trapezius (Upper)",
+      "Gluteus Maximus",
+      "Rectus Femoris",
+      "Triceps Brachii"
+    ],
+    "secondary": [
+      "Transverse Abdominis",
+      "External Obliques",
+      "Erector Spinae",
+      "Rotator Cuff",
+      "Latissimus Dorsi",
+      "Rhomboids",
+      "Biceps Femoris",
+      "Gastrocnemius"
+    ]
+  },
+  "processed_at": "2026-01-07T22:03:12.958630"
+}

@@ -1,0 +1,61 @@
+{
+  "exercise_id": "CUSTOM:Rowing_Machine",
+  "exercise_name": "Rowing Machine",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "rowing machine muscles worked",
+    "retrieved_at": "Rowing",
+    "raw_text": "Rowing machines work almost all major muscles in a full-body, coordinated sequence: legs (quads, hamstrings, glutes) for the powerful push, core (abs, lower back) for stabilization, and upper body (lats, traps, rhomboids, biceps, forearms, shoulders, triceps) for the pull, following the four phases: Catch (start position), Drive (leg push, torso swing, arm pull), Finish (end position), and Recovery (return to catch), making it a low-impact, comprehensive workout. [1, 2, 3, 4]  \nMuscles Worked by Muscle Group \n\n\u2022 Legs: Quadriceps, hamstrings, glutes, calves (power generation). \n\u2022 Core: Abdominals, obliques, lower back (stabilization, torso movement). \n\u2022 Back: Latissimus dorsi (lats), trapezius (traps), rhomboids (pulling strength, posture). \n\u2022 Arms/Shoulders: Biceps, triceps, deltoids, forearms (pulling, finishing the stroke). [1, 2, 5, 6, 7, 8]  \n\nRowing Movement Patterns (Phases) \n\n1. The Catch: Start with knees bent, shins vertical, torso leaning forward, arms extended; engages hamstrings, calves, triceps (holding handle). \n2. The Drive: Push powerfully with legs, swing torso open, pull handle to abdomen; engages quads, glutes, core, lats, biceps. \n3. The Finish: Torso upright, legs extended, handle at chest; engages glutes, abs, lats, biceps. \n4. The Recovery: Return to the catch position by extending arms, then bending knees; engages hamstrings, glutes, calves, triceps. [1, 2, 8, 9]  \n\nKey Takeaway \nRowing efficiently distributes effort, with about 60% from the legs, 20% from the core, and 20% from the upper body, making it a full-body exercise for strength and endurance, notes RP3 Rowing (https://rp3rowing.com/blog-items/what-muscles-does-rowing-strengthen/) and Hydrow. [2, 4]  \n\n**Citations:**\n\n[1]\u00a0https://www.concept2.com/training/articles/rowing-muscles-used\n[2]\u00a0https://rp3rowing.com/blog-items/what-muscles-does-rowing-strengthen/\n[3]\u00a0https://www.atozentherapies.com/post/rowing-machine-muscles-worked\n[4]\u00a0https://hydrow.com/blog/what-muscles-does-a-rowing-machine-work/\n[5]\u00a0https://www.strengthlog.com/rowing-machine/\n[6]\u00a0https://rp3rowing.com/blog-items/muscles-most-affected-by-rowing-workouts/\n[7]\u00a0https://www.trojanfitness.com.au/blogs/blog/what-muscles-does-a-rowing-machine-work\n[8]\u00a0https://trainingstation.co.uk/blogs/news/what-muscles-does-a-rowing-machine-work\n[9]\u00a0https://www.litmethod.com/blogs/boltcut-blog/what-muscles-does-a-rowing-machine-work\n\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Horizontal Pull",
+      "confidence": 0.9
+    },
+    {
+      "name": "Hip Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Knee Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Scapular Retraction",
+      "confidence": 0.7
+    },
+    {
+      "name": "Elbow Flexion",
+      "confidence": 0.6
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.5
+    },
+    {
+      "name": "Conditioning",
+      "confidence": 0.9
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Rectus Femoris",
+      "Gluteus Maximus",
+      "Latissimus Dorsi",
+      "Rhomboids",
+      "Biceps Femoris"
+    ],
+    "secondary": [
+      "Rectus Abdominis",
+      "Erector Spinae",
+      "Trapezius (Middle)",
+      "Deltoid (Posterior)",
+      "Biceps Brachii",
+      "Forearm Flexors",
+      "Gastrocnemius",
+      "External Obliques"
+    ]
+  },
+  "processed_at": "2026-01-07T15:09:04.680269"
+}

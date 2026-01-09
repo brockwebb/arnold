@@ -1,0 +1,44 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:90_90_HIP_SWITCH",
+  "exercise_name": "90-90 Hip Switch",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "90 90 hip switch muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The 90/90 Hip Switch is a mobility drill primarily targeting hip internal and external rotation, working muscles like glutes (maximus, medius, minimus), TFL, hamstrings, obliques, and transversus abdominis to improve hip joint range of motion, pelvic control, and spinal stability, essential for functional movement. It teaches the hip to rotate efficiently within the joint, benefiting activities like running and squatting. [1, 2, 3, 4, 5]  \nThis video demonstrates how to perform the 90/90 hip switch: \nMuscles Worked \n\n\u2022 Gluteus Maximus, Medius, & Minimus: Key hip extensors and stabilizers, involved in moving the leg and controlling pelvic tilt. \n\u2022 Tensor Fascia Latae (TFL): Assists with hip flexion and abduction. \n\u2022 Hamstrings: Contribute to pelvic tilt and hip extension. \n\u2022 Internal Obliques & Transversus Abdominis: Deep core muscles activated for pelvic stability and breathing control. \n\u2022 Hip External Rotators (e.g., Piriformis): Crucial for rotating the hip outward, often stretched in the back leg. \n\u2022 Hip Internal Rotators: Worked by the front leg's position, improving inward rotation. [1, 2, 3, 4, 6, 7, 8, 9]  \n\nMovement Patterns & Goals \n\n\u2022 Hip Rotation: The core goal is to train the hip joint's ability to rotate internally and externally, moving the femur within the socket. \n\u2022 Pelvic Control: Establishes a stable pelvis by normalizing its position (often focusing on a posterior pelvic tilt). \n\u2022 Spinal Stability: Promotes neutral spine posture, preventing unwanted torso twisting during hip movements. \n\u2022 Breathing Integration: Often incorporates controlled breathing (inhale through nose, exhale through mouth) to engage deep core muscles. \n\u2022 Functional Mobility: Improves the fundamental movement pattern of hip flexion/extension with accompanying rotation, vital for athletic movement and daily life. [2, 3, 5, 8, 10]  \n\nThis video explains the importance of hip mobility and how to perform the 90/90 hip switch: \nHow It Works \n\n1. Starting Position: Sit with one leg bent at 90 degrees in front (front hip internally rotated) and the other leg bent at 90 degrees behind (back hip externally rotated). \n2. The Switch: While maintaining support and a stable torso, lift your pelvis slightly and shift it to transition the legs to the opposite 90/90 position. \n3. Focus: The movement emphasizes rolling the thigh bone in the hip joint, not just swinging the legs side-to-side. [2, 3, 4, 9, 10]  \n\nThis video demonstrates how to perform the 90/90 hip switch with proper form: \n\n**Citations:**\n\n[1]\u00a0https://www.rehabhero.ca/exercise/9090-hip-switch\n[2]\u00a0https://zaccupples.com/9090-hip-lift-a-movement-deep-dive/\n[3]\u00a0https://www.onepeloton.com/blog/90-90-stretch\n[4]\u00a0https://www.rehabhero.ca/exercise/9090-hip-thrust\n[5]\u00a0https://www.markowtrainingsystems.com/2019/06/04/the-ultimate-90-90-stretch-guide/\n[6]\u00a0https://fitnessdrum.com/90-90-hip-stretch/\n[7]\u00a0https://www.youtube.com/watch?v=JEl-vwTMCXk\n[8]\u00a0https://pritrainer.com/supine-9090-hip-shift/\n[9]\u00a0https://missionmvmt.com/project/90-90-hip-stretch/\n[10]\u00a0https://www.instagram.com/reel/DQmRZ6TDpIT/\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Mobility",
+      "confidence": 1.0
+    },
+    {
+      "name": "Hip Flexion",
+      "confidence": 0.8
+    },
+    {
+      "name": "Trunk Rotation",
+      "confidence": 0.7
+    },
+    {
+      "name": "Anti-Rotation",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Gluteus Maximus",
+      "Gluteus Medius",
+      "Gluteus Minimus"
+    ],
+    "secondary": [
+      "Tensor Fasciae Latae",
+      "Hamstrings",
+      "Internal Obliques",
+      "Transverse Abdominis"
+    ]
+  },
+  "processed_at": "2026-01-08T08:33:13.276099"
+}

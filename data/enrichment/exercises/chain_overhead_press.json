@@ -1,0 +1,42 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:CHAIN_OVERHEAD_PRESS",
+  "exercise_name": "Chain Overhead Press",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "chain overhead press muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Chain Overhead Press is a variation of the standard overhead press, primarily working the Shoulders (Deltoids), Triceps, and Upper Chest, with significant assistance from the Traps, Serratus Anterior, and Core for stabilization, engaging a vertical pushing movement pattern that builds upper body pushing strength and shoulder health. The chains add accommodating resistance, increasing intensity as you push up, challenging stability more than traditional weights. [1, 2, 3, 4, 5]  \nMuscles Worked \n\n\u2022 Primary Movers: \n\n    \u2022 Deltoids (Shoulders): Especially the anterior (front) deltoids, responsible for lifting the weight overhead. \n    \u2022 Triceps (Upper Arms): Extend the elbows to lock out the press. \n    \u2022 Pectoralis Major (Upper Chest): Assists in the initial pressing phase. \n\n\u2022 Secondary/Stabilizing Muscles: \n\n    \u2022 Trapezius (Upper Back): Stabilizes the shoulder girdle. \n    \u2022 Serratus Anterior: Helps move the shoulder blade and stabilize the joint. \n    \u2022 Core Muscles (Abs, Obliques, Erector Spinae): Essential for maintaining a rigid torso and preventing excessive arching of the lower back. \n    \u2022 Rotator Cuff: Stabilizes the shoulder joint throughout the movement. [1, 3, 4, 5, 6, 7, 8]  \n\nMovement Pattern (Vertical Pushing) \n\n1. Starting Position: Bar (with chains) at shoulder height, hands gripping the bar, core braced, and glutes squeezed. \n2. Concentric (Pushing) Phase: Drive the weight upward by extending the elbows and shrugging the shoulders slightly, moving the head back as the bar passes the face. \n3. Top Position: Bar directly over the shoulders and mid-foot, arms fully extended. \n4. Eccentric (Lowering) Phase: Control the weight back down to the starting position, maintaining core tension. [6, 7, 8, 9]  \n\nKey Considerations for Chains \n\n\u2022 Accommodating Resistance: As you lift, the chains come off the floor, increasing the resistance and forcing your muscles to work harder at the top of the movement, improving power. \n\u2022 Stability Challenge: The dynamic nature of chains requires more core and shoulder stability compared to a static weight, improving functional strength. [2, 5, 6, 8, 10]  \n\n**Citations:**\n\n[1]\u00a0https://www.americansportandfitness.com/blogs/fitness-blog/overhead-press-a-guide-to-proper-form\n[2]\u00a0https://www.gymshark.com/blog/article/how-to-overhead-press-benefits-variations-and-tips\n[3]\u00a0https://www.healthline.com/health/overhead-press-muscles\n[4]\u00a0https://nfpt.com/vertical-push-fundamental-technique/\n[5]\u00a0https://themovementfix.com/overhead-lifting-and-the-anterior-chain/\n[6]\u00a0https://getrawnutrition.com/blogs/workouts/muscles-worked-by-the-overhead-press\n[7]\u00a0https://barbell-logic.com/the-press-muscles-worked/\n[8]\u00a0https://gravitus.com/guides/exercises/overhead-press/\n[9]\u00a0https://shop.bodybuilding.com/blogs/training/mastering-overhead-press-form-essential-techniques-and-cues\n[10]\u00a0https://wrightequipment.com/product/olympic-lifting-chains/\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Vertical Push",
+      "confidence": 1.0
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.7
+    },
+    {
+      "name": "Elbow Extension",
+      "confidence": 0.8
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Deltoid (Anterior)",
+      "Triceps Brachii",
+      "Pectoralis Major"
+    ],
+    "secondary": [
+      "Trapezius",
+      "Serratus Anterior",
+      "Rectus Abdominis",
+      "External Obliques",
+      "Erector Spinae",
+      "Rotator Cuff"
+    ]
+  },
+  "processed_at": "2026-01-08T08:34:01.957483"
+}

@@ -1,0 +1,38 @@
+{
+  "exercise_id": "CUSTOM:Cat-Cow",
+  "exercise_name": "Cat-Cow",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "cat cow stretch muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Cat-Cow stretch (Bitilasana Marjaryasana) is a spinal mobility flow that works the core, back (erector spinae, traps, rhomboids), neck, shoulders, hip flexors, and glutes, improving spinal flexion/extension, core stability, and posture through alternating spinal rounding (Cat) and arching (Cow) movements, linking breath with movement for a full-body stretch and warm-up. [1, 2, 3, 4]  \nMovement Patterns & Muscles Worked \n\n\u2022 Starting Position (Tabletop): Hands under shoulders, knees under hips, spine neutral. \n\u2022 Cow Pose (Inhale): \n\n    \u2022 Action: Drop belly, lift tailbone and gaze forward/up. \n    \u2022 Muscles: Stretches abdominals, engages spinal erectors (back extensors) and glutes slightly to lift tailbone. \n\n\u2022 Cat Pose (Exhale): \n\n    \u2022 Action: Round spine towards ceiling, tuck chin/tailbone, pull belly in. \n    \u2022 Muscles: Engages abdominals (rectus abdominis, obliques), stretches back, neck (traps), and chest. [2, 3, 4, 5, 6, 7]  \n\nKey Muscle Groups Activated \n\n\u2022 Spinal Muscles: Erector spinae, multifidus, trapezius (upper back). \n\u2022 Core: Rectus abdominis, obliques, transverse abdominis (deep core). \n\u2022 Shoulders & Neck: Deltoids, trapezius, deep neck muscles. \n\u2022 Hips: Gluteal muscles, iliopsoas (hip flexors). \n\u2022 Pelvic Floor: Engages with tailbone movement. [2, 4, 6, 8, 9]  \n\nBenefits & Purpose \n\n\u2022 Increases spinal mobility (flexion & extension). \n\u2022 Warms up & mobilizes the spine, great for daily movement or workouts. \n\u2022 Relieves back and neck tension. \n\u2022 Improves posture & core stability. \n\u2022 Stretches the chest, hips, abdomen, and back. [1, 3, 4, 6, 10, 11]  \n\n**Citations:**\n\n[1]\u00a0https://missionmvmt.com/project/cat-cow/\n[2]\u00a0https://www.hingehealth.com/resources/articles/cat-cow/\n[3]\u00a0https://fitbod.me/exercises/cat-cow\n[4]\u00a0https://www.masterclass.com/articles/cat-cow-stretch-guide\n[5]\u00a0https://www.youtube.com/watch?v=vuyUwtHl694\n[6]\u00a0https://www.youtube.com/shorts/MSBOBAIeLqI\n[7]\u00a0https://www.youtube.com/watch?v=fm_dQExJ5i8\n[8]\u00a0https://jennirawlingsblog.com/blog/a-modern-approach-to-core-stability-is-navel-to-spine-the-best-cue\n[9]\u00a0https://www.facebook.com/Winners2000Fitness/videos/which-muscles-do-seated-rows-use-%EF%B8%8F-the-seated-row-works-several-muscles-in-your-/264267715877172/\n[10]\u00a0https://www.orthoindy.com/cat-cow\n[11]\u00a0https://elitechirosport.com/core-exercise-cat-cow/\n\n\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Spinal Flexion",
+      "confidence": 0.9
+    },
+    {
+      "name": "Mobility",
+      "confidence": 1.0
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Erector Spinae",
+      "Rectus Abdominis"
+    ],
+    "secondary": [
+      "External Obliques",
+      "Internal Obliques",
+      "Transverse Abdominis",
+      "Trapezius",
+      "Rhomboids",
+      "Gluteus Maximus",
+      "Iliopsoas"
+    ]
+  },
+  "processed_at": "2026-01-07T22:04:13.338882"
+}

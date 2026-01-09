@@ -1,0 +1,53 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:SEATED_STRAIGHT_LEG_SWING_OVER_OBJECT",
+  "exercise_name": "Seated Straight Leg Swing Over Object",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "seated leg swings over hurdle muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Seated Straight Leg Swing Over Object primarily works the hip flexors, quadriceps, and core muscles. The movement pattern involved is a combination of hip flexion, abduction, and adduction while maintaining knee extension and core stability. [1, 2, 3, 4, 5]  \nMuscles Worked \n\n\u2022 Primary Movers: \n\n    \u2022 Hip Flexors: These are the main muscles responsible for lifting the leg and moving it over the object. Key muscles include the iliopsoas (iliacus and psoas major) and rectus femoris. \n    \u2022 Quadriceps: All four quadriceps muscles (rectus femoris, vastus lateralis, vastus medialis, and vastus intermedius) engage isometrically to keep the leg straight throughout the entire movement. \n    \u2022 Core Muscles: The abdominal muscles (especially the lower abs) and lower back muscles work to stabilize the pelvis and torso, particularly when minimizing the use of hands for support. \n\n\u2022 Secondary/Stabilizer Muscles: \n\n    \u2022 Hip Adductors: These inner thigh muscles help control the leg's movement toward the midline of the body (adduction) as it swings over and down the other side of the object. \n    \u2022 Hip Abductors: These muscles (like the gluteus medius) are involved in moving the leg away from the body's midline (abduction) and stabilizing the pelvis. \n    \u2022 Glutes: The gluteus maximus is engaged to assist with hip stability. \n    \u2022 Sartorius and Tensor Fasciae Latae (TFL): These also assist in the hip movement. [1, 6, 7, 8, 9, 10, 11]  \n\nMovement Patterns \nThe exercise incorporates several fundamental movement patterns related to lower body and core control: \n\n\u2022 Hip Flexion/Extension: The primary action involves lifting and lowering the leg, which is a key function of the hip flexors. \n\u2022 Hip Abduction/Adduction: As the leg is raised and moved over the object, it performs abduction (moving away from the midline) and then adduction (moving back toward the midline). \n\u2022 Core Stabilization: Maintaining an upright or slightly leaned-back posture requires significant core engagement, which is a crucial aspect of this exercise. \n\u2022 Knee Extension (Isometric): The quadriceps remain contracted throughout the movement to maintain a straight leg. [7, 8, 14, 15, 16]  \n\nThe \"Seated Straight Leg Swing Over Object\" is an effective low-impact exercise for enhancing hip strength, mobility, and core stability, often used in physical therapy and as a preparatory exercise for more advanced movements like the L-sit. [7, 17]  \n\n**Citations:**\n\n[1]\u00a0https://www.hingehealth.com/resources/articles/seated-leg-raise/\n[2]\u00a0https://www.youtube.com/watch?v=e7AbGb_LBO4\n[3]\u00a0https://www.youtube.com/watch?v=rgYclv44tRU\n[4]\u00a0https://www.pmmonline.org/doctor/limping-child/abnormal-gait-patterns/\n[5]\u00a0https://www.youtube.com/watch?v=s7WBpar9W6w\n[6]\u00a0https://www.rehabhero.ca/exercise/dumbbell-seated-straight-leg-raise\n[7]\u00a0https://www.reddit.com/r/bodyweightfitness/comments/9tuenp/what_muscles_are_trained_with_seated_leg_raises/\n[8]\u00a0https://nielsenfitness.com/leg-swings-why-we-love-them/\n[9]\u00a0https://www.hingehealth.com/resources/articles/straight-leg-raise/\n[10]\u00a0https://pmc.ncbi.nlm.nih.gov/articles/PMC7365227/\n[11]\u00a0https://www.hss.edu/health-library/move-better/guide-to-leg-muscles\n[12]\u00a0https://www.healio.com/orthopedics/journals/atshc/2012-5-4-3/%7Bf5d3de26-7d84-4af5-a0b5-b8015f9bff5a%7D/interrater-reliability-of-videotaped-performance-on-the-functional-movement-screen-using-the-100-point-scoring-scale?logout=0\n[13]\u00a0https://journals.lww.com/nsca-scj/fulltext/9900/development_of_a_resistance_training_curriculum.239.aspx\n[14]\u00a0https://backmusclesolutions.com/blogs/the-ql-blawg/hip-flexor-exercises\n[15]\u00a0https://www.themovementsystem.com/blog/hip-flexor-training-for-athletes\n[16]\u00a0https://www.bbc.co.uk/bitesize/guides/z2gyrdm/revision/4\n[17]\u00a0https://www.hingehealth.com/resources/articles/straight-leg-raise/\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Hip Flexion",
+      "confidence": 0.95
+    },
+    {
+      "name": "Hip Abduction",
+      "confidence": 0.85
+    },
+    {
+      "name": "Hip Adduction",
+      "confidence": 0.85
+    },
+    {
+      "name": "Knee Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.75
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Iliopsoas",
+      "Rectus Femoris",
+      "Rectus Abdominis"
+    ],
+    "secondary": [
+      "Hip Adductors",
+      "Gluteus Medius",
+      "Gluteus Maximus",
+      "Tensor Fasciae Latae",
+      "Vastus Lateralis",
+      "Vastus Medialis",
+      "Vastus Intermedius",
+      "External Obliques",
+      "Transverse Abdominis"
+    ]
+  },
+  "processed_at": "2026-01-08T08:35:48.470610"
+}

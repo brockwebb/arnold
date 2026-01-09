@@ -1,0 +1,49 @@
+{
+  "exercise_id": "CUSTOM:Bearhug_Squat-to-Stand",
+  "exercise_name": "Bearhug Squat-to-Stand",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "squat to stand muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Bearhug Squat-to-Stand is a full-body exercise working major lower-body muscles (glutes, quads, hamstrings) and postural muscles (core, back, shoulders, biceps) to improve functional strength and technique, emphasizing an upright torso by holding a weight (like a sandbag) close to the chest, challenging stabilization and promoting better mobility. The movement pattern involves hinging at the hips and squatting down while maintaining tension to keep the weight stable, then driving up powerfully. [1, 2, 3, 4, 5, 6]  \nMuscles Worked \n\n\u2022 Primary Movers: Glutes, Quadriceps, Hamstrings (for the squat). \n\u2022 Core & Posture: Abdominals, Obliques, Lower Back (erector spinae), Upper Back (traps, rhomboids). \n\u2022 Upper Body (Stabilizers/Grip): Biceps, Forearms, Shoulders (deltoids), Lats (for holding the weight). [1, 2, 3, 4, 5, 7, 8, 9, 10]  \n\nMovement Pattern \n\n1. Setup: Stand over the weight (sandbag/ball), hinge at the hips, and scoop your hands underneath to hug it to your chest. \n2. Descent: Initiate the squat by pushing hips back, keeping your chest up and core braced, as if tearing a newspaper with your feet (external rotation) to engage glutes and maintain tension. \n3. Bottom: Reach the deepest comfortable depth with an upright torso, ensuring your back maintains its natural curve. \n4. Ascent: Drive through your feet, extending hips and knees powerfully to return to standing, keeping the weight pressed firmly to your chest. [4, 6, 11, 12]  \n\nKey Benefits \n\n\u2022 Improves Posture: Forces an upright torso, strengthening postural muscles. \n\u2022 Builds Functional Strength: Mimics real-world lifting and carrying. \n\u2022 Enhances Core Stability: Unstable weight (like a sandbag) constantly challenges core stabilizers. \n\u2022 Develops Grip: Holding the object firmly builds grip strength. [2, 3, 4, 5, 8]  \n\n**Citations:**\n\n[1]\u00a0https://www.masterclass.com/articles/bear-squat-guide\n[2]\u00a0https://www.yahoo.com/lifestyle/forget-regular-squats-try-bear-083000545.html\n[3]\u00a0https://fitnessvolt.com/bear-hug-squats/\n[4]\u00a0https://whitelionstrong.com/elementor-4401/\n[5]\u00a0https://www.facebook.com/lawrence.serrahn/videos/exercises-you-probably-arent-doing-but-should-besandbag-bear-hug-squats-heres-wh/1354935249406648/\n[6]\u00a0https://www.dvidshub.net/video/548802/sandbag-bear-hug-squat\n[7]\u00a0https://www.dailymotion.com/video/x3gq2kb\n[8]\u00a0https://brickhousenutrition.com/blogs/articles/sandbag-training-101-is-this-the-ultimate-full-body-workout-tool\n[9]\u00a0https://lifttrackapp.com/exercises/sandbag-bear-hug-squat/\n[10]\u00a0https://www.healthline.com/health/exercise-fitness/squats-benefits\n[11]\u00a0https://www.youtube.com/watch?v=nB1Tx-dMOww\n[12]\u00a0https://ultimatesandbagtraining.com/better-squats-better-results/\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Squat",
+      "confidence": 1.0
+    },
+    {
+      "name": "Hip Hinge",
+      "confidence": 0.8
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.7
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Gluteus Maximus",
+      "Rectus Femoris",
+      "Biceps Femoris"
+    ],
+    "secondary": [
+      "Rectus Abdominis",
+      "External Obliques",
+      "Erector Spinae",
+      "Trapezius (Middle)",
+      "Rhomboids",
+      "Biceps Brachii",
+      "Forearm Flexors",
+      "Deltoid (Anterior)",
+      "Latissimus Dorsi"
+    ]
+  },
+  "processed_at": "2026-01-07T22:06:12.123592"
+}

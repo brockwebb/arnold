@@ -1,0 +1,39 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:ISOMETRIC_PUSH_UP_HOLD",
+  "exercise_name": "Isometric Push-Up Hold",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "isometric push up hold muscles worked",
+    "retrieved_at": "An",
+    "raw_text": "An Isometric Push-Up Hold builds static strength in the chest (pectorals), shoulders (anterior deltoids), and triceps, while intensely engaging the core (abs, obliques) and back stabilizers (lats, serratus anterior) to maintain a rigid, straight body line, preventing sagging and promoting joint stability through sustained tension, not movement. The movement pattern is a static, closed-chain push, requiring significant core bracing and focus on maintaining proper alignment (hollow body, tucked elbows) against gravity. [1, 2, 3, 4, 5]  \nMuscles Worked \n\n\u2022 Primary Movers (Pushing Muscles): \n\n    \u2022 Pectoralis Major: The chest muscles, heavily recruited to push against the floor. \n    \u2022 Anterior Deltoids: Front of the shoulders, assisting in arm extension. \n    \u2022 Triceps: Back of the upper arms, extending the elbow joint. \n\n\u2022 Stabilizers: \n\n    \u2022 Core (Rectus Abdominis, Obliques, Transverse Abdominis): Braces the spine and pelvis, preventing sagging. \n    \u2022 Serratus Anterior: Helps protract the shoulder blades and stabilize the shoulder girdle. \n    \u2022 Latissimus Dorsi: Back muscles that help keep elbows tucked in (imagining holding pencils). \n    \u2022 Glutes & Hamstrings: Engaged to keep the legs locked and the body straight. [1, 2, 3, 5, 6, 7, 8]  \n\nMovement Pattern \n\n\u2022 Type: Isometric (static contraction with no joint movement). \n\u2022 Action: Holding a fixed position, typically halfway down in a push-up (chest just above the floor) or at the top. \n\u2022 Key Cues: \n\n    \u2022 Maintain a straight line from head to heels (no sagging hips or piking). \n    \u2022 Engage the core and squeeze the glutes. \n    \u2022 Keep elbows tucked at about a 45-degree angle, not flared out. \n    \u2022 Actively push the floor away (or hold tension) to keep muscles engaged. \n\n\u2022 Benefit: Increases time under tension, builds foundational strength, improves joint stability, and enhances mind-muscle connection, making dynamic push-ups feel easier. [2, 3, 9, 10, 11]  \n\n**Citations:**\n\n[1]\u00a0https://dieringe.com/exercises/push-up-hold\n[2]\u00a0https://www.youtube.com/watch?v=Jv2hgtdfcC8\n[3]\u00a0https://www.youtube.com/watch?v=bJU2YQm7zMM\n[4]\u00a0https://www.physio-pedia.com/Pushups\n[5]\u00a0https://pubmed.ncbi.nlm.nih.gov/20664364/\n[6]\u00a0https://www.instagram.com/reel/DKjiL_honaV/\n[7]\u00a0https://www.goodrx.com/well-being/movement-exercise/benefits-of-push-ups\n[8]\u00a0https://www.medicalnewstoday.com/articles/323640\n[9]\u00a0https://blog.nasm.org/isometric-exercises\n[10]\u00a0https://brickhousenutrition.com/blogs/articles/your-comprehensive-guide-to-isometric-exercise\n[11]\u00a0https://acfpt.com.au/exercise-highlight-push-up-and-push-up-variations/\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Horizontal Push",
+      "confidence": 1.0
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.9
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Pectoralis Major",
+      "Deltoid (Anterior)",
+      "Triceps Brachii"
+    ],
+    "secondary": [
+      "Rectus Abdominis",
+      "External Obliques",
+      "Internal Obliques",
+      "Transverse Abdominis",
+      "Serratus Anterior",
+      "Latissimus Dorsi",
+      "Gluteus Maximus"
+    ]
+  },
+  "processed_at": "2026-01-08T08:34:27.616141"
+}

@@ -406,13 +406,30 @@ Use at conversation start to identify planning gaps that need filling.""",
 
 Converts the plan to an executed workout with no deviations.
 Writes to Postgres (facts) and creates Neo4j reference.
-Use when user reports "done" or "completed as planned".""",
+Use when user reports "done" or "completed as planned".
+
+IMPORTANT: Always ask user for session_rpe (1-10) and actual duration if not provided.
+These are critical for sRPE-based training load calculations.""",
             inputSchema={
                 "type": "object",
                 "properties": {
                     "plan_id": {
                         "type": "string",
                         "description": "Plan ID that was completed"
+                    },
+                    "session_rpe": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 10,
+                        "description": "Overall session RPE (1-10). ALWAYS ask user: 'How hard was that session?'"
+                    },
+                    "actual_duration_minutes": {
+                        "type": "integer",
+                        "description": "Actual workout duration in minutes. Ask user or use Polar data if available."
+                    },
+                    "notes": {
+                        "type": "string",
+                        "description": "Optional session notes"
                     }
                 },
                 "required": ["plan_id"]
@@ -429,6 +446,9 @@ Use when user reports changes from the plan:
 - "Skipped the finisher"
 - "Swapped exercise X for exercise Y"
 
+IMPORTANT: Always ask user for session_rpe (1-10) and actual duration if not provided.
+These are critical for sRPE-based training load calculations.
+
 Deviation structure:
 - planned_set_id: Which set deviated
 - actual_reps: What they actually did
@@ -442,6 +462,20 @@ Deviation structure:
                     "plan_id": {
                         "type": "string",
                         "description": "Plan ID that was completed"
+                    },
+                    "session_rpe": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 10,
+                        "description": "Overall session RPE (1-10). ALWAYS ask user: 'How hard was that session?'"
+                    },
+                    "actual_duration_minutes": {
+                        "type": "integer",
+                        "description": "Actual workout duration in minutes. Ask user or use Polar data if available."
+                    },
+                    "notes": {
+                        "type": "string",
+                        "description": "Optional session notes"
                     },
                     "deviations": {
                         "type": "array",
@@ -1016,7 +1050,11 @@ Use `confirm_plan` when ready to lock it in."""
     elif name == "complete_as_written":
         try:
             plan_id = arguments["plan_id"]
-            logger.info(f"Completing plan as written: {plan_id}")
+            session_rpe = arguments.get("session_rpe")  # Critical for sRPE load
+            actual_duration = arguments.get("actual_duration_minutes")  # Critical for sRPE load
+            session_notes = arguments.get("notes")
+            
+            logger.info(f"Completing plan as written: {plan_id} (RPE={session_rpe}, dur={actual_duration}min)")
             
             # 1. Get the plan from Neo4j
             plan = neo4j_client.get_planned_workout(plan_id)
@@ -1045,13 +1083,14 @@ Use `confirm_plan` when ready to lock it in."""
                         'is_deviation': False
                     })
             
-            # 3. Write to Postgres
+            # 3. Write to Postgres (use actual duration/RPE if provided, else plan estimates)
             result = postgres_client.log_strength_session(
                 session_date=plan['date'],
                 name=plan.get('goal', 'Workout'),
                 sets=sets,
-                duration_minutes=plan.get('estimated_duration_minutes'),
-                notes=plan.get('notes'),
+                duration_minutes=actual_duration or plan.get('estimated_duration_minutes'),
+                notes=session_notes or plan.get('notes'),
+                session_rpe=session_rpe,  # Critical for sRPE-based training load
                 source='from_plan',
                 plan_id=plan_id
             )
@@ -1075,6 +1114,15 @@ Use `confirm_plan` when ready to lock it in."""
             # 6. Update plan status
             neo4j_client.update_plan_status(plan_id, "completed")
             
+            # Build sRPE info string
+            srpe_info = ""
+            if session_rpe and (actual_duration or plan.get('estimated_duration_minutes')):
+                dur = actual_duration or plan.get('estimated_duration_minutes')
+                srpe_load = session_rpe * dur
+                srpe_info = f"\n**sRPE Load:** {srpe_load} AU (RPE {session_rpe} × {dur} min)"
+            elif not session_rpe:
+                srpe_info = "\n⚠️ **No session RPE provided** - sRPE load will be imputed"
+            
             return [types.TextContent(
                 type="text",
                 text=f"""✅ Workout completed!
@@ -1083,7 +1131,7 @@ Use `confirm_plan` when ready to lock it in."""
 **Neo4j Ref:** {neo4j_ref.get('id') if neo4j_ref else 'N/A'}
 **From Plan:** {plan_id}
 **Sets:** {result['set_count']}
-**Compliance:** as_written
+**Compliance:** as_written{srpe_info}
 
 Great work! 💪"""
             )]
@@ -1095,9 +1143,12 @@ Great work! 💪"""
     elif name == "complete_with_deviations":
         try:
             plan_id = arguments["plan_id"]
-            deviations = arguments["deviations"]
+            deviations = arguments.get("deviations", [])
+            session_rpe = arguments.get("session_rpe")  # Critical for sRPE load
+            actual_duration = arguments.get("actual_duration_minutes")  # Critical for sRPE load
+            session_notes = arguments.get("notes")
             
-            logger.info(f"Completing plan with {len(deviations)} deviations: {plan_id}")
+            logger.info(f"Completing plan with {len(deviations)} deviations: {plan_id} (RPE={session_rpe}, dur={actual_duration}min)")
             
             # 1. Get the plan from Neo4j
             plan = neo4j_client.get_planned_workout(plan_id)
@@ -1134,13 +1185,14 @@ Great work! 💪"""
                         'notes': dev.get('notes')
                     })
             
-            # 4. Write to Postgres
+            # 4. Write to Postgres (use actual duration/RPE if provided, else plan estimates)
             result = postgres_client.log_strength_session(
                 session_date=plan['date'],
                 name=plan.get('goal', 'Workout'),
                 sets=sets,
-                duration_minutes=plan.get('estimated_duration_minutes'),
-                notes=plan.get('notes'),
+                duration_minutes=actual_duration or plan.get('estimated_duration_minutes'),
+                notes=session_notes or plan.get('notes'),
+                session_rpe=session_rpe,  # Critical for sRPE-based training load
                 source='from_plan',
                 plan_id=plan_id
             )
@@ -1164,6 +1216,15 @@ Great work! 💪"""
             # 7. Update plan status
             neo4j_client.update_plan_status(plan_id, "completed")
             
+            # Build sRPE info string
+            srpe_info = ""
+            if session_rpe and (actual_duration or plan.get('estimated_duration_minutes')):
+                dur = actual_duration or plan.get('estimated_duration_minutes')
+                srpe_load = session_rpe * dur
+                srpe_info = f"\n**sRPE Load:** {srpe_load} AU (RPE {session_rpe} × {dur} min)"
+            elif not session_rpe:
+                srpe_info = "\n⚠️ **No session RPE provided** - sRPE load will be imputed"
+            
             return [types.TextContent(
                 type="text",
                 text=f"""✅ Workout completed with deviations recorded!
@@ -1172,7 +1233,7 @@ Great work! 💪"""
 **Neo4j Ref:** {neo4j_ref.get('id') if neo4j_ref else 'N/A'}
 **From Plan:** {plan_id}
 **Sets:** {result['set_count']}
-**Deviations:** {len(deviations)}
+**Deviations:** {len(deviations)}{srpe_info}
 
 Deviations tracked for coaching adjustments."""
             )]

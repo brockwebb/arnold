@@ -1,0 +1,51 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:SANDBAG_ZERCHER_SQUAT",
+  "exercise_name": "Sandbag Zercher Squat",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "zercher squat muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Sandbag Zercher Squat is a full-body compound movement that heavily targets the Quadriceps, Glutes, Core (abs/obliques), and Upper Back (traps/rhomboids) for strength, while also engaging Hamstrings, Biceps, and Forearms for stability and grip, all within a front-loaded squat pattern that promotes an upright torso and enhances functional strength for real-world lifting tasks. [1, 2, 3, 4]  \nMuscles Worked \n\n\u2022 Primary Movers: Quadriceps, Glutes. \n\u2022 Stabilizers/Assisters: Core (Abdominals, Obliques), Upper Back (Traps, Erector Spinae, Rhomboids, Rear Delts). \n\u2022 Grip/Arms: Biceps, Forearms. \n\u2022 Secondary/Assist: Hamstrings. [1, 2, 3, 4]  \n\nMovement Pattern & Key Aspects \n\n\u2022 Front-Loaded Squat: The weight is held in the crook of the elbows, placing the load in front of the body. Front Rack position.\n\u2022 Upright Torso: This anterior loading forces a more upright posture, reducing lower back stress compared to traditional back squats. \n\u2022 Enhanced Core Stability: The unstable nature of the sandbag demands significant core engagement to prevent forward collapse. \n\u2022 Functional Strength: Mimics lifting objects from the ground, building practical strength for daily activities. \n\u2022 Full-Body Activation: Requires comprehensive muscular effort, making it a great full-body developer. [1, 2, 4, 5, 6]  \n\nHow it Works (Pattern) \n\n1. Setup: Lift the sandbag into the crook of your elbows. \n2. Descent: Squat down by breaking at the hips and knees, keeping your chest up and core braced, sinking below parallel. \n3. Ascent: Drive up through your heels, pushing your knees out, and squeeze your glutes at the top. \n4. Key: Maintain constant tension on the core and upper back to keep the sandbag stable and your torso upright throughout the movement. [1, 2, 7]  \n\n**Citations:**\n\n[1]\u00a0https://repfitness.com/blogs/training/zercher-squat\n[2]\u00a0https://gym-mikolo.com/blogs/home-gym/mastering-the-sandbag-zercher-squat-the-ultimate-strength-building-exercise\n[3]\u00a0https://legionathletics.com/zercher-squat/\n[4]\u00a0https://gym-mikolo.com/blogs/home-gym/the-zercher-squat-benefits-form-and-training-tips\n[5]\u00a0https://barbend.com/zercher-squat-ultimate-guide/\n[6]\u00a0https://www.youtube.com/watch?v=eDf49a4Vx5k\n[7]\u00a0https://www.dingosandbags.com.au/frequently-asked-questions/sandbag-zercher-squat/\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Squat",
+      "confidence": 1.0
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Hip Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Knee Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.7
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Rectus Femoris",
+      "Gluteus Maximus"
+    ],
+    "secondary": [
+      "Rectus Abdominis",
+      "External Obliques",
+      "Erector Spinae",
+      "Trapezius (Middle)",
+      "Rhomboids",
+      "Biceps Femoris",
+      "Biceps Brachii",
+      "Forearm Flexors"
+    ]
+  },
+  "processed_at": "2026-01-08T08:35:39.196983"
+}

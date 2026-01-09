@@ -91,6 +91,8 @@ class CoachBriefData:
         self.annotations = []        # Active annotations for context
         self.data_gaps = []          # Issues without explanation
         self.explained_gaps = []     # Issues with annotation context
+        self.pattern_gaps = []       # Movement patterns not trained recently
+        self.muscle_volume = []      # Muscle volume this week
         
     def load(self):
         """Load all data needed for the report."""
@@ -98,6 +100,7 @@ class CoachBriefData:
         self._load_biometric_history()
         self._load_training_history()
         self._load_annotations()
+        self._load_pattern_muscle_data()
         self._check_data_gaps()
         return self
     
@@ -189,6 +192,47 @@ class CoachBriefData:
                     ORDER BY annotation_date DESC
                 """, (self.report_date, self.report_date, self.report_date))
                 self.annotations = cur.fetchall()
+    
+    def _load_pattern_muscle_data(self):
+        """Load pattern gaps and muscle volume from cache tables."""
+        self.muscle_volume_last_week = {}
+        with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
+            try:
+                # Pattern gaps - patterns not trained in 7+ days
+                cur.execute("""
+                    SELECT movement_pattern as pattern_name, days_since as days_since_trained
+                    FROM pattern_last_trained
+                    WHERE days_since >= 7
+                    ORDER BY days_since DESC
+                    LIMIT 10
+                """)
+                self.pattern_gaps = cur.fetchall()
+                
+                # Muscle volume this week (primary muscles)
+                cur.execute("""
+                    SELECT muscle_name, total_sets, total_reps, total_volume_lbs
+                    FROM muscle_volume_weekly
+                    WHERE role = 'primary' 
+                      AND week_start = date_trunc('week', CURRENT_DATE)::date
+                    ORDER BY total_sets DESC
+                    LIMIT 12
+                """)
+                self.muscle_volume = cur.fetchall()
+                
+                # Also get last week for comparison
+                cur.execute("""
+                    SELECT muscle_name, total_sets, total_reps
+                    FROM muscle_volume_weekly
+                    WHERE role = 'primary' 
+                      AND week_start = date_trunc('week', CURRENT_DATE - interval '7 days')::date
+                    ORDER BY total_sets DESC
+                """)
+                self.muscle_volume_last_week = {r['muscle_name']: r for r in cur.fetchall()}
+            except Exception as e:
+                # Cache tables may not exist yet
+                print(f"Warning: Could not load pattern/muscle data: {e}")
+                self.pattern_gaps = []
+                self.muscle_volume = []
             
     def _check_data_gaps(self):
         """Identify data quality issues, cross-referencing with annotations."""
@@ -246,6 +290,7 @@ class CoachBriefReport:
             self._page_summary(pdf)
             self._page_biometrics(pdf)
             self._page_training(pdf)
+            self._page_patterns_muscles(pdf)
             
         return self.output_path
     
@@ -354,10 +399,20 @@ class CoachBriefReport:
         
         if not self.data.data_gaps and not self.data.explained_gaps:
             ax.text(0.05, 0.8, "All data current", fontsize=12, color=COLORS['success'], transform=ax.transAxes)
-            
-        # Add completeness at bottom
-        completeness = s.get('hrv_7d_completeness', 0)
-        ax.text(0.05, 0.1, f"7-day data completeness: {completeness:.0f}%", fontsize=9, color=COLORS['secondary'], transform=ax.transAxes)
+        
+        # Red flags from snapshot
+        red_flags = []
+        if s.get('sleep_debt_zone') == 'critical':
+            red_flags.append(f"Sleep debt critical: {s.get('sleep_debt_hours_7d', 0):.0f}h")
+        if s.get('strain_zone') == 'high':
+            red_flags.append("Strain zone: HIGH")
+        if s.get('hrv_cv_zone') == 'elevated':
+            red_flags.append(f"HRV variability elevated: {s.get('hrv_cv_7d', 0):.0f}%")
+        
+        y = 0.3
+        for flag in red_flags[:2]:
+            ax.text(0.05, y, f"⚠ {flag}", fontsize=10, color=COLORS['danger'], transform=ax.transAxes)
+            y -= 0.12
             
         plt.tight_layout(rect=[0, 0, 1, 0.96])
         pdf.savefig(fig)
@@ -462,6 +517,63 @@ class CoachBriefReport:
         plt.tight_layout(rect=[0, 0, 1, 0.96])
         pdf.savefig(fig)
         plt.close()
+    
+    def _page_patterns_muscles(self, pdf: PdfPages):
+        """Page 4: Movement patterns and muscle volume."""
+        fig, axes = plt.subplots(1, 2, figsize=(11, 8.5))
+        fig.suptitle('Movement Patterns & Muscle Volume', fontsize=14, fontweight='bold', y=0.98)
+        
+        # Left: Pattern gaps
+        ax = axes[0]
+        ax.set_title('Pattern Gaps (7+ days)', fontweight='bold', loc='left')
+        
+        if self.data.pattern_gaps:
+            patterns = [r['pattern_name'] for r in self.data.pattern_gaps]
+            days = [r['days_since_trained'] for r in self.data.pattern_gaps]
+            
+            colors = [COLORS['danger'] if d >= 14 else COLORS['warning'] if d >= 10 else COLORS['secondary'] for d in days]
+            bars = ax.barh(patterns, days, color=colors, alpha=0.7)
+            ax.set_xlabel('Days Since Trained')
+            ax.axvline(x=7, color=COLORS['warning'], linestyle='--', alpha=0.5, label='7 day threshold')
+            ax.axvline(x=14, color=COLORS['danger'], linestyle='--', alpha=0.5, label='14 day threshold')
+            ax.legend(loc='lower right', fontsize=8)
+            ax.invert_yaxis()  # Top pattern at top
+            
+            # Add day labels on bars
+            for bar, d in zip(bars, days):
+                ax.text(bar.get_width() + 0.5, bar.get_y() + bar.get_height()/2, 
+                       f'{d}d', va='center', fontsize=9)
+        else:
+            ax.text(0.5, 0.5, 'All patterns trained recently', ha='center', va='center', transform=ax.transAxes, color=COLORS['success'])
+            ax.axis('off')
+        
+        # Right: Muscle volume this week
+        ax = axes[1]
+        ax.set_title('Muscle Volume This Week (Primary)', fontweight='bold', loc='left')
+        
+        if self.data.muscle_volume:
+            muscles = [r['muscle_name'] for r in self.data.muscle_volume]
+            sets = [r['total_sets'] or 0 for r in self.data.muscle_volume]
+            
+            # Color by volume level
+            colors = [COLORS['success'] if s >= 10 else COLORS['primary'] if s >= 5 else COLORS['secondary'] for s in sets]
+            bars = ax.barh(muscles, sets, color=colors, alpha=0.7)
+            ax.set_xlabel('Total Sets')
+            ax.axvline(x=10, color=COLORS['success'], linestyle='--', alpha=0.3, label='10 sets (good)')
+            ax.legend(loc='lower right', fontsize=8)
+            ax.invert_yaxis()
+            
+            # Add set counts on bars
+            for bar, s in zip(bars, sets):
+                ax.text(bar.get_width() + 0.3, bar.get_y() + bar.get_height()/2, 
+                       f'{s}', va='center', fontsize=9)
+        else:
+            ax.text(0.5, 0.5, 'No training data this week', ha='center', va='center', transform=ax.transAxes, color=COLORS['secondary'])
+            ax.axis('off')
+        
+        plt.tight_layout(rect=[0, 0, 1, 0.96])
+        pdf.savefig(fig)
+        plt.close()
         
     def _acwr_interpretation(self, acwr: float) -> str:
         """Return interpretation of ACWR value."""
@@ -535,6 +647,18 @@ def main():
     
     if not data.data_gaps and not data.explained_gaps:
         print(f"\n✓ No data quality issues detected")
+    
+    # Pattern gaps
+    if data.pattern_gaps:
+        print(f"\nPattern gaps (7+ days):")
+        for pg in data.pattern_gaps[:5]:
+            print(f"  - {pg['pattern_name']}: {pg['days_since_trained']} days")
+    
+    # Muscle volume
+    if data.muscle_volume:
+        print(f"\nMuscle volume this week (primary):")
+        for mv in data.muscle_volume[:6]:
+            print(f"  - {mv['muscle_name']}: {mv['total_sets']} sets")
             
     if args.dry_run:
         print("\nDry run - no PDF generated")

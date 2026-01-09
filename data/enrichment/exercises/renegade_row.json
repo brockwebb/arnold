@@ -1,0 +1,47 @@
+{
+  "exercise_id": "EXERCISE:RENEGADE_ROW",
+  "exercise_name": "Renegade Row",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "renegade row muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Renegade Row is a full-body strength exercise that primarily targets the back (lats, rhomboids, traps) and core (obliques, abs) for stability, while also engaging shoulders (deltoids), arms (biceps, triceps), glutes, and even hamstrings to resist rotation and maintain a plank, making it excellent for core strength, balance, and upper body pulling power. Its movement pattern combines a plank hold with a single-arm dumbbell row, demanding anti-rotational stability as you alternate pulling the weight towards your hip. [1, 2, 3, 4, 5]  \nMuscles Worked \n\n\u2022 Primary Movers (Pulling): \n\n    \u2022 Latissimus Dorsi (Lats): Main back muscle for pulling. \n    \u2022 Rhomboids & Traps: Stabilize shoulder blades and assist the lats. \n    \u2022 Biceps: Assist with the pulling motion. \n\n\u2022 Stabilizers (Plank & Anti-Rotation): \n\n    \u2022 Core (Obliques, Transverse Abdominis, Rectus Abdominis): Crucial for preventing torso rotation. \n    \u2022 Shoulders (Deltoids): Stabilize the shoulder joint. \n    \u2022 Glutes & Hamstrings: Help keep the hips stable and prevent lower back arching. \n    \u2022 Triceps: Stabilize the elbow joint. [2, 4, 5, 6, 7, 8]  \n\nMovement Pattern \n\n1. Starting Position: Begin in a high plank position with hands on dumbbells, feet wider than hip-width for stability, and core braced. \n2. The Row (Pull): Lift one dumbbell towards your hip, pulling with your back muscles while keeping your core tight to stop your body from twisting. \n3. Controlled Descent: Lower the dumbbell slowly back to the starting plank position. \n4. Alternating: Switch arms and repeat, creating a dynamic anti-rotation exercise. [1, 3, 5, 9, 10]  \n\nKey Aspects \n\n\u2022 Full-Body Engagement: It's a compound, functional exercise that works more than just the back. \n\u2022 Anti-Rotation: The main challenge is resisting the weight's pull to rotate your spine. \n\u2022 Stability Focus: Excellent for building overall body control and stability. [1, 2, 5, 7, 8, 9, 11]  \n\n**Citations:**\n\n[1]\u00a0https://www.masterclass.com/articles/renegade-row-guide\n[2]\u00a0https://nfpt.com/how-to-do-the-renegade-row/\n[3]\u00a0https://www.instagram.com/reel/Cv48tBgt1qM/\n[4]\u00a0https://www.muscleandfitness.com/workouts/arm-exercises/ignite-your-core-and-upper-body-gains-with-the-renegade-row/\n[5]\u00a0https://www.setforset.com/blogs/news/renegade-row\n[6]\u00a0https://www.mensjournal.com/health-fitness/how-to-renegade-row\n[7]\u00a0https://barbend.com/renegade-rows/\n[8]\u00a0https://www.advancedhumanperformance.com/blog/renegade-rows-part-2\n[9]\u00a0https://www.youtube.com/watch?v=4qEIChzM4ZA\n[10]\u00a0https://www.self.com/gallery/obliques-exercises\n[11]\u00a0https://fitnessvolt.com/renegade-rows/\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Anti-Rotation",
+      "confidence": 1.0
+    },
+    {
+      "name": "Horizontal Pull",
+      "confidence": 0.9
+    },
+    {
+      "name": "Scapular Retraction",
+      "confidence": 0.8
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.7
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Latissimus Dorsi",
+      "External Obliques",
+      "Internal Obliques",
+      "Transverse Abdominis"
+    ],
+    "secondary": [
+      "Rhomboids",
+      "Trapezius (Middle)",
+      "Biceps Brachii",
+      "Rectus Abdominis",
+      "Deltoid (Posterior)",
+      "Gluteus Maximus",
+      "Triceps Brachii"
+    ]
+  },
+  "processed_at": "2026-01-07T15:07:40.102354"
+}

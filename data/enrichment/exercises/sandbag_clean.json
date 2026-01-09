@@ -1,0 +1,68 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:SANDBAG_CLEAN",
+  "exercise_name": "Sandbag Clean",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "sandbag clean muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Sandbag Clean is a total-body power movement working legs (quads, hamstrings, glutes), back (lats, traps, erectors), core (obliques, abs), shoulders (deltoids), arms, and grip, involving a hip-driven, explosive pull from the floor to the shoulders, mimicking real-life lifting, challenging stability, and building functional strength. Key patterns include the Deadlift pull, explosive Hip Extension, and dynamic Catch, requiring coordination, core bracing, and grip strength due to the unstable weight. [1, 2, 3]  \nMuscles Worked \n\n\u2022 Legs: Quadriceps, Hamstrings, Glutes (powering the initial lift). \n\u2022 Back: Traps, Lats, Erector Spinae (stabilizing and assisting the pull). \n\u2022 Core: Obliques, Abdominals (crucial for stability and transferring force). \n\u2022 Shoulders & Arms: Deltoids, Biceps, Forearms (catching and controlling the bag). \n\u2022 Grip: Forearms and hands (essential for holding the awkward, shifting load). [1, 3, 4, 5, 6, 7]  \n\nMovement Patterns \n\n1. Deadlift/Pull: Starting from the floor in a hip-hinge position, pulling the bag up your legs. \n2. Explosive Hip Drive: A powerful, rapid extension of the hips and knees to generate upward momentum. \n3. Scoop/Catch: Quickly pulling your elbows forward and rotating under the bag to catch it in the \"front rack\" position (resting on forearms/biceps). \n4. Front Squat Transition (Optional): Dropping into a front squat to receive the bag before standing up. \n5. Stabilization: Constant core bracing and activation to manage the shifting weight and maintain posture. [1, 2, 3, 4, 8]  \n\nKey Aspects \n\n\u2022 Total-Body Power: Develops explosive strength and coordination. \n\u2022 Functional Fitness: Mimics lifting awkward objects. \n\u2022 Core & Stabilizers: The unstable load heavily taxes the core and smaller stabilizing muscles. \n\u2022 Grip Strength: A major benefit due to the lack of fixed handles. [1, 2, 4]  \n\n**Citations:**\n\n[1]\u00a0https://freedomstrength.us/pages/sandbag-training-guides\n[2]\u00a0https://brickhousenutrition.com/blogs/articles/sandbag-training-101-is-this-the-ultimate-full-body-workout-tool\n[3]\u00a0https://www.linkedin.com/pulse/5-best-sandbag-workout-movements-build-strength-bruteforcegroup\n[4]\u00a0https://www.mensfitness.com/training/sandbags-benefits-strength-training\n[5]\u00a0https://pubmed.ncbi.nlm.nih.gov/26618060/\n[6]\u00a0https://www.boxrox.com/5-sandbag-exercises-for-a-jacked-and-strong-upper-body/\n[7]\u00a0https://www.reddit.com/r/sandbagtraining/comments/1dqckg5/muscles_worked/\n[8]\u00a0https://streetparking.com/blogs/news/7-workouts-you-can-do-with-a-sandbag\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Hip Hinge",
+      "confidence": 0.95
+    },
+    {
+      "name": "Hip Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Olympic Pull",
+      "confidence": 0.85
+    },
+    {
+      "name": "Knee Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Vertical Pull",
+      "confidence": 0.75
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.7
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.85
+    },
+    {
+      "name": "Elbow Flexion",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Gluteus Maximus",
+      "Rectus Femoris",
+      "Biceps Femoris",
+      "Erector Spinae",
+      "Trapezius (Upper)",
+      "Latissimus Dorsi"
+    ],
+    "secondary": [
+      "External Obliques",
+      "Rectus Abdominis",
+      "Transverse Abdominis",
+      "Deltoid (Anterior)",
+      "Deltoid (Posterior)",
+      "Biceps Brachii",
+      "Forearm Flexors",
+      "Trapezius (Middle)",
+      "Rhomboids"
+    ]
+  },
+  "processed_at": "2026-01-08T08:35:19.462024"
+}

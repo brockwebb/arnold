@@ -1,0 +1,46 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:WEIGHTED_PLANK",
+  "exercise_name": "Weighted Plank",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "weighted plank muscles worked",
+    "retrieved_at": "A",
+    "raw_text": "A weighted plank is an isometric exercise primarily targeting deep core muscles (transverse abdominis, rectus abdominis, obliques) for stability, but also engages shoulders (deltoids, traps), back (erector spinae, lats), glutes, quads, and even calves, as the added weight increases demand across the entire body for stabilization against sagging. The main movement pattern is an isometric hold, where muscles contract without changing length, focusing on maintaining a rigid, straight line from head to heels while resisting spinal flexion and rotation. [1, 2, 3, 4, 5, 6]  \nMuscles Worked \n\n\u2022 Primary Core: Transverse Abdominis (deep stabilizer), Rectus Abdominis (\"six-pack\"), Obliques (sides). \n\u2022 Back: Erector Spinae (along the spine), Lats (latissimus dorsi). \n\u2022 Shoulders: Deltoids, Traps (trapezius). \n\u2022 Chest: Pectorals (minor involvement). \n\u2022 Arms: Triceps, Biceps (stabilizing). \n\u2022 Lower Body: Glutes (gluteus maximus, medius), Quadriceps, Hamstrings, Calves (all for leg extension and hip stability). [2, 3, 4, 5, 7, 8, 9, 10]  \n\nMovement Pattern \n\n\u2022 Type: Isometric Stabilization. \n\u2022 Action: Holding a static, rigid position (like a push-up position on elbows or hands). \n\u2022 Resistance: External weight (plate, sandbag) placed on the upper back increases the load, forcing deeper engagement from core and stabilizer muscles to prevent the hips from dropping or the back from arching. \n\u2022 Goal: To resist gravity and the added weight, teaching the core to maintain spinal neutral alignment. [1, 3, 4, 5, 6, 11]  \n\n**Citations:**\n\n[1]\u00a0https://www.trainfitness.ai/exercises/weightedPlank\n[2]\u00a0https://www.shape.com/what-muscles-do-planks-work-8350322\n[3]\u00a0https://www.getlabtest.com/news/post/plank-muscles-worked-benefits\n[4]\u00a0https://www.healthshots.com/fitness/muscle-gain/how-to-do-weighted-planks/\n[5]\u00a0https://gravitus.com/guides/exercises/plank/\n[6]\u00a0https://www.trainwell.net/exercises/weighted-plank\n[7]\u00a0https://www.quora.com/What-different-muscles-are-exercised-between-using-a-plank-exercise-and-a-push-up\n[8]\u00a0https://trainingstation.co.uk/blogs/news/what-muscles-do-planks-work\n[9]\u00a0https://www.healthline.com/health/fitness/what-muscles-do-planks-work\n[10]\u00a0https://fitness.stackexchange.com/questions/37999/do-planks-increase-muscle-endurance-rather-than-induce-muscle-hypertrophy\n[11]\u00a0https://www.physio-pedia.com/Plank_exercise\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Anti-Extension",
+      "confidence": 1.0
+    },
+    {
+      "name": "Anti-Lateral Flexion",
+      "confidence": 0.9
+    },
+    {
+      "name": "Anti-Rotation",
+      "confidence": 0.9
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Transverse Abdominis",
+      "Rectus Abdominis",
+      "External Obliques",
+      "Internal Obliques"
+    ],
+    "secondary": [
+      "Erector Spinae",
+      "Latissimus Dorsi",
+      "Deltoid (Anterior)",
+      "Trapezius",
+      "Pectoralis Minor",
+      "Triceps Brachii",
+      "Gluteus Maximus",
+      "Quadriceps Femoris",
+      "Gastrocnemius"
+    ]
+  },
+  "processed_at": "2026-01-08T08:36:35.768726"
+}

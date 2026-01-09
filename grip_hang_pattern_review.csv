@@ -1,0 +1,254 @@
+exercise_id,exercise_name,keep
+CUSTOM:Active_Hang,Active Hang,t
+CANONICAL:FFDB:2687,Alternating Single Arm Dumbbell Hang Power Clean,t
+CUSTOM:Arched_Hang,Arched Hang,t
+CANONICAL:FFDB:1888,Bar Dead Hang,t
+CANONICAL:FFDB:776,Bar Dead Hang to Front Lever Pull Up,t
+CANONICAL:FFDB:2600,Bar False Grip Pull Up,t
+CANONICAL:FFDB:1374,Bar Front Lever Pull to Inverted Hang,t
+CANONICAL:FFDB:1381,Bar Hanging Knee Raise,t
+CANONICAL:FFDB:1382,Bar Hanging Knees to Elbows,t
+CANONICAL:FFDB:1383,Bar Hanging Knees to Wrists,t
+CANONICAL:FFDB:1572,Bar Hanging L Sit,t
+CANONICAL:FFDB:1388,Bar Hanging L Sit Flutter Kicks,t
+CANONICAL:FFDB:1384,Bar Hanging Leg Raise,t
+CANONICAL:FFDB:1386,Bar Hanging Oblique Knee Raise,t
+CANONICAL:FFDB:1385,Bar Hanging Toes to Bar,t
+CANONICAL:FFDB:1622,Bar Hanging Tuck L Sit,t
+CANONICAL:FFDB:1387,Bar Inverted Hang,t
+CANONICAL:FFDB:72,Bar Inverted Hanging Crunch,t
+EXERCISE:Barbell_Bench_Press_-_Medium_Grip,Barbell Bench Press - Medium Grip,f
+CANONICAL:FFDB:176,Barbell Close Grip Bench Press,f
+CANONICAL:FFDB:447,Barbell Close Grip Decline Bench Press,f
+CANONICAL:FFDB:446,Barbell Close Grip Incline Bench Press,f
+CANONICAL:FFDB:2923,Barbell Close Grip Incline Push Up,f
+CANONICAL:FFDB:672,Barbell Deficit Snatch Grip Deadlift,t
+CANONICAL:FFDB:442,Barbell Hang Power Clean,t
+CANONICAL:FFDB:2608,Barbell Hang Power Clean to Front Rack Squat,f
+CANONICAL:FFDB:2612,Barbell Hang Power Clean to Overhead Press,f
+CANONICAL:FFDB:2610,Barbell Hang Power Clean to Push Jerk,f
+CANONICAL:FFDB:2611,Barbell Hang Power Clean to Push Press,f
+CANONICAL:FFDB:2609,Barbell Hang Power Clean to Split Jerk,f
+CANONICAL:FFDB:3141,Barbell Hang Power Clean to Squat Jerk,f
+CANONICAL:FFDB:1773,Barbell Hang Power Snatch,F
+CANONICAL:FFDB:1133,Barbell Hang Squat Clean,F
+CANONICAL:FFDB:2616,Barbell Hang Squat Clean to Overhead Press,f
+CANONICAL:FFDB:2614,Barbell Hang Squat Clean to Push Jerk,f
+CANONICAL:FFDB:2615,Barbell Hang Squat Clean to Push Press,f
+CANONICAL:FFDB:2613,Barbell Hang Squat Clean to Split Jerk,f
+CANONICAL:FFDB:3140,Barbell Hang Squat Clean to Squat Jerk,f
+CANONICAL:FFDB:666,Barbell Hang Squat Clean to Thruster,f
+CANONICAL:FFDB:1774,Barbell Hang Squat Snatch,f
+EXERCISE:Barbell_Incline_Bench_Press_-_Medium_Grip,Barbell Incline Bench Press - Medium Grip,f
+CANONICAL:FFDB:915,Barbell Reverse Grip Bench Press,f
+CANONICAL:FFDB:508,Barbell Reverse Grip Bent Over Row,f
+CANONICAL:FFDB:1093,Barbell Reverse Grip Bicep Curl,f
+CANONICAL:FFDB:3127,Barbell Reverse Grip Decline Bench Press,f
+CANONICAL:FFDB:906,Barbell Reverse Grip Front Raise,f
+CANONICAL:FFDB:3126,Barbell Reverse Grip Incline Bench Press,f
+CANONICAL:FFDB:2194,Barbell Reverse Grip Incline Push Up,f
+CANONICAL:FFDB:437,Barbell Reverse Grip Overhead Press,f
+CANONICAL:FFDB:438,Barbell Seated Reverse Grip Overhead Press,f
+CANONICAL:FFDB:908,Barbell Seated Reverse Grip Wrist Curl,T
+CANONICAL:FFDB:815,Barbell Seated Wrist Curl,t
+CANONICAL:FFDB:248,Barbell Snatch Grip Deadlift,t
+CANONICAL:FFDB:3043,Barbell Tall Kneeling Reverse Grip Bicep Curl,f
+CANONICAL:FFDB:73,Bodyweight Inverted Hanging Oblique Crunch,t
+EXERCISE:Bottoms-Up_Clean_From_The_Hang_Position,Bottoms-Up Clean From The Hang Position,t
+CANONICAL:FFDB:1780,Cable Reverse Grip Lat Pulldown,t
+CANONICAL:FFDB:349,Cable Straight Bar Reverse Grip Bicep Curl,f
+CANONICAL:FFDB:3251,Cable Straight Bar Reverse Grip Front Raise,f
+CANONICAL:FFDB:2009,Cable Straight Bar Reverse Grip Tricep Pushdown,f
+CANONICAL:FFDB:1781,Cable V Grip Lat Pulldown,t
+CANONICAL:FFDB:1832,Cable V Grip Seated Floor Lat Pulldown,t
+CANONICAL:FFDB:1770,Cable V Grip Seated Low Row,t
+CANONICAL:FFDB:1779,Cable Wide Grip Lat Pulldown,t
+EXERCISE:Cable_Wrist_Curl,Cable Wrist Curl,t
+CANONICAL:FFDB:3115,Climbing Rope Dead Hang,t
+CANONICAL:FFDB:3103,Climbing Rope Hanging L Sit,t
+CANONICAL:FFDB:3104,Climbing Rope Hanging L Sit Flutter Kicks,t
+CANONICAL:FFDB:3213,Climbing Rope Hanging Leg Raise,t
+CANONICAL:FFDB:3214,Climbing Rope Hanging Toes to Rope,t
+EXERCISE:Close-Grip_Barbell_Bench_Press,Close-Grip Barbell Bench Press,f
+EXERCISE:Close-Grip_Dumbbell_Press,Close-Grip Dumbbell Press,f
+EXERCISE:Close-Grip_EZ_Bar_Curl,Close-Grip EZ Bar Curl,f
+EXERCISE:Close-Grip_EZ-Bar_Curl_with_Band,Close-Grip EZ-Bar Curl with Band,f
+EXERCISE:Close-Grip_EZ-Bar_Press,Close-Grip EZ-Bar Press,f
+EXERCISE:Close-Grip_Front_Lat_Pulldown,Close-Grip Front Lat Pulldown,t
+EXERCISE:Close-Grip_Push-Up_off_of_a_Dumbbell,Close-Grip Push-Up off of a Dumbbell,f
+EXERCISE:Close-Grip_Standing_Barbell_Curl,Close-Grip Standing Barbell Curl,f
+EXERCISE:Decline_Close-Grip_Bench_To_Skull_Crusher,Decline Close-Grip Bench To Skull Crusher,f
+CANONICAL:FFDB:1692,Double Dumbbell Close Grip Bench Press,f
+CANONICAL:FFDB:1988,Double Dumbbell Close Grip Decline Bench Press,f
+CANONICAL:FFDB:1681,Double Dumbbell Close Grip Floor Press,f
+CANONICAL:FFDB:1701,Double Dumbbell Close Grip Incline Bench Press,f
+CANONICAL:FFDB:2529,Double Dumbbell Hang Power Clean,t
+CANONICAL:FFDB:2545,Double Dumbbell Hang Split Clean,t
+CANONICAL:FFDB:2536,Double Dumbbell Hang Squat Clean,t
+CANONICAL:FFDB:196,Double Dumbbell Reverse Grip Bench Press,f
+EXERCISE:Dumbbell_Bench_Press_with_Neutral_Grip,Dumbbell Bench Press with Neutral Grip,f
+CANONICAL:FFDB:1820,Dumbbell Crush Grip Bent Over Row,t
+CANONICAL:FFDB:1663,Dumbbell Crush Grip Bicep Curl,f
+CANONICAL:FFDB:1822,Dumbbell Crush Grip Bicep Curl to Overhead Press,f
+CANONICAL:FFDB:1958,Dumbbell Crush Grip Decline Bench Skull Crusher,f
+CANONICAL:FFDB:1824,Dumbbell Crush Grip Floor Press,f
+CANONICAL:FFDB:3180,Dumbbell Crush Grip Floor Skull Crusher,f
+CANONICAL:FFDB:3158,Dumbbell Crush Grip Front Rack March,f
+CANONICAL:FFDB:2134,Dumbbell Crush Grip Front Rack Squat,f
+CANONICAL:FFDB:936,Dumbbell Crush Grip Hollow Body Flutter Kicks,f
+CANONICAL:FFDB:71,Dumbbell Crush Grip Hollow Body Hold,f
+CANONICAL:FFDB:1957,Dumbbell Crush Grip Incline Bench Skull Crusher,f
+CANONICAL:FFDB:32,Dumbbell Crush Grip Otis Up,f
+CANONICAL:FFDB:2926,Dumbbell Crush Grip Overhead March,f
+CANONICAL:FFDB:1823,Dumbbell Crush Grip Overhead Press,f
+CANONICAL:FFDB:1825,Dumbbell Crush Grip Overhead Tricep Extension,f
+CANONICAL:FFDB:927,Dumbbell Crush Grip Romanian Deadlift,t
+CANONICAL:FFDB:2029,Dumbbell Crush Grip Seated Bicep Curl,f
+CANONICAL:FFDB:2678,Dumbbell Crush Grip Seated Good Morning,f
+CANONICAL:FFDB:2024,Dumbbell Crush Grip Seated Overhead Tricep Extension,f
+CANONICAL:FFDB:2843,Dumbbell Crush Grip Single Leg Romanian Deadlift,t
+CANONICAL:FFDB:1956,Dumbbell Crush Grip Skull Crusher,f
+CANONICAL:FFDB:655,Dumbbell Crush Grip Spider Curl,f
+CANONICAL:FFDB:3085,Dumbbell Crush Grip Tall Kneeling Bicep Curl,f
+CANONICAL:FFDB:2012,Dumbbell Crush Grip Tall Kneeling Overhead Tricep Extension,f
+CANONICAL:FFDB:221,Dumbbell Crush Grip Z Press,f
+EXERCISE:Dumbbell_Tricep_Extension_-Pronated_Grip,Dumbbell Tricep Extension -Pronated Grip,f
+CANONICAL:FFDB:426,EZ Bar Close Grip Bench Press,f
+CANONICAL:FFDB:397,EZ Bar Close Grip Bicep Curl,f
+CANONICAL:FFDB:428,EZ Bar Close Grip Decline Bench Press,f
+CANONICAL:FFDB:427,EZ Bar Close Grip Incline Bench Press,f
+CANONICAL:FFDB:3142,EZ Bar Close Grip Strict Bicep Curl,f
+CANONICAL:FFDB:1960,EZ Bar Reverse Grip Bent Over Row,t
+CANONICAL:FFDB:141,EZ Bar Reverse Grip Bicep Curl,f
+CANONICAL:FFDB:3252,EZ Bar Reverse Grip Front Raise,t
+CANONICAL:FFDB:423,EZ Bar Reverse Grip Overhead Press,f
+CANONICAL:FFDB:425,EZ Bar Reverse Grip Seated Overhead Press,f
+CANONICAL:FFDB:132,EZ Bar Wide Grip Bicep Curl,f
+CANONICAL:FFDB:695,EZ Bar Wide Grip Strict Bicep Curl,f
+EXERCISE:Front_Squat_Clean_Grip,Front Squat (Clean Grip),f
+EXERCISE:Hammer_Grip_Incline_DB_Bench_Press,Hammer Grip Incline DB Bench Press,f
+EXERCISE:Hanging_Bar_Good_Morning,Hanging Bar Good Morning,t
+EXERCISE:Hanging_Leg_Raise,Hanging Leg Raise,t
+EXERCISE:Hanging_Pike,Hanging Pike,t
+CANONICAL:FFDB:2640,Heavy Sandbag Alternating Hang Shoulder Clean,t
+CANONICAL:FFDB:2641,Heavy Sandbag Hang Shoulder Clean,t
+EXERCISE:Incline_Push-Up_Close-Grip,Incline Push-Up Close-Grip,f
+EXERCISE:Incline_Push-Up_Reverse_Grip,Incline Push-Up Reverse Grip,f
+CANONICAL:FFDB:753,Kettlebell Alternating Halo to Horn Grip Bottoms Up Squat,t
+CANONICAL:FFDB:415,Kettlebell Bottoms Up Horn Grip Cyclist Squat,t
+CANONICAL:FFDB:941,Kettlebell Bottoms Up Horn Grip Goblet Bulgarian Split Squat,t
+CANONICAL:FFDB:952,Kettlebell Bottoms Up Horn Grip Toe Balance Squat,t
+CANONICAL:FFDB:2920,Kettlebell Close Grip Push Up,t
+CANONICAL:FFDB:2642,Kettlebell Dead Clean to Horn Grip Alternating Reverse Lunge,t
+CANONICAL:FFDB:1004,Kettlebell Dead Clean to Horn Grip Squat,t
+CANONICAL:FFDB:2922,Kettlebell Feet Elevated Close Grip Push Up,t
+CANONICAL:FFDB:2948,Kettlebell Horn Grip Alternating Cossack Squat,t
+CANONICAL:FFDB:2238,Kettlebell Horn Grip Alternating Curtsy Lunge,t
+CANONICAL:FFDB:1748,Kettlebell Horn Grip Alternating Forward Lunge,t
+CANONICAL:FFDB:1744,Kettlebell Horn Grip Alternating Lateral Lunge,t
+CANONICAL:FFDB:2004,Kettlebell Horn Grip Alternating Pistol Squat,t
+CANONICAL:FFDB:1755,Kettlebell Horn Grip Alternating Reverse Lunge,t
+CANONICAL:FFDB:2753,Kettlebell Horn Grip Alternating Russian Step Up,t
+CANONICAL:FFDB:2681,Kettlebell Horn Grip Alternating Step Up,t
+CANONICAL:FFDB:185,Kettlebell Horn Grip Bicep Curl,t
+CANONICAL:FFDB:2943,Kettlebell Horn Grip Bulgarian Split Squat,t
+CANONICAL:FFDB:2505,Kettlebell Horn Grip Carry,t
+CANONICAL:FFDB:2951,Kettlebell Horn Grip Cossack Squat,t
+CANONICAL:FFDB:2482,Kettlebell Horn Grip Curtsy Lunge,t
+CANONICAL:FFDB:414,Kettlebell Horn Grip Cyclist Squat,t
+CANONICAL:FFDB:2949,Kettlebell Horn Grip Foot Elevated Cossack Squat,t
+CANONICAL:FFDB:2946,Kettlebell Horn Grip Foot Elevated Knee Over Toe Split Squat,t
+CANONICAL:FFDB:2812,Kettlebell Horn Grip Forward Lunge,t
+CANONICAL:FFDB:3015,Kettlebell Horn Grip Half Kneeling Bicep Curl,t
+CANONICAL:FFDB:2945,Kettlebell Horn Grip Knee Over Toe Split Squat,t
+CANONICAL:FFDB:2986,Kettlebell Horn Grip Lateral Lunge,t
+CANONICAL:FFDB:2950,Kettlebell Horn Grip Low Switch Cossack Squat,t
+CANONICAL:FFDB:2397,Kettlebell Horn Grip March,t
+CANONICAL:FFDB:966,Kettlebell Horn Grip Otis Up,t
+CANONICAL:FFDB:1471,Kettlebell Horn Grip Pistol Squat,t
+CANONICAL:FFDB:2886,Kettlebell Horn Grip Reverse Lunge,t
+CANONICAL:FFDB:2752,Kettlebell Horn Grip Russian Step Up,t
+CANONICAL:FFDB:3006,Kettlebell Horn Grip Seated Bicep Curl,t
+CANONICAL:FFDB:747,Kettlebell Horn Grip Skater Squat,t
+CANONICAL:FFDB:2944,Kettlebell Horn Grip Split Squat,t
+CANONICAL:FFDB:2952,Kettlebell Horn Grip Squat,t
+CANONICAL:FFDB:2680,Kettlebell Horn Grip Step Up,t
+CANONICAL:FFDB:3014,Kettlebell Horn Grip Tall Kneeling Bicep Curl,t
+CANONICAL:FFDB:1756,Kettlebell Horn Grip Walking Lunge,t
+CANONICAL:FFDB:2921,Kettlebell Kneeling Close Grip Push Up,t
+CANONICAL:FFDB:144,Landmine V Grip Row,t
+CANONICAL:FFDB:1189,Landmine V Grip Tall Kneeling Chest Press,t
+EXERCISE:Lying_Close-Grip_Bar_Curl_On_High_Pulley,Lying Close-Grip Bar Curl On High Pulley,f
+EXERCISE:Lying_Close-Grip_Barbell_Triceps_Extension_Behind_The_Head,Lying Close-Grip Barbell Triceps Extension Behind The Head,f
+EXERCISE:Lying_Close-Grip_Barbell_Triceps_Press_To_Chin,Lying Close-Grip Barbell Triceps Press To Chin,f
+CANONICAL:FFDB:510,Macebell Reverse Grip Offset Bent Over Row,t
+CANONICAL:FFDB:622,Macebell Reverse Grip Offset Bicep Curl,f
+EXERCISE:Mixed_Grip_Chin,Mixed Grip Chin,t
+CUSTOM:Neutral-Grip_Hang_Knees-Up,Neutral-Grip Hang Knees-Up,t
+EXERCISE:One_Handed_Hang,One Handed Hang,t
+CUSTOM:One-Arm_Dead_Hang,One-Arm Dead Hang,t
+EXERCISE:Palms-Down_Dumbbell_Wrist_Curl_Over_A_Bench,Palms-Down Dumbbell Wrist Curl Over A Bench,t
+EXERCISE:Palms-Down_Wrist_Curl_Over_A_Bench,Palms-Down Wrist Curl Over A Bench,t
+EXERCISE:Palms-Up_Barbell_Wrist_Curl_Over_A_Bench,Palms-Up Barbell Wrist Curl Over A Bench,t
+EXERCISE:Palms-Up_Dumbbell_Wrist_Curl_Over_A_Bench,Palms-Up Dumbbell Wrist Curl Over A Bench,t
+CANONICAL:FFDB:170,Parallette Close Grip Push Up,f
+CANONICAL:FFDB:869,Parallette Feet Elevated Close Grip Push Up,f
+CANONICAL:FFDB:1799,Parallette Kneeling Close Grip Push Up,f
+CANONICAL:FFDB:2576,Parallette Single Leg Close Grip Push Up,f
+CANONICAL:FFDB:1924,Resistance Band Alternating Reverse Grip Bicep Curl,f
+CANONICAL:FFDB:1923,Resistance Band Reverse Grip Bicep Curl,f
+EXERCISE:Reverse_Grip_Bent-Over_Rows,Reverse Grip Bent-Over Rows,t
+EXERCISE:Reverse_Grip_Triceps_Pushdown,Reverse Grip Triceps Pushdown,f
+CANONICAL:FFDB:1628,Ring Dead Hang,t
+CANONICAL:FFDB:755,Ring Dead Hang to Front Lever Pull Up,t
+CANONICAL:FFDB:2531,Ring False Grip Pull Up,t
+CANONICAL:FFDB:485,Ring Front Lever Pull to Inverted Hang,t
+CANONICAL:FFDB:754,Ring German Hang Pullout,t
+CANONICAL:FFDB:912,Ring Grip Full Planche,t
+CANONICAL:FFDB:783,Ring Grip Full Planche Push Up,t
+CANONICAL:FFDB:1409,Ring Grip Push Up,t
+CANONICAL:FFDB:2760,Ring Grip Straddle Planche,t
+CANONICAL:FFDB:785,Ring Grip Straddle Planche Push Up,t
+CANONICAL:FFDB:17,Ring Hanging Knee Raise,t
+CANONICAL:FFDB:972,Ring Hanging Knees to Elbows,t
+CANONICAL:FFDB:1044,Ring Hanging Knees to Wrists,t
+CANONICAL:FFDB:1573,Ring Hanging L Sit,t
+CANONICAL:FFDB:30,Ring Hanging L Sit Flutter Kicks,t
+CANONICAL:FFDB:44,Ring Hanging Leg Raise,t
+CANONICAL:FFDB:27,Ring Hanging Oblique Knee Raise,t
+CANONICAL:FFDB:1621,Ring Hanging Tuck L Sit,t
+CANONICAL:FFDB:486,Ring Inverted Hang,t
+EXERCISE:Seated_Close-Grip_Concentration_Barbell_Curl,Seated Close-Grip Concentration Barbell Curl,f
+EXERCISE:Seated_Dumbbell_Palms-Down_Wrist_Curl,Seated Dumbbell Palms-Down Wrist Curl,t
+EXERCISE:Seated_Dumbbell_Palms-Up_Wrist_Curl,Seated Dumbbell Palms-Up Wrist Curl,t
+EXERCISE:Seated_One-Arm_Dumbbell_Palms-Down_Wrist_Curl,Seated One-Arm Dumbbell Palms-Down Wrist Curl,t
+EXERCISE:Seated_One-Arm_Dumbbell_Palms-Up_Wrist_Curl,Seated One-Arm Dumbbell Palms-Up Wrist Curl,t
+EXERCISE:Seated_Palm-Up_Barbell_Wrist_Curl,Seated Palm-Up Barbell Wrist Curl,t
+EXERCISE:Seated_Palms-Down_Barbell_Wrist_Curl,Seated Palms-Down Barbell Wrist Curl,t
+EXERCISE:Seated_Two-Arm_Palms-Up_Low-Pulley_Wrist_Curl,Seated Two-Arm Palms-Up Low-Pulley Wrist Curl,t
+CANONICAL:FFDB:354,Single Arm Bar Dead Hang,t
+CANONICAL:FFDB:1574,Single Arm Bar Hanging L Sit,t
+CANONICAL:FFDB:350,Single Arm Cable Reverse Grip Bicep Curl,f
+CANONICAL:FFDB:140,Single Arm Cable Reverse Grip Tricep Pushdown,f
+CANONICAL:FFDB:2686,Single Arm Dumbbell Hang Power Clean,t
+CANONICAL:FFDB:239,Single Arm Ring Dead Hang,t
+CANONICAL:FFDB:704,Single Arm Ring Grip Push Up,t
+CANONICAL:FFDB:1575,Single Arm Ring Hanging L Sit,t
+CANONICAL:FFDB:2434,Slider Kettlebell Horn Grip Curtsy Lunge,t
+CANONICAL:FFDB:406,Slider Kettlebell Horn Grip Lateral Lunge,t
+CANONICAL:FFDB:2913,Slider Kettlebell Horn Grip Reverse Lunge,t
+EXERCISE:Smith_Machine_Close-Grip_Bench_Press,Smith Machine Close-Grip Bench Press,f
+EXERCISE:Smith_Machine_Hang_Power_Clean,Smith Machine Hang Power Clean,t
+EXERCISE:Standing_Palms-Up_Barbell_Behind_The_Back_Wrist_Curl,Standing Palms-Up Barbell Behind The Back Wrist Curl,t
+CANONICAL:FFDB:3234,Superband Side Lying Hanging Hip Adduction,f
+CANONICAL:FFDB:705,Superband Side Plank Hanging Hip Adduction,f
+CANONICAL:FFDB:348,Suspension Reverse Grip Bicep Curl,f
+CUSTOM:Tucked_Hang,Tucked Hang,t
+CUSTOM:Weighted_Dead_Hang,Weighted Dead Hang,t
+EXERCISE:Wide-Grip_Barbell_Bench_Press,Wide-Grip Barbell Bench Press,f
+EXERCISE:Wide-Grip_Decline_Barbell_Bench_Press,Wide-Grip Decline Barbell Bench Press,f
+EXERCISE:Wide-Grip_Decline_Barbell_Pullover,Wide-Grip Decline Barbell Pullover,f
+EXERCISE:Wide-Grip_Lat_Pulldown,Wide-Grip Lat Pulldown,t
+EXERCISE:Wide-Grip_Pulldown_Behind_The_Neck,Wide-Grip Pulldown Behind The Neck,t
+EXERCISE:Wide-Grip_Rear_Pull-Up,Wide-Grip Rear Pull-Up,t
+EXERCISE:Wide-Grip_Standing_Barbell_Curl,Wide-Grip Standing Barbell Curl,F

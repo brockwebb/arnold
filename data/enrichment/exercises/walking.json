@@ -1,0 +1,59 @@
+{
+  "exercise_id": "EXERCISE:Walking",
+  "exercise_name": "Walking",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "walking muscles worked",
+    "retrieved_at": "Walking",
+    "raw_text": "Walking is a full-body movement engaging major leg muscles (glutes, quads, hamstrings, calves) for propulsion and support, plus core muscles for balance, all coordinated through alternating stance and swing phases to move you forward smoothly. Key actions include hip extension/flexion, knee flexion/extension, and ankle movement (dorsiflexion/plantarflexion) during the gait cycle. [1, 2, 3, 4, 5, 6]  \nMuscles Worked \n\n\u2022 Glutes (Maximus, Medius, Minimus): Extend hip (back leg), stabilize pelvis, control sideways leg movement. \n\u2022 Quadriceps (Vasti): Extend the knee for landing and forward motion. \n\u2022 Hamstrings: Flex the knee (leading leg), help extend the hip. \n\u2022 Calves (Gastrocnemius, Soleus): Propel you forward, push off the ground. \n\u2022 Hip Flexors (Iliopsoas, Rectus Femoris): Lift the thigh and knee forward. \n\u2022 Core (Abdominals, Obliques): Maintain balance, stabilize the pelvis and torso. \n\u2022 Anterior Leg (Tibialis Anterior): Lifts toes as the foot swings forward. [1, 2, 4, 5, 6, 7, 8, 9, 10]  \n\nMovement Patterns (Gait Cycle) \n\n1. Heel Strike (Stance Phase Begins): Foot lands, quads and tibialis anterior control the landing. \n2. Foot Flat/MidStance (Stance Phase): Body weight shifts over the foot, glutes and core stabilize. \n3. Push-Off (Stance Phase Ends): Calves (gastrocnemius, soleus) powerfully push the body forward. \n4. Swing Phase: Leg lifts off the ground, hip flexors and core bring the leg forward, quads extend knee for next landing. \n5. Cycle Repeats: Alternating legs move through these phases to create continuous motion. [2, 3, 5, 6]  \n\n**Citations:**\n\n[1]\u00a0https://www.physio-pedia.com/Walking_-_Muscles_Used\n[2]\u00a0https://teachmeanatomy.info/lower-limb/misc/walking-and-gaits/\n[3]\u00a0https://www.theskimm.com/fitness/walking/muscles-worked-walking\n[4]\u00a0https://www.inyourhometherapy.com/our-blog/the-anatomy-of-walking-and-how-physiotherapy-can-help/\n[5]\u00a0https://safunctionalfitness.com/how-our-muscles-evolved-from-walking-the-foundation-of-human-movement-part-2/\n[6]\u00a0https://klintneuro.com.au/3-key-muscle-groups-you-must-strengthen-to-improve-your-walking/\n[7]\u00a0https://www.physio-pedia.com/index.php?title=Walking_-_Muscles_Used&veaction=edit&section=2\n[8]\u00a0https://www.physio-pedia.com/index.php?title=Walking_-_Muscles_Used&redirect=no?utm_source%3Dphysiopedia&utm_medium=related_articles&utm_campaign=ongoing_internal\n[9]\u00a0https://www.onepeloton.com/blog/does-walking-build-muscle\n[10]\u00a0https://www.youtube.com/watch?v=HTvP_mr_zt8\n\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Hip Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Hip Flexion",
+      "confidence": 0.9
+    },
+    {
+      "name": "Knee Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Knee Flexion",
+      "confidence": 0.8
+    },
+    {
+      "name": "Ankle Plantarflexion",
+      "confidence": 0.8
+    },
+    {
+      "name": "Ankle Dorsiflexion",
+      "confidence": 0.7
+    },
+    {
+      "name": "Anti-Lateral Flexion",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Gluteus Maximus",
+      "Rectus Femoris",
+      "Biceps Femoris",
+      "Gastrocnemius",
+      "Soleus"
+    ],
+    "secondary": [
+      "Gluteus Medius",
+      "Gluteus Minimus",
+      "Iliopsoas",
+      "Tibialis Anterior",
+      "Rectus Abdominis",
+      "External Obliques"
+    ]
+  },
+  "processed_at": "2026-01-07T15:10:17.488238"
+}

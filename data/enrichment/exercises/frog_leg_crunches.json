@@ -1,0 +1,34 @@
+{
+  "exercise_id": "CUSTOM:Frog-Leg_Crunches",
+  "exercise_name": "Frog-Leg Crunches",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "frog crunch muscles worked",
+    "retrieved_at": "Frog",
+    "raw_text": "Frog Leg Crunches primarily work your Rectus Abdominis (six-pack abs), engaging the Obliques (side abs) and Hip Flexors (Iliopsoas) as secondary muscles, with the unique leg position activating inner thighs and quads for better lower core focus. The movement pattern involves a spinal flexion (crunch) and hip flexion, bringing knees towards the chest in a \"frog\" stance, strengthening the core in a functional way by controlling pelvic rotation during the movement, explains ACE Fitness (https://www.acefitness.org/resources/everyone/blog/5201/6-exercise-swaps-for-a-more-effective-workout/). [1, 2, 3, 4, 5]  \nMuscles Worked: \n\n\u2022 Primary: Rectus Abdominis (Upper & Lower Abs) \n\u2022 Secondary: Obliques (Side Abs) \n\u2022 Synergists: Hip Flexors (Iliopsoas, Rectus Femoris), Quads, Inner Thighs (Adductors) [1, 3, 4, 6, 7]  \n\nMovement Pattern: \n\n1. Starting Position: Lie on your back with knees bent, feet together, and soles touching (diamond shape), hands supporting your head or by your ears (not pulling). \n2. The Crunch: Exhale as you lift your shoulders and curl your torso off the mat, bringing your knees and elbows closer together. \n3. The Release: Inhale as you slowly lower back down, extending your legs slightly (but not fully) before repeating, maintaining core tension. [1, 2, 3, 8]  \n\nKey Benefits: \n\n\u2022 Targets lower abs more effectively by positioning hips abducted (knees out). \n\u2022 Improves functional core strength by working with hip flexors and controlling pelvic movement, notes Julie Lohre (https://julielohre.com/frog-crunch/). [3, 4, 5]  \n\n**Citations:**\n\n[1]\u00a0https://spotebi.com/exercise-guide/frog-crunches/\n[2]\u00a0https://www.youtube.com/watch?v=zRMYJf5oe_I\n[3]\u00a0https://www.fitnessai.com/exercise/frog-crunch\n[4]\u00a0https://julielohre.com/frog-crunch/\n[5]\u00a0https://www.acefitness.org/resources/everyone/blog/5201/6-exercise-swaps-for-a-more-effective-workout/\n[6]\u00a0https://weighttraining.guide/exercises/frog-crunch-with-leg-raise/\n[7]\u00a0https://weighttraining.guide/exercises/frog-crunch/\n[8]\u00a0https://www.facebook.com/groups/28639918313/posts/10161022140913314/\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Spinal Flexion",
+      "confidence": 0.9
+    },
+    {
+      "name": "Hip Flexion",
+      "confidence": 0.7
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Rectus Abdominis"
+    ],
+    "secondary": [
+      "External Obliques",
+      "Iliopsoas",
+      "Hip Adductors",
+      "Rectus Femoris"
+    ]
+  },
+  "processed_at": "2026-01-07T22:04:32.639056"
+}

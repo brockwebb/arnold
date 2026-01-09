@@ -1,0 +1,34 @@
+{
+  "exercise_id": "CUSTOM:Kneeling_Ab_Wheel",
+  "exercise_name": "Kneeling Ab Wheel",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "ab wheel rollout muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Kneeling Ab Wheel Rollout primarily targets your core (rectus abdominis, obliques, transverse abdominis) for anti-extension, while also engaging your lats, pecs, triceps, shoulders, and glutes for stability and control as you extend and return. The movement pattern is an anti-extension exercise, forcing your core to resist spinal flexion (arching) as you roll out, and then contract powerfully to pull the wheel back in, working eccentrically and concentrically through a large range of motion. [1, 2, 3, 4]  \nMuscles Worked: \n\n\u2022 Primary Movers/Stabilizers: \n\n    \u2022 Rectus Abdominis: The \"six-pack\" muscles, working hard to prevent your back from arching (anti-extension). \n    \u2022 Obliques (Internal & External): Stabilize the torso and prevent sideways tilting or rotation. \n    \u2022 Transverse Abdominis: The deep core muscle, crucial for spinal stability. \n\n\u2022 Secondary/Assisting Muscles: \n\n    \u2022 Latissimus Dorsi (Lats): Assist in pulling the wheel back and stabilizing the shoulders. \n    \u2022 Pectoralis Major (Pecs): Engage to help control the arm extension. \n    \u2022 Serratus Anterior: Helps protract the shoulder blades. \n    \u2022 Glutes & Hamstrings: Keep hips stable and prevent sagging. \n    \u2022 Triceps & Shoulders: Stabilize the arms and shoulders in the extended position. [1, 2, 3, 5, 6, 7, 8]  \n\nMovement Pattern: \n\n1. Starting Position: Kneel on the floor, hands on the wheel, arms extended, abs tight, back flat. \n2. Eccentric Phase (Roll Out): Slowly roll the wheel forward, extending your arms and hips, maintaining a rigid, straight line from knees to shoulders (like an extended plank). This is the lengthening (eccentric) phase, where the core resists gravity. \n3. Isometric Hold (Optional): Pause at the furthest point you can control without your lower back sagging. \n4. Concentric Phase (Roll In): Engage your abs and lats to pull the wheel back to the starting position, overcoming gravity. [1, 4, 6, 9]  \n\nKey Technique: \n\n\u2022 Control is key: Avoid letting your lower back arch; the core does the work to prevent extension. \n\u2022 Slow and controlled: Focus on the eccentric (out) and concentric (in) phases, not speed. \n\u2022 Start small: Begin with shorter rollouts and gradually increase range as strength improves. [1, 2, 4, 5, 6]  \n\n\n**Citations:**\n\n[1]\u00a0https://www.advancedhumanperformance.com/blog/fix-your-ab-rollouts-with-eccentric-isometrics\n[2]\u00a0https://m.youtube.com/watch?v=nCh8VfWY5_g\n[3]\u00a0https://archive.t-nation.com/training/core-exercise-best-abs-ab-wheel/\n[4]\u00a0https://shopepicfitness.com/blogs/without-limits/ab-roller-technique-are-you-performing-your-ab-workouts-correctly\n[5]\u00a0https://www.endomondo.com/exercise/kneeling-ab-wheel-rollout\n[6]\u00a0https://www.loseit.com/articles/what-does-the-ab-roller-wheel-work/\n[7]\u00a0https://www.scielo.br/j/medical/a/BK4tJ3s4p95tKh86MKPTy4P/?format=pdf\n[8]\u00a0https://bachperformance.com/master-six-key-movement-patterns-the-right-way-to-get-jacked-by-training-everything-all-the-time/\n[9]\u00a0https://www.strengthlog.com/kneeling-ab-wheel-roll-out/\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Anti-Extension",
+      "confidence": 1.0
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Rectus Abdominis",
+      "External Obliques",
+      "Internal Obliques",
+      "Transverse Abdominis"
+    ],
+    "secondary": [
+      "Latissimus Dorsi",
+      "Pectoralis Major",
+      "Serratus Anterior",
+      "Gluteus Maximus",
+      "Triceps Brachii",
+      "Deltoid (Anterior)"
+    ]
+  },
+  "processed_at": "2026-01-07T15:08:47.566509"
+}

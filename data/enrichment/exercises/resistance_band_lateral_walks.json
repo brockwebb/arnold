@@ -1,0 +1,40 @@
+{
+  "exercise_id": "CUSTOM:Resistance_Band_Lateral_Walks",
+  "exercise_name": "Resistance Band Lateral Walks",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "banded lateral walks muscles worked",
+    "retrieved_at": "Resistance",
+    "raw_text": "Resistance Band Lateral Walks primarily target the hip abductors (Gluteus Medius, Gluteus Minimus, TFL) for hip stabilization, alongside the Gluteus Maximus, strengthening the outer hips, glutes, and core for improved lateral movement, stability, and injury prevention, all while using a side-stepping pattern in a shallow squat. The movement involves leading with the heel, stepping out to the side, then bringing the feet back together, maintaining tension and keeping knees over feet. [1, 2, 3, 4, 5, 6, 7]  \nMuscles Worked (Primary Movers) \n\n\u2022 Gluteus Medius & Minimus: Key hip abductors, stabilizing the pelvis and preventing knee collapse (valgus). \n\u2022 Gluteus Maximus: Assists with hip extension and outward rotation. \n\u2022 Tensor Fasciae Latae (TFL): Works with the glutes to abduct the hip. \n\u2022 Core: Engaged to maintain stability and prevent torso movement. \n\u2022 Quadriceps & Hamstrings: Also engaged to maintain the shallow squat. [1, 3, 6, 8, 9]  \n\nMovement Pattern (How it Works) \n\n1. Starting Position: Band above knees or ankles, feet hip-width apart, in a slight athletic squat (knees bent, hips back). \n2. The Step: Lead with your heel, taking a controlled step to the side (e.g., right) while keeping tension on the band. \n3. Bring Feet Together: Bring the trailing foot (left) to meet the leading foot, returning to hip-width apart, but never letting feet get too close. \n4. Maintain Tension: Ensure knees stay in line with feet, preventing them from caving inward. \n5. Repeat: Continue stepping in one direction, then switch, focusing on small, controlled steps. [1, 2, 5, 7, 8, 10]  \n\nBenefits & Why It's Done \n\n\u2022 Activates & Strengthens Glutes: Excellent for activating the gluteus medius, crucial for hip health. \n\u2022 Improves Hip Stability: Enhances lateral stability, vital for sports and daily function. \n\u2022 Corrects Movement Patterns: Prevents knees from caving in (valgus), reducing injury risk (like ACL). \n\u2022 Warm-up/Activation: Ideal for activating glutes before squats or deadlifts. [4, 8, 9, 10, 11, 12]  \n\n**Citations:**\n\n[1]\u00a0https://www.neuroendomke.com/exercise-of-the-week-banded-lateral-walking/\n[2]\u00a0https://www.youtube.com/shorts/iSouE1OGO9w\n[3]\u00a0https://steelsupplements.com/blogs/steel-blog/how-to-lateral-band-walk-techniques-benefits-variations\n[4]\u00a0https://thetruetransformation.com/glossary/lateral-band-walks/\n[5]\u00a0https://fitbod.me/exercises/mini-loop-band-lateral-walk\n[6]\u00a0https://fitnessdrum.com/banded-lateral-walks/\n[7]\u00a0https://www.youtube.com/watch?v=PhNkkOieB-8\n[8]\u00a0https://www.facebook.com/ProdigyWellnessCenter/videos/movement-of-the-week-lateral-band-walkstronger-glutes-better-stability-and-injur/1737067771023697/\n[9]\u00a0https://www.issaonline.com/blog/post/master-the-lateral-band-walk-for-a-stronger-gluteus-medius\n[10]\u00a0https://www.muscleandstrength.com/exercises/lateral-band-walk\n[11]\u00a0https://eliteclubs.com/shape-your-butt-with-lateral-band-walks/\n[12]\u00a0https://www.verywellfit.com/lateral-band-walking-exercise-3120456\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Hip Abduction",
+      "confidence": 0.95
+    },
+    {
+      "name": "Squat",
+      "confidence": 0.7
+    },
+    {
+      "name": "Anti-Lateral Flexion",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Gluteus Medius",
+      "Gluteus Minimus",
+      "Tensor Fasciae Latae"
+    ],
+    "secondary": [
+      "Gluteus Maximus",
+      "Rectus Femoris",
+      "Biceps Femoris",
+      "Transverse Abdominis"
+    ]
+  },
+  "processed_at": "2026-01-07T22:05:00.672885"
+}

@@ -1,0 +1,69 @@
+{
+  "exercise_id": "CUSTOM:Kickboxing",
+  "exercise_name": "Kickboxing",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "kickboxing muscles worked",
+    "retrieved_at": "Kickboxing",
+    "raw_text": "Kickboxing is a full-body workout engaging legs (quads, glutes, hamstrings, calves) for power and stability, core (abs, obliques) for rotation and balance, and upper body (shoulders, chest, arms, back) for punching, all while requiring dynamic movements like pivoting, shuffling, and explosive strikes for strength, speed, and coordination. It builds power and endurance through compound movements, enhancing functional fitness. [1, 2, 3, 4, 5, 6, 7]  \nMuscles Worked \n\n\u2022 Legs & Glutes: quadriceps, hamstrings, glutes, calves (https://rarebreed.net.au/kickboxing-as-a-full-body-workout-what-muscles-it-targets-explained/) generate power for kicks, support balance, and drive movement. \n\u2022 Core: abdominals, obliques (https://www.9round.com/blog/how-kickboxing-builds-strength-and-endurance) are crucial for stabilizing the torso, rotating for punches, and transferring power. \n\u2022 Upper Body: shoulders, chest, arms (biceps, triceps), back (https://www.attsandysprings.com/post/kickboxing-to-build-muscle-tone-and-strengthen-your-body) are engaged in punching, adding strength and definition. \n\u2022 Back: back muscles help with posture, stability, and rotation. [1, 2, 4, 5, 6, 8, 9]  \n\nMovement Patterns & Skills Developed \n\n\u2022 Kicking: Involves hip extension (glutes), knee extension (quads), and leg control (hamstrings) with powerful rotation. \n\u2022 Punching: Utilizes core rotation, shoulder strength, and arm power (triceps for extension). \n\u2022 Footwork: Constant shuffling, pivoting, and quick direction changes work legs and improve agility and balance. \n\u2022 Dynamic Strength: Generates force rapidly for strikes, essential for power and speed. \n\u2022 Coordination & Balance: Shifting weight and maintaining control during strikes and movement. [1, 2, 3, 4, 6, 8, 10, 11]  \n\nKey Benefits \n\n\u2022 Full-Body Strength: Engages multiple muscle groups simultaneously for comprehensive training. \n\u2022 Power & Explosiveness: Develops the ability to generate force quickly. \n\u2022 Endurance: Sustained movement and striking build cardiovascular fitness and muscular endurance. \n\u2022 Functional Fitness: Mimics real-world movements, improving everyday function. [2, 3, 6, 7, 10, 11]  \n\n**Citations:**\n\n[1]\u00a0https://rarebreed.net.au/kickboxing-as-a-full-body-workout-what-muscles-it-targets-explained/\n[2]\u00a0https://www.9round.mx/blog/how-kickboxing-builds-strength-and-endurance\n[3]\u00a0https://pmc.ncbi.nlm.nih.gov/articles/PMC5424459/\n[4]\u00a0https://www.attsandysprings.com/post/kickboxing-to-build-muscle-tone-and-strengthen-your-body\n[5]\u00a0https://www.gymbird.com/workouts/top-kickboxing-benefits\n[6]\u00a0https://fightstyle.nl/en/blogs/all-about-fight-gear/kickboxing-as-a-full-body-workout-which-muscles-do-you-train-the-most\n[7]\u00a0https://us.adidascombatsports.com/blogs/news/kickboxing-workouts-weight-loss-2025\n[8]\u00a0https://www.youtube.com/watch?v=zdG-9E-66WQ\n[9]\u00a0https://chuzefitness.com/blog/what-muscles-does-cardio-kickboxing-work/\n[10]\u00a0https://www.quora.com/What-are-the-most-important-muscles-for-kicking-speed-and-power\n[11]\u00a0https://www.9round.com/blog/how-kickboxing-builds-strength-and-endurance\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Hip Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Knee Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Trunk Rotation",
+      "confidence": 0.9
+    },
+    {
+      "name": "Horizontal Push",
+      "confidence": 0.8
+    },
+    {
+      "name": "Elbow Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Hip Flexion",
+      "confidence": 0.7
+    },
+    {
+      "name": "Anti-Rotation",
+      "confidence": 0.7
+    },
+    {
+      "name": "Conditioning",
+      "confidence": 1.0
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Gluteus Maximus",
+      "Rectus Femoris",
+      "External Obliques",
+      "Internal Obliques",
+      "Deltoid (Anterior)",
+      "Triceps Brachii",
+      "Pectoralis Major"
+    ],
+    "secondary": [
+      "Biceps Femoris",
+      "Gastrocnemius",
+      "Rectus Abdominis",
+      "Transverse Abdominis",
+      "Deltoid (Lateral)",
+      "Deltoid (Posterior)",
+      "Trapezius",
+      "Latissimus Dorsi",
+      "Biceps Brachii",
+      "Erector Spinae"
+    ]
+  },
+  "processed_at": "2026-01-07T15:07:46.041200"
+}

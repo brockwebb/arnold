@@ -1,0 +1,52 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#4A90A4'}}}%%
+
+flowchart TB
+    subgraph L1["Layer 1: Raw Data"]
+        Bio["Biometrics<br/>HRV, RHR, Sleep, Temp"]
+        Train["Training<br/>Sets, Reps, Load"]
+        Subj["Subjective<br/>Journal, Annotations"]
+    end
+
+    subgraph L2["Layer 2: Computed Metrics"]
+        Ready["Readiness Score<br/>HRV vs baseline, sleep quality"]
+        Load["Training Load<br/>ACWR, Monotony, Strain"]
+        Gaps["Pattern Gaps<br/>Days since movement"]
+        Prog["Progression<br/>Est 1RM, PRs"]
+    end
+
+    subgraph L3["Layer 3: Coach Intelligence"]
+        Context["Context Integration<br/>Goals, Block, Injuries"]
+        Policy["Policy Application<br/>Evidence-based rules"]
+        Conflict["Conflict Resolution<br/>When signals disagree"]
+        Decision["Decision<br/>What to recommend"]
+    end
+
+    subgraph L4["Layer 4: Output"]
+        CBrief["Coach Brief<br/>Full context, flags, data"]
+        ABrief["Athlete Brief<br/>Actionable, compact"]
+        Trace["Decision Trace<br/>Audit trail"]
+    end
+
+    Bio --> Ready
+    Train --> Load
+    Train --> Gaps
+    Train --> Prog
+    Subj --> Context
+
+    Ready --> Policy
+    Load --> Policy
+    Gaps --> Policy
+    Prog --> Context
+
+    Context --> Conflict
+    Policy --> Conflict
+    Conflict --> Decision
+
+    Decision --> CBrief
+    Decision --> ABrief
+    Decision --> Trace
+
+    style L1 fill:#FFECB3,stroke:#FF8F00
+    style L2 fill:#C8E6C9,stroke:#388E3C
+    style L3 fill:#BBDEFB,stroke:#1976D2
+    style L4 fill:#E1BEE7,stroke:#7B1FA2

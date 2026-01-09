@@ -1,6 +1,6 @@
 # Arnold Neo4j Schema Reference
 
-> **Last Updated:** January 4, 2026 (Added Annotation node)
+> **Last Updated:** January 7, 2026 (Added human_verified to INVOLVES/TARGETS relationships)
 
 This document describes the complete graph schema for the Arnold knowledge graph.
 
@@ -459,6 +459,93 @@ RETURN DISTINCT mp.name
 
 ---
 
+## Human Verification Workflow
+
+LLM-generated classifications (INVOLVES, TARGETS) require spot-checking to build verified ground truth over time.
+
+### Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `human_verified` | boolean | True if relationship has been spot-checked |
+| `verified_at` | datetime | When verification occurred |
+| `verified_by` | string | Who verified ('brock', etc.) |
+
+### Ad-Hoc Validation Queries
+
+```cypher
+// Get 5 random UNVERIFIED pattern classifications for review
+MATCH (e:Exercise)-[r:INVOLVES]->(mp:MovementPattern)
+WHERE r.human_verified IS NULL OR r.human_verified = false
+RETURN e.id, e.name, mp.name as pattern, r.source, r.confidence
+ORDER BY rand()
+LIMIT 5
+
+// Get 5 random UNVERIFIED muscle targets for review
+MATCH (e:Exercise)-[r:TARGETS]->(m:Muscle)
+WHERE r.human_verified IS NULL OR r.human_verified = false
+RETURN e.id, e.name, m.name as muscle, r.role, r.source
+ORDER BY rand()
+LIMIT 5
+
+// Prioritize low-confidence classifications
+MATCH (e:Exercise)-[r:INVOLVES]->(mp:MovementPattern)
+WHERE (r.human_verified IS NULL OR r.human_verified = false)
+  AND r.confidence IS NOT NULL
+RETURN e.name, mp.name, r.confidence, r.source
+ORDER BY r.confidence ASC
+LIMIT 10
+
+// Progress: how many verified vs unverified?
+MATCH (e:Exercise)-[r:INVOLVES]->(mp:MovementPattern)
+RETURN 
+  count(CASE WHEN r.human_verified = true THEN 1 END) as verified,
+  count(CASE WHEN r.human_verified IS NULL OR r.human_verified = false THEN 1 END) as unverified
+```
+
+### Mark as Verified (Correct)
+
+```cypher
+// Mark pattern classification as verified
+MATCH (e:Exercise {id: $exercise_id})-[r:INVOLVES]->(mp:MovementPattern {name: $pattern_name})
+SET r.human_verified = true,
+    r.verified_at = datetime(),
+    r.verified_by = 'brock'
+RETURN e.name, mp.name
+```
+
+### Fix Incorrect Classification
+
+```cypher
+// Delete wrong relationship, create correct one (already verified)
+MATCH (e:Exercise {id: $exercise_id})-[r:INVOLVES]->(wrong:MovementPattern)
+DELETE r
+
+WITH e
+MATCH (correct:MovementPattern {name: $correct_pattern})
+CREATE (e)-[:INVOLVES {
+  source: 'manual',
+  confidence: 1.0,
+  classified_at: datetime(),
+  human_verified: true,
+  verified_at: datetime(),
+  verified_by: 'brock'
+}]->(correct)
+RETURN e.name, correct.name
+```
+
+### Scope
+
+Verification applies to **foundational biomechanics** that don't change:
+- ✅ `INVOLVES` (Exercise → MovementPattern)
+- ✅ `TARGETS` (Exercise → Muscle)
+
+Not applied to contextual/changing relationships:
+- ❌ Equipment associations (contextual)
+- ❌ Difficulty ratings (subjective)
+
+---
+
 ## Exercise Knowledge Graph
 
 ### Exercise
@@ -479,8 +566,24 @@ RETURN DISTINCT mp.name
 
 **Relationships:**
 ```cypher
-(:Exercise)-[:INVOLVES]->(:MovementPattern)
-(:Exercise)-[:TARGETS {role: "primary"|"synergist"|"stabilizer"}]->(:Muscle)
+(:Exercise)-[:INVOLVES {                    // Movement pattern classification
+  source: string,                           // 'llm_classification' | 'name_inference' | 'manual'
+  confidence: float,                        // 0.0-1.0
+  classified_at: datetime,
+  human_verified: boolean,                  // true = spot-checked by human
+  verified_at: datetime,                    // when verification occurred
+  verified_by: string                       // 'brock' | reviewer name
+}]->(:MovementPattern)
+
+(:Exercise)-[:TARGETS {                     // Muscle targeting
+  role: string,                             // 'primary' | 'synergist' | 'stabilizer' | 'secondary'
+  source: string,                           // 'free-exercise-db' | 'llm_classification' | 'manual'
+  confidence: float,
+  human_verified: boolean,                  // true = spot-checked by human
+  verified_at: datetime,
+  verified_by: string
+}]->(:Muscle)
+
 (:Exercise)-[:REQUIRES]->(:Equipment)
 (:Exercise)-[:VARIATION_OF]->(:Exercise)
 (:Exercise)-[:SIMILAR_TO]->(:Exercise)
@@ -679,6 +782,57 @@ CREATE INDEX exercise_name FOR (e:Exercise) ON (e.name);
 CREATE INDEX workout_date FOR (w:Workout) ON (w.date);
 CREATE INDEX block_status FOR (b:Block) ON (b.status);
 CREATE INDEX goal_status FOR (g:Goal) ON (g.status);
+```
+
+---
+
+## Postgres Cache Tables (ADR-001 Compliant)
+
+Neo4j relationships are cached in Postgres to enable efficient analytics JOINs.
+
+### neo4j_cache_exercise_patterns
+
+Caches `(Exercise)-[:INVOLVES]->(MovementPattern)` relationships.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| exercise_id | TEXT PK | Exercise ID (matches strength_sets.exercise_id) |
+| exercise_name | TEXT | Human-readable name |
+| pattern_name | TEXT PK | MovementPattern name |
+| confidence | FLOAT | Relationship confidence score |
+| human_verified | BOOLEAN | True if spot-checked by human |
+| synced_at | TIMESTAMPTZ | Last sync timestamp |
+
+### neo4j_cache_exercise_muscles
+
+Caches `(Exercise)-[:TARGETS]->(Muscle|MuscleGroup)` relationships.
+
+| Column | Type | Description |
+|--------|------|-------------|
+| exercise_id | TEXT PK | Exercise ID |
+| exercise_name | TEXT | Human-readable name |
+| muscle_name | TEXT PK | Target muscle name |
+| muscle_type | TEXT | 'Muscle' or 'MuscleGroup' |
+| role | TEXT PK | 'primary', 'secondary', or 'unknown' |
+| confidence | FLOAT | Relationship confidence score |
+| human_verified | BOOLEAN | True if spot-checked by human |
+| synced_at | TIMESTAMPTZ | Last sync timestamp |
+
+### Views Built on Cache
+
+```sql
+-- Days since each movement pattern was trained
+SELECT * FROM pattern_last_trained;
+
+-- Sets per muscle per week
+SELECT * FROM muscle_volume_weekly WHERE role = 'primary';
+```
+
+### Sync Command
+
+```bash
+python scripts/sync_exercise_relationships.py  # Standalone
+python scripts/sync_pipeline.py --step relationships  # Via pipeline
 ```
 
 ---

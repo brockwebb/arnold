@@ -1,0 +1,44 @@
+{
+  "exercise_id": "CUSTOM:Elbow_Plank",
+  "exercise_name": "Elbow Plank",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "plank muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The elbow plank (forearm plank) is an isometric, full-body exercise primarily targeting your core (transverse abdominis, rectus abdominis, obliques) for stability, while also engaging shoulders, back (lats, traps, rhomboids), arms (triceps, biceps), glutes, quads, and hip flexors, all working to maintain a rigid, neutral spine against gravity, building endurance for functional movements. [1, 2, 3, 4, 5, 6]  \nMuscles Worked (Isometric Contraction) \n\n\u2022 Core: Transverse Abdominis (deepest), Rectus Abdominis (\"six-pack\"), Obliques (sides). \n\u2022 Shoulders: Deltoids (stabilize), Serratus Anterior (shoulder blade stability). \n\u2022 Back: Latissimus Dorsi, Trapezius, Rhomboids (support spine). \n\u2022 Arms: Triceps (stabilize elbows), Biceps (assist). \n\u2022 Glutes & Hips: Gluteus Maximus (hip extension, alignment), Hip Flexors (pelvic stability). \n\u2022 Legs: Quadriceps, Hamstrings (keep legs straight and engaged). [2, 3, 4, 5, 7, 8, 9, 10, 11]  \n\nMovement Pattern (Static Hold) \n\n\u2022 Type: Isometric exercise (muscles contract without changing length). \n\u2022 Action: Your body forms a straight line from head to heels, resisting gravity. \n\u2022 Key Focus: Deep core engagement to prevent sagging or arching of the lower back, maintaining a neutral spine. [1, 2, 7, 10]  \n\nHow It Works (Functional Movement) \nPlanks build functional strength, making everyday activities like walking, carrying, and lifting easier by improving overall body tension and stability, especially for your core, which protects your lower back. [1, 6]  \n\n\n**Citations:**\n\n\n[1]\u00a0https://www.instagram.com/reel/DBU9xrqKZav/\n[2]\u00a0https://trainingstation.co.uk/blogs/news/what-muscles-do-planks-work\n[3]\u00a0https://www.shape.com/what-muscles-do-planks-work-8350322\n[4]\u00a0https://www.nike.com/ph/a/what-muscles-do-planks-work\n[5]\u00a0https://www.healthline.com/health/fitness/what-muscles-do-planks-work\n[6]\u00a0https://www.theskimm.com/fitness/exercises/plank-for-beginners\n[7]\u00a0https://www.aroleap.com/blogs/exercises/elbow-plank-row-with-2-sec-pause\n[8]\u00a0https://mobility-doc.com/elbow-to-hand-plank-unlock-stronger-pushups/\n[9]\u00a0https://www.masterclass.com/articles/high-plank-exercise-guide\n[10]\u00a0https://www.nike.com/sg/a/what-muscles-do-planks-work\n[11]\u00a0https://www.9round.mx/blog/what-muscles-do-planks-work\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.95
+    },
+    {
+      "name": "Anti-Lateral Flexion",
+      "confidence": 0.85
+    },
+    {
+      "name": "Anti-Rotation",
+      "confidence": 0.8
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Transverse Abdominis",
+      "Rectus Abdominis",
+      "External Obliques",
+      "Internal Obliques"
+    ],
+    "secondary": [
+      "Deltoid (Anterior)",
+      "Serratus Anterior",
+      "Latissimus Dorsi",
+      "Trapezius",
+      "Rhomboids",
+      "Triceps Brachii",
+      "Gluteus Maximus",
+      "Rectus Femoris"
+    ]
+  },
+  "processed_at": "2026-01-07T15:09:42.285237"
+}

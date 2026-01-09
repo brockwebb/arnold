@@ -1,0 +1,56 @@
+{
+  "exercise_id": "CUSTOM:Sternum_Pull-Up",
+  "exercise_name": "Sternum Pull-Up",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "sternum pull-up muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Sternum Pull-Up is an advanced pull-up variation focusing on deep latissimus dorsi (lats) and upper back activation by pulling your body towards the bar until your lower chest touches it, requiring significant shoulder retraction and shoulder extension, engaging biceps, traps, rhomboids, and core for stability, creating a powerful pulling motion with a large range of motion. [1, 2, 3, 4]  \nMuscles Worked: \n\n\u2022 Primary Movers: \n\n    \u2022 Latissimus Dorsi (Lats): The largest back muscle, heavily targeted for width. \n    \u2022 Trapezius (Traps): Especially middle/lower traps, for scapular retraction and depression. \n    \u2022 Biceps Brachii: For elbow flexion. \n\n\u2022 Secondary/Stabilizers: \n\n    \u2022 Rhomboids: Scapular retraction. \n    \u2022 Posterior Deltoids: Shoulder extension. \n    \u2022 Teres Major/Minor: Shoulder extension and stabilization. \n    \u2022 Forearms/Grip Muscles: For holding the bar. \n    \u2022 Core Muscles (Abs, Obliques): To keep the torso stable and prevent swinging. \n    \u2022 Erector Spinae: Spinal stabilization. [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]  \n\nMovement Patterns: \n\n1. Grip & Setup: Overhand grip, slightly wider than shoulder-width. Engage core, squeeze glutes. \n2. Ascent (Pull): Initiate by depressing and retracting shoulder blades (like pulling them into your back pockets), then pull the body up. Lean torso back slightly as you rise. \n3. Peak Contraction: Pull until your lower chest (sternum area) touches the bar, maximizing lat and trap engagement with elbows tucked in. Pause briefly at the top. \n4. Descent (Lower): Control the movement down, exhaling as you lower with straight arms, returning to a full hang. \n5. Key Mechanics: Combines vertical pulling (standard pull-up) with horizontal pulling (rowing action at the top) for deep muscle contraction and a greater range of motion, building significant pulling strength and a V-taper physique. [1, 2, 3, 4, 11]  \n\n**Citations:**\n\n[1]\u00a0https://www.hevyapp.com/exercises/sternum-pull-up-gironda/\n[2]\u00a0https://kensuifitness.com/blogs/news/sternum-pull-ups\n[3]\u00a0https://www.facebook.com/FitnessFAQs/videos/have-you-tried-the-sternum-pull-up-this-exercise-combines-a-pull-up-and-row-for-/1294758315091503/\n[4]\u00a0https://www.youtube.com/watch?v=DfOrSn-iE9I\n[5]\u00a0https://www.facebook.com/allegiate/videos/the-sternum-pull-up-the-sternum-pull-up-is-a-great-exercise-to-get-more-bang-for/2690928577592815/\n[6]\u00a0https://www.burnthefatinnercircle.com/public/Pull-Up-Exercise.cfm\n[7]\u00a0https://www.muscleandmotion.com/mastering-the-pull-up-from-first-rep-to-perfect-form/\n[8]\u00a0https://www.shape.com/what-muscles-do-pull-ups-work-8681608\n[9]\u00a0https://fitness.stackexchange.com/questions/7297/what-muscles-are-targeted-by-these-different-variations-of-pull-ups-standard-c\n[10]\u00a0https://www.transparentlabs.com/blogs/all/what-muscles-do-pull-ups-work\n[11]\u00a0https://www.tiktok.com/@fitnessfaqs/video/7471915099813432594\n\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Vertical Pull",
+      "confidence": 0.9
+    },
+    {
+      "name": "Horizontal Pull",
+      "confidence": 0.8
+    },
+    {
+      "name": "Scapular Retraction",
+      "confidence": 0.9
+    },
+    {
+      "name": "Elbow Flexion",
+      "confidence": 0.8
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.7
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Latissimus Dorsi",
+      "Trapezius (Middle)",
+      "Trapezius (Lower)",
+      "Biceps Brachii"
+    ],
+    "secondary": [
+      "Rhomboids",
+      "Deltoid (Posterior)",
+      "Teres Major",
+      "Teres Minor",
+      "Forearm Flexors",
+      "Rectus Abdominis",
+      "External Obliques",
+      "Erector Spinae"
+    ]
+  },
+  "processed_at": "2026-01-07T15:08:40.799592"
+}

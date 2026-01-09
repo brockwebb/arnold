@@ -1,0 +1,53 @@
+{
+  "exercise_id": "CUSTOM:Trap-Bar_Row",
+  "exercise_name": "Trap-Bar Row",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "trap bar row muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Trap-Bar Row is a compound back exercise targeting the lats, rhomboids, traps (mid-back) for thickness and width, while also engaging rear delts, biceps, forearms, and the core for stability, making it great for overall upper back strength and grip. The movement pattern is a hip hinge with powerful elbow drive, focusing on pulling the bar towards the belly button while maintaining a flat back, challenging the posterior chain (glutes/hamstrings) isometrically. [1, 2, 3, 4]  \nThis video demonstrates the muscle engagement during the trap bar row: \nMuscles Worked \n\n\u2022 Primary Movers (Back): Latissimus Dorsi (lats), Rhomboids, Trapezius (mid/lower). \n\u2022 Secondary Movers (Pulling/Stabilizers): Rear Deltoids, Biceps, Forearms, Erector Spinae (lower back), Glutes/Hamstrings (isometric hold), Core (obliques, abs). [2, 3, 4]  \n\nYou can see a visual breakdown of the muscles worked in this video: \nMovement Pattern \n\n1. Setup: Stand inside the trap bar with feet hip-width apart, knees soft, hinging at the hips with a flat back (like a deadlift start). \n2. Grip: Grab the handles with a neutral grip (palms facing each other). \n3. Pull (Concentric): Drive your elbows back, squeezing your shoulder blades together as you pull the bar towards your midsection. \n4. Hold: Briefly squeeze your back muscles at the top. \n5. Lower (Eccentric): Control the weight back down, extending your hips and maintaining a flat back, inhaling as you lower. [1, 3, 5, 6, 7]  \n\nThis video shows the step-by-step technique for performing the trap bar row: \nKey Technique Points \n\n\u2022 Flat Back: Essential to protect your lower back and effectively target the upper back. \n\u2022 Elbow Drive: Focus on pulling your elbows back, not just your hands. \n\u2022 Glute/Hamstring Engagement: Keep your posterior chain tight to support your torso. \n\u2022 Core Bracing: Engage your core to maintain spinal stability. [1, 4]  \n\n**Citations:**\n\n[1]\u00a0https://www.youtube.com/watch?v=Y0wEhr6lM9U\n[2]\u00a0https://generationiron.com/trap-bar-row/\n[3]\u00a0https://squatwolf.com/blogs/fitness/t-bar-rows\n[4]\u00a0https://www.youtube.com/watch?v=GD03oFZ7G3o\n[5]\u00a0https://www.youtube.com/watch?v=Zf9uC1--B3Q\n[6]\u00a0https://www.usa-iron.com/pages/kettlebell-row\n[7]\u00a0https://kettlebellsworkouts.com/kettlebell-exercises-for-back/\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Horizontal Pull",
+      "confidence": 1.0
+    },
+    {
+      "name": "Hip Hinge",
+      "confidence": 0.9
+    },
+    {
+      "name": "Scapular Retraction",
+      "confidence": 0.9
+    },
+    {
+      "name": "Elbow Flexion",
+      "confidence": 0.8
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.7
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Latissimus Dorsi",
+      "Rhomboids",
+      "Trapezius (Middle)",
+      "Trapezius (Lower)"
+    ],
+    "secondary": [
+      "Deltoid (Posterior)",
+      "Biceps Brachii",
+      "Forearm Flexors",
+      "Erector Spinae",
+      "Gluteus Maximus",
+      "Hamstrings",
+      "External Obliques",
+      "Rectus Abdominis"
+    ]
+  },
+  "processed_at": "2026-01-07T22:05:48.187173"
+}

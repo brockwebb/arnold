@@ -1,0 +1,36 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:FLOOR_ANGELS",
+  "exercise_name": "Floor Angels",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "floor angels exercise muscles worked",
+    "retrieved_at": "Floor",
+    "raw_text": "Floor Angels primarily work your upper back and shoulder muscles (rhomboids, traps, rear delts, rotator cuff) to improve posture and shoulder mobility by strengthening back stabilizers and stretching chest muscles (pectorals) through controlled arm movements from a 'W' to a 'Y' or overhead position while keeping your back flat. The movement pattern is a controlled overhead reach and return, focusing on scapular retraction and protraction to flatten shoulder blades and open the chest. [1, 2, 3, 4, 5, 6]  \nMuscles Worked \n\n\u2022 Primary Movers/Stabilizers: Middle and lower trapezius, rhomboids, posterior deltoids, serratus anterior, rotator cuff. \n\u2022 Stretched Muscles: Pectorals (chest). [1, 2, 4, 5, 7]  \n\nMovement Pattern (Scapular Control) \n\n1. Starting Position: Lie on your back, knees bent (crook lying), arms in a 'W' shape (elbows bent at 90 degrees, forearms up). Keep your lower back pressed to the floor (slight pelvic tuck). \n2. Upward Motion: Slowly slide your arms overhead into a 'Y' or straight line, keeping elbows, wrists, and forearms on the floor as much as possible, engaging your back muscles to keep shoulders down and back. \n3. Downward Motion: Reverse the movement, sliding arms back to the 'W' position, focusing on controlled scapular retraction (pulling shoulder blades together) and depression (pulling them down). [2, 4, 6, 8]  \n\nKey Focus Points \n\n\u2022 Control: Slow, deliberate movements. \n\u2022 No Arching: Maintain a neutral spine and avoid lifting your low back off the floor. \n\u2022 Full Contact: Keep arms and hands in contact with the floor throughout the movement for maximum benefit. [1, 2, 4, 8]  \n\n**Citations:**\n\n[1]\u00a0https://www.calixpert.com/exercises/floor-angels\n[2]\u00a0https://www.youtube.com/watch?v=WocyoR4bJ4E\n[3]\u00a0https://shiftmovementscience.com/quick-overheadposture-pre-hab-for-gymnasts-wall-angel-progressions/\n[4]\u00a0https://www.rehabhero.ca/exercise/floor-angel\n[5]\u00a0https://www.massagetherapy.com/articles/wall-angels\n[6]\u00a0https://www.youtube.com/watch?v=m6g1kvtDs_M\n[7]\u00a0https://www.youtube.com/watch?v=t73tLVI4oFI\n[8]\u00a0https://www.youtube.com/watch?v=21yHB3ngZ1s\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Scapular Retraction",
+      "confidence": 1.0
+    },
+    {
+      "name": "Mobility",
+      "confidence": 0.8
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Trapezius (Middle)",
+      "Trapezius (Lower)",
+      "Rhomboids",
+      "Deltoid (Posterior)"
+    ],
+    "secondary": [
+      "Serratus Anterior",
+      "Rotator Cuff",
+      "Pectoralis Major"
+    ]
+  },
+  "processed_at": "2026-01-08T08:34:20.441487"
+}

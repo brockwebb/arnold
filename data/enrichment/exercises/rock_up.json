@@ -1,0 +1,52 @@
+{
+  "exercise_id": "CUSTOM:Rock-Up",
+  "exercise_name": "Rock-Up",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "rock up exercise muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The \"rock-up\" movement is an explosive vertical pull transitioning into a vertical/horizontal push movement pattern, commonly known as a muscle-up. This bodyweight exercise is a complex, compound movement that works numerous muscles across the entire body. [1, 2, 3, 4]  \nMuscles Worked \nThe rock-up (muscle-up) primarily engages the following muscle groups: [5]  \nPrimary Movers \u2022 Back: The latissimus dorsi (lats) are the main pulling muscles, essential for the initial explosive pull upward. \n\u2022 Arms: \n\n    \u2022 Biceps brachii are heavily involved in the pulling phase. \n    \u2022 Triceps brachii are the primary movers during the \"up\" (dipping/pushing) phase to lock out the arms over the bar. \n    \u2022 Forearms and hand intrinsic muscles are constantly engaged to maintain a strong grip. \n\n\u2022 Shoulders: The deltoids (front, middle, and rear) are crucial for stability and moving the arms throughout the range of motion. \n\u2022 Chest: The pectoralis major assists in the transition and pushing phase. \n\u2022 Core: The rectus abdominis, obliques, and transverse abdominis stabilize the spine and transfer force between the upper and lower body, especially during the dynamic transition. [1, 3, 4]  \n\nStabilizer Muscles \u2022 Upper Back: The trapezius and rhomboids stabilize the scapula (shoulder blades) throughout the entire movement. \n\u2022 Serratus Anterior: Important for scapular stability and upward rotation during the reach and push phases. [1, 3, 6, 7]  \n\nMovement Patterns \nThe rock-up combines two fundamental movement patterns: \n\n\u2022 Vertical Pulling: The initial phase involves pulling the body up toward the bar, similar to a pull-up. \n\u2022 Vertical Pushing: The second phase involves pushing the body up and over the bar, finishing in a straight-arm support position, similar to a straight-bar dip. [3, 4]  \n\nThe full movement is a dynamic, explosive action that requires significant coordination, strength, and power to smoothly transition from the pull to the push. [3]  \n\n**Citations:**\n\n[1]\u00a0https://pmc.ncbi.nlm.nih.gov/articles/PMC10824315/\n[2]\u00a0https://fitbod.me/exercises/muscle-up\n[3]\u00a0https://medium.com/@support_58019/muscle-up-progressionmaster-the-muscle-up-top-bar-progressions-fdfc5fde8d0b\n[4]\u00a0https://roselandhealthandfitness.ca/2019/08/08/7-primal-movement-patterns/\n[5]\u00a0https://blog.twl.com.au/ring-muscle-progressions-really-need/\n[6]\u00a0https://www.instagram.com/reel/DJUP2VKyNqQ/\n[7]\u00a0https://www.americansportandfitness.com/blogs/fitness-blog/3-exercises-to-target-the-serratus-anterior\n[8]\u00a0https://www.strongfirst.com/community/threads/rocking-pushups-os.18566/\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Vertical Pull",
+      "confidence": 0.9
+    },
+    {
+      "name": "Vertical Push",
+      "confidence": 0.9
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.7
+    },
+    {
+      "name": "Grip / Hang",
+      "confidence": 0.8
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Latissimus Dorsi",
+      "Biceps Brachii",
+      "Triceps Brachii",
+      "Deltoid (Anterior)",
+      "Deltoid (Posterior)",
+      "Pectoralis Major",
+      "Rectus Abdominis"
+    ],
+    "secondary": [
+      "Trapezius (Middle)",
+      "Rhomboids",
+      "Serratus Anterior",
+      "Forearm Flexors",
+      "External Obliques",
+      "Internal Obliques",
+      "Transverse Abdominis",
+      "Deltoid (Lateral)"
+    ]
+  },
+  "processed_at": "2026-01-07T22:05:09.988796"
+}

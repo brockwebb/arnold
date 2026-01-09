@@ -1,0 +1,43 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:LANDMINE_ANTI_ROTATION_PRESS",
+  "exercise_name": "Landmine Anti-Rotation Press",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "landmine anti rotation press muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Landmine Anti-Rotation Press works your shoulders (deltoids), chest (pectorals), triceps, and crucially, your entire core (obliques, abs, deep stabilizers) to prevent torso rotation as you press the angled barbell, building unilateral pushing strength and core stability through a single-arm, diagonal pushing movement pattern. It\u2019s a functional exercise that challenges your body to resist movement, improving posture and athletic power by locking down your hips and spine while your arms work. [1, 2, 3, 4, 5]  \nMuscles Worked \n\n\u2022 Primary Movers (Pushing): \n\n    \u2022 Deltoids: Especially anterior (front) and medial (side) heads. \n    \u2022 Pectoralis Major (Chest): Assists in pushing the weight forward. \n    \u2022 Triceps: Extend the elbow to lock out the press. \n\n\u2022 Stabilizers (Anti-Rotation & Core): \n\n    \u2022 Obliques: Work intensely to prevent your torso from twisting. \n    \u2022 Rectus Abdominis & Transverse Abdominis: Brace to keep your spine stable. \n    \u2022 Glutes: Engage to keep your hips stable and prevent tilting. \n    \u2022 Serratus Anterior: Stabilizes the shoulder blade, crucial for a smooth bar path. [1, 2, 3, 6, 7]  \n\nMovement Pattern \n\n1. Setup: Stand or kneel (half-kneeling is common) facing the landmine, holding one end of the barbell with one hand at chest height. \n2. The Press: Brace your core and glutes, then press the barbell diagonally forward and up, extending your arm fully. \n3. Anti-Rotation: Actively resist the bar pulling your torso to the side; keep your hips and shoulders square to the front. \n4. Return: Control the weight back down in the same angled path. \n5. Pattern: A single-arm diagonal press that forces anti-rotation, challenging core stability and fixing strength imbalances. [1, 2, 3, 4, 6, 8, 9]  \n\n**Citations:**\n\n[1]\u00a0https://tribusgrips.com/blogs/news/7-game-changing-landmine-exercises-to-transform-your-workouts\n[2]\u00a0https://learn.athleanx.com/articles/shoulders-for-men/how-to-do-the-landmine-press\n[3]\u00a0https://trainingstation.co.uk/blogs/news/best-land-mine-exercises\n[4]\u00a0https://www.catalystathletics.com/exercise/504/Anti-Rotation-Landmine/\n[5]\u00a0https://nfpt.com/transform-workout-landmine-exercises/\n[6]\u00a0https://www.instagram.com/reel/DOrBrG4DtO-/\n[7]\u00a0https://row.gymshark.com/blog/article/how-to-landmine-press\n[8]\u00a0https://www.youtube.com/watch?v=CUZRUJfLxFs\n[9]\u00a0https://www.opexfit.com/blog/the-benefits-of-the-landmine-press\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Anti-Rotation",
+      "confidence": 1.0
+    },
+    {
+      "name": "Horizontal Push",
+      "confidence": 0.8
+    },
+    {
+      "name": "Elbow Extension",
+      "confidence": 0.7
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "External Obliques",
+      "Internal Obliques",
+      "Rectus Abdominis",
+      "Transverse Abdominis"
+    ],
+    "secondary": [
+      "Deltoid (Anterior)",
+      "Deltoid (Lateral)",
+      "Pectoralis Major",
+      "Triceps Brachii",
+      "Gluteus Maximus",
+      "Serratus Anterior"
+    ]
+  },
+  "processed_at": "2026-01-08T08:34:36.053673"
+}

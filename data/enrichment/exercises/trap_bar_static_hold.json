@@ -1,0 +1,45 @@
+{
+  "exercise_id": "CUSTOM:Trap-Bar_Static_Hold",
+  "exercise_name": "Trap-Bar Static Hold",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "trap bar static hold muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Trap-Bar Static Hold is an isometric exercise that primarily targets muscles responsible for stability and grip strength, drawing on the same muscle groups as a trap-bar deadlift but focusing on holding a stationary position. [1, 2, 3, 4, 5]  \nMuscles Worked \nThe static hold heavily engages the following muscle groups to stabilize the body and maintain the lifting posture: \n\n\u2022 Core: The abdominals, obliques, and transverse abdominis are actively engaged to brace the core, stabilize the spine, and maintain a rigid torso. \n\u2022 Upper Back and Trapezius (\"Traps\"): These muscles work intensely to keep the shoulders stable and packed down, preventing the bar from pulling the body forward and maintaining an upright posture. \n\u2022 Forearms and Grip: The grip and forearm muscles (wrist flexors and extensors) are under constant, high tension to maintain a secure hold on the heavy bar. \n\u2022 Lower Body Stabilizers: The glutes, hamstrings, and quadriceps are all engaged to support the body's position, though their function is isometric (static contraction) rather than dynamic movement. \n\u2022 Erector Spinae: These muscles along the spine contract to maintain a neutral spinal position and prevent the back from rounding. [6, 7, 8, 9, 10, 11]  \n\nMovement Patterns \nThe Trap-Bar Static Hold is a functional anti-movement pattern exercise. \n\n\u2022 Isometric Hold: The primary \"movement\" is a lack of movement, or an isometric contraction, where muscles are engaged without changing length. \n\u2022 Anti-Flexion/Extension: The core and back muscles work against the force of gravity to resist spinal flexion (rounding) or extension (arching). \n\u2022 Anti-Lateral Flexion/Rotation: The exercise requires resisting forces that would cause the torso to bend sideways or twist, particularly if walking with the bar (a farmer's carry variation). \n\u2022 Neutral Posture: The trap bar's design allows for a more neutral, upright posture compared to a conventional barbell, which reinforces this specific biomechanically favorable position. [2, 6, 10, 12, 13]  \n\n**Citations:**\n\n[1]\u00a0https://www.arkansasfit.com/blgo/2016/10/10/exercise-examples-for-fall-2016\n[2]\u00a0https://progressiveperformancep2.com/blogs/p2-training-club/trap-bar-farmers-carry\n[3]\u00a0https://themovementfix.com/top-6-shoulder-exercises-external-rotation/\n[4]\u00a0https://pheasyque.com/blog/trap-bar-vs-barbell-deadlift/\n[5]\u00a0https://www.facebook.com/NickBestProStrongman/posts/400lb-safety-bar-shrugs-for-25-great-way-to-train-traps-without-using-your-hands/1118486749640841/\n[6]\u00a0https://www.instagram.com/reel/DRfY25sETMY/\n[7]\u00a0https://sportscienceinsider.com/trap-bar-deadlift/\n[8]\u00a0https://defined.com/trap-bar-deadlifts-benefits/\n[9]\u00a0https://thatfitfriend.com/trap-bar-deadlift-benefits/\n[10]\u00a0https://www.endomondo.com/exercise/trap-bar-deadlift\n[11]\u00a0https://www.physio-pedia.com/Deadlift_Exercise\n[12]\u00a0https://www.advancedhumanperformance.com/blog/trap-bar-landmine-exercises\n[13]\u00a0https://www.healthline.com/health/fitness-exercise/isometric-exercises\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Grip / Hang",
+      "confidence": 1.0
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Anti-Lateral Flexion",
+      "confidence": 0.8
+    },
+    {
+      "name": "Anti-Rotation",
+      "confidence": 0.8
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Forearm Flexors",
+      "Trapezius",
+      "Erector Spinae"
+    ],
+    "secondary": [
+      "Rectus Abdominis",
+      "External Obliques",
+      "Transverse Abdominis",
+      "Gluteus Maximus",
+      "Rectus Femoris",
+      "Biceps Femoris"
+    ]
+  },
+  "processed_at": "2026-01-07T15:07:55.358033"
+}

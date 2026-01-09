@@ -24,6 +24,7 @@ import os
 import sys
 import json
 import argparse
+import time
 import requests
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -36,6 +37,35 @@ load_dotenv(PROJECT_ROOT / ".env")
 # Configuration
 API_URL = "https://partner.ultrahuman.com/api/v1/metrics"
 PG_URI = os.environ.get("DATABASE_URI", "postgresql://brock@localhost:5432/arnold_analytics")
+API_RATE_LIMIT_DELAY = 0.5  # seconds between API calls
+MAX_RETRIES = 3
+RETRY_BASE_DELAY = 2  # exponential backoff base
+
+
+def retry_with_backoff(func, *args, max_retries=MAX_RETRIES, **kwargs):
+    """
+    Retry a function with exponential backoff.
+    Returns (result, success) tuple.
+    """
+    for attempt in range(max_retries):
+        try:
+            result = func(*args, **kwargs)
+            return result, True
+        except requests.exceptions.Timeout:
+            if attempt < max_retries - 1:
+                delay = RETRY_BASE_DELAY ** (attempt + 1)
+                print(f"timeout, retrying in {delay}s...", end=" ")
+                time.sleep(delay)
+            else:
+                return None, False
+        except requests.exceptions.RequestException as e:
+            if attempt < max_retries - 1:
+                delay = RETRY_BASE_DELAY ** (attempt + 1)
+                print(f"error ({e}), retrying in {delay}s...", end=" ")
+                time.sleep(delay)
+            else:
+                return None, False
+    return None, False
 
 
 def get_credentials():
@@ -199,51 +229,92 @@ def extract_biometrics(api_response: dict, date_str: str) -> list:
                 "value": steps
             })
     
-    # Sleep data - structure varies, try to extract what we can
+    # Sleep data - nested structure
     if "Sleep" in metrics:
         obj = metrics["Sleep"]
         
-        # Helper to safely get numeric value
-        def safe_numeric(val):
-            if isinstance(val, (int, float)) and not isinstance(val, bool):
-                return val
-            return None
+        # Total sleep time - nested under total_sleep.minutes
+        if "total_sleep" in obj and isinstance(obj["total_sleep"], dict):
+            total_min = obj["total_sleep"].get("minutes")
+            if total_min is not None:
+                readings.append({
+                    "date": date_str,
+                    "metric_type": "sleep_total_min",
+                    "value": total_min
+                })
         
-        # Total sleep time
-        total_min = safe_numeric(obj.get("total_sleep_minutes") or obj.get("total_sleep") or obj.get("duration_minutes"))
-        if total_min is not None:
-            readings.append({
-                "date": date_str,
-                "metric_type": "sleep_total_min",
-                "value": total_min
-            })
+        # Deep sleep - nested under deep_sleep.minutes
+        if "deep_sleep" in obj and isinstance(obj["deep_sleep"], dict):
+            deep_min = obj["deep_sleep"].get("minutes")
+            if deep_min is not None:
+                readings.append({
+                    "date": date_str,
+                    "metric_type": "sleep_deep_min",
+                    "value": deep_min
+                })
         
-        # Deep sleep
-        deep_min = safe_numeric(obj.get("deep_sleep_minutes") or obj.get("deep_sleep"))
-        if deep_min is not None:
-            readings.append({
-                "date": date_str,
-                "metric_type": "sleep_deep_min",
-                "value": deep_min
-            })
+        # REM sleep - nested under rem_sleep.minutes
+        if "rem_sleep" in obj and isinstance(obj["rem_sleep"], dict):
+            rem_min = obj["rem_sleep"].get("minutes")
+            if rem_min is not None:
+                readings.append({
+                    "date": date_str,
+                    "metric_type": "sleep_rem_min",
+                    "value": rem_min
+                })
         
-        # REM sleep
-        rem_min = safe_numeric(obj.get("rem_sleep_minutes") or obj.get("rem_sleep"))
-        if rem_min is not None:
-            readings.append({
-                "date": date_str,
-                "metric_type": "sleep_rem_min",
-                "value": rem_min
-            })
+        # Light sleep - nested under light_sleep.minutes
+        if "light_sleep" in obj and isinstance(obj["light_sleep"], dict):
+            light_min = obj["light_sleep"].get("minutes")
+            if light_min is not None:
+                readings.append({
+                    "date": date_str,
+                    "metric_type": "sleep_light_min",
+                    "value": light_min
+                })
         
-        # Sleep score
-        sleep_score = safe_numeric(obj.get("sleep_score") or obj.get("score"))
-        if sleep_score is not None:
-            readings.append({
-                "date": date_str,
-                "metric_type": "sleep_score",
-                "value": sleep_score
-            })
+        # Sleep score - nested under sleep_score.score
+        if "sleep_score" in obj and isinstance(obj["sleep_score"], dict):
+            score = obj["sleep_score"].get("score")
+            if score is not None:
+                readings.append({
+                    "date": date_str,
+                    "metric_type": "sleep_score",
+                    "value": score
+                })
+        
+        # Sleep efficiency - nested under sleep_efficiency.percentage
+        if "sleep_efficiency" in obj and isinstance(obj["sleep_efficiency"], dict):
+            efficiency = obj["sleep_efficiency"].get("percentage")
+            if efficiency is not None:
+                readings.append({
+                    "date": date_str,
+                    "metric_type": "sleep_efficiency",
+                    "value": efficiency
+                })
+        
+        # Awake time - can calculate from time_in_bed - total_sleep
+        if "time_in_bed" in obj and isinstance(obj["time_in_bed"], dict):
+            tib_min = obj["time_in_bed"].get("minutes")
+            total_sleep_min = obj.get("total_sleep", {}).get("minutes")
+            if tib_min is not None and total_sleep_min is not None:
+                awake_min = tib_min - total_sleep_min
+                if awake_min >= 0:
+                    readings.append({
+                        "date": date_str,
+                        "metric_type": "sleep_awake_min",
+                        "value": awake_min
+                    })
+        
+        # SpO2 - nested under spo2.value
+        if "spo2" in obj and isinstance(obj["spo2"], dict):
+            spo2_val = obj["spo2"].get("value")
+            if spo2_val is not None:
+                readings.append({
+                    "date": date_str,
+                    "metric_type": "spo2",
+                    "value": spo2_val
+                })
     
     # Temperature
     if "temp" in metrics:
@@ -311,6 +382,167 @@ def upsert_biometrics(readings: list):
     return len(rows)
 
 
+def extract_samples(api_response: dict) -> list:
+    """
+    Extract time-series samples from API response.
+    
+    Returns list of samples with:
+    - sample_time: datetime
+    - metric_type: hr, hrv, skin_temp, sleep_stage
+    - value: numeric value (or None for sleep_stage)
+    - text_value: text label (for sleep_stage)
+    """
+    samples = []
+    data = api_response.get("data", {})
+    metric_data = data.get("metric_data", [])
+    
+    if not metric_data:
+        return samples
+    
+    # Build lookup by type
+    metrics = {m["type"]: m.get("object", {}) for m in metric_data}
+    
+    # Heart rate time series
+    if "hr" in metrics:
+        obj = metrics["hr"]
+        for v in obj.get("values", []):
+            ts = v.get("timestamp")
+            val = v.get("value")
+            if ts and val is not None:
+                samples.append({
+                    "sample_time": datetime.fromtimestamp(ts),
+                    "metric_type": "hr",
+                    "value": val,
+                    "text_value": None
+                })
+    
+    # HRV time series
+    if "hrv" in metrics:
+        obj = metrics["hrv"]
+        for v in obj.get("values", []):
+            ts = v.get("timestamp")
+            val = v.get("value")
+            if ts and val is not None:
+                samples.append({
+                    "sample_time": datetime.fromtimestamp(ts),
+                    "metric_type": "hrv",
+                    "value": val,
+                    "text_value": None
+                })
+    
+    # Skin temperature time series
+    if "temp" in metrics:
+        obj = metrics["temp"]
+        for v in obj.get("values", []):
+            ts = v.get("timestamp")
+            val = v.get("value")
+            if ts and val is not None:
+                samples.append({
+                    "sample_time": datetime.fromtimestamp(ts),
+                    "metric_type": "skin_temp",
+                    "value": val,
+                    "text_value": None
+                })
+    
+    # Night RHR time series (during sleep)
+    if "night_rhr" in metrics:
+        obj = metrics["night_rhr"]
+        for v in obj.get("values", []):
+            ts = v.get("timestamp")
+            val = v.get("value")
+            if ts and val is not None:
+                samples.append({
+                    "sample_time": datetime.fromtimestamp(ts),
+                    "metric_type": "night_rhr",
+                    "value": val,
+                    "text_value": None
+                })
+    
+    # Sleep stages from sleep_cycles in Sleep object
+    if "Sleep" in metrics:
+        sleep_obj = metrics["Sleep"]
+        sleep_cycles = sleep_obj.get("sleep_cycles", {})
+        for cycle in sleep_cycles.get("cycles", []):
+            start_ts = cycle.get("startTime")
+            cycle_type = cycle.get("cycleType")
+            if start_ts and cycle_type:
+                # Map cycle types to stage names
+                stage_map = {
+                    "light_sleep": "LIGHT",
+                    "deep_sleep": "DEEP",
+                    "rem_sleep": "REM",
+                    "awake": "AWAKE",
+                    "none": None,
+                    "complete": None,
+                    "partial": None
+                }
+                stage = stage_map.get(cycle_type)
+                if stage:
+                    samples.append({
+                        "sample_time": datetime.fromtimestamp(start_ts),
+                        "metric_type": "sleep_stage",
+                        "value": None,
+                        "text_value": stage
+                    })
+    
+    return samples
+
+
+def upsert_samples(samples: list):
+    """
+    Insert or update time-series samples in biometric_samples table.
+    """
+    if not samples:
+        return 0
+    
+    import psycopg2
+    from psycopg2.extras import execute_values
+    
+    conn = psycopg2.connect(PG_URI)
+    cur = conn.cursor()
+    
+    # Dedupe by (sample_time, metric_type) - keep last occurrence
+    seen = {}
+    for s in samples:
+        key = (s['sample_time'], s['metric_type'])
+        seen[key] = s
+    deduped = list(seen.values())
+    
+    # Prepare rows: (sample_time, metric_type, value, text_value, source)
+    rows = []
+    for s in deduped:
+        val = s['value']
+        # Convert value to float if numeric, else None
+        if val is not None and isinstance(val, (int, float)) and not isinstance(val, bool):
+            val = float(val)
+        else:
+            val = None
+        rows.append((
+            s['sample_time'],
+            s['metric_type'],
+            val,
+            s.get('text_value'),
+            'ultrahuman'
+        ))
+    
+    # Upsert
+    sql = """
+    INSERT INTO biometric_samples (sample_time, metric_type, value, text_value, source)
+    VALUES %s
+    ON CONFLICT (sample_time, metric_type, source) DO UPDATE SET
+        value = EXCLUDED.value,
+        text_value = EXCLUDED.text_value,
+        imported_at = NOW()
+    """
+    
+    execute_values(cur, sql, rows)
+    conn.commit()
+    cur.close()
+    conn.close()
+    
+    return len(rows)
+
+
 def test_connection():
     """Test API connection with today's date."""
     print("Testing Ultrahuman API connection...")
@@ -355,6 +587,7 @@ def main():
     print(f"Fetching Ultrahuman data from {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}")
     
     all_readings = []
+    all_samples = []
     current_date = start_date
     
     while current_date <= end_date:
@@ -362,7 +595,13 @@ def main():
         print(f"  {date_str}...", end=" ")
         
         try:
-            response = fetch_metrics(date_str)
+            response, success = retry_with_backoff(fetch_metrics, date_str)
+            
+            if not success:
+                print("failed after retries")
+                current_date += timedelta(days=1)
+                time.sleep(API_RATE_LIMIT_DELAY)
+                continue
             
             if args.raw and response:
                 print()
@@ -370,8 +609,10 @@ def main():
             
             if response and response.get("status") == 200:
                 readings = extract_biometrics(response, date_str)
+                samples = extract_samples(response)
                 all_readings.extend(readings)
-                print(f"{len(readings)} metrics")
+                all_samples.extend(samples)
+                print(f"{len(readings)} metrics, {len(samples)} samples")
             elif response is None:
                 print("no data")
             else:
@@ -380,21 +621,30 @@ def main():
             print(f"error: {e}")
         
         current_date += timedelta(days=1)
+        
+        # Rate limit: pause between API calls
+        if current_date <= end_date:
+            time.sleep(API_RATE_LIMIT_DELAY)
     
-    print(f"\nTotal: {len(all_readings)} readings from {len(set(r['date'] for r in all_readings))} days")
+    print(f"\nTotal: {len(all_readings)} daily readings, {len(all_samples)} time-series samples")
     
     if args.dry_run:
         print("\nDRY RUN - not saving to database")
         if all_readings:
-            print("\nSample readings:")
+            print("\nSample daily readings:")
             for r in all_readings[:10]:
                 print(f"  {r['date']} {r['metric_type']}: {r['value']}")
+        if all_samples:
+            print("\nSample time-series:")
+            for s in all_samples[:10]:
+                print(f"  {s['sample_time']} {s['metric_type']}: {s['value'] or s['text_value']}")
     else:
         if all_readings:
             count = upsert_biometrics(all_readings)
-            print(f"Upserted {count} readings to Postgres")
-        else:
-            print("No readings to save")
+            print(f"Upserted {count} daily readings to biometric_readings")
+        if all_samples:
+            count = upsert_samples(all_samples)
+            print(f"Upserted {count} samples to biometric_samples")
     
     print("Done")
 

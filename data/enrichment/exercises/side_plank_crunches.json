@@ -1,0 +1,35 @@
+{
+  "exercise_id": "CUSTOM:Side_Plank_Crunches",
+  "exercise_name": "Side Plank Crunches",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "side plank crunch muscles worked",
+    "retrieved_at": "Side",
+    "raw_text": "Side Plank Crunches primarily target your obliques (internal & external) for spinal lateral flexion, engaging your entire core (transversus abdominis, rectus abdominis) for stability, along with glutes and hips for pelvic alignment, while the movement pattern involves a dynamic side bend and crunch from a stable side plank base, building core endurance and waistline strength. [1, 2, 3, 4]  \nMuscles Worked \n\n\u2022 Primary Movers: \n\n    \u2022 Obliques (Internal & External): The star muscles, responsible for the side bending (lateral flexion) and twisting motion of the trunk. \n\n\u2022 Stabilizers & Secondary Muscles: \n\n    \u2022 Transversus Abdominis (TVA): Deep core muscle for overall spinal stability. \n    \u2022 Rectus Abdominis: The \"six-pack\" muscle, offers some activation during the crunch. \n    \u2022 Glutes (Maximus, Medius, Minimus): Stabilize the pelvis and hips, preventing sagging. \n    \u2022 Quadratus Lumborum (QL): Deep lower back muscle aiding spinal stabilization. \n    \u2022 Shoulder Stabilizers & Hip Muscles: Keep the upper body and lower body aligned. [1, 2, 3, 5, 6, 7, 8, 9]  \n\nMovement Pattern \n\n1. Starting Position (Static Plank): Lie on your side, elbow under shoulder, legs stacked, body in a straight line, engaging core and glutes. \n2. Dynamic Crunch (Flexion): Bring the top knee towards the chest while simultaneously bringing the top elbow towards the knee, creating a crunching motion. \n3. Extension: Return to the straight, extended side plank position. \n4. Focus: The movement is a controlled side bend and spinal flexion, engaging the obliques to pull the rib cage toward the hip. [1, 3, 10, 11]  \n\n**Citations:**\n\n[1]\u00a0https://dieringe.com/exercises/side-plank-crunches\n[2]\u00a0https://www.rehabhero.ca/exercise/side-plank-crunch\n[3]\u00a0https://www.garagegymreviews.com/how-to-do-side-crunches\n[4]\u00a0https://greatist.com/fitness/side-plank-crunches\n[5]\u00a0https://sportscienceinsider.com/what-muscles-does-a-plank-work/\n[6]\u00a0https://www.hingehealth.com/resources/articles/side-plank/\n[7]\u00a0https://steelsupplements.com/blogs/steel-blog/10-side-plank-variations-from-easiest-to-hardest\n[8]\u00a0https://elevatephysio.com.sg/side-plank-the-best-abs-workout-you-should-never-miss/\n[9]\u00a0https://trainingstation.co.uk/blogs/news/what-muscles-do-planks-work\n[10]\u00a0https://www.youtube.com/watch?v=N9CvYDYWs1I\n[11]\u00a0https://www.instagram.com/reel/DM9vYjHtEf8/\n\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Spinal Flexion",
+      "confidence": 0.9
+    },
+    {
+      "name": "Anti-Lateral Flexion",
+      "confidence": 0.8
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "External Obliques",
+      "Internal Obliques"
+    ],
+    "secondary": [
+      "Transverse Abdominis",
+      "Rectus Abdominis",
+      "Gluteus Maximus",
+      "Gluteus Medius",
+      "Quadratus Lumborum"
+    ]
+  },
+  "processed_at": "2026-01-07T15:10:11.958224"
+}

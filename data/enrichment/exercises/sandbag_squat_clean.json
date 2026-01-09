@@ -1,0 +1,61 @@
+{
+  "exercise_id": "CUSTOM:Sandbag_Squat_Clean",
+  "exercise_name": "Sandbag Squat Clean",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "sandbag clean muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Sandbag Squat Clean is a full-body power movement engaging legs (quads, glutes, hamstrings), back (erectors, lats), core (abs, obliques), and shoulders/arms (delts, biceps) as you explosively pull from the floor and drop under the bag into a front squat, improving functional strength and core stability through complex, multi-joint patterns. It combines hip hinge, pull, and squat patterns for total-body power. [1, 2, 3, 4, 5]  \nMuscles Worked \n\n\u2022 Legs: Quadriceps, Glutes, Hamstrings (primary movers for hip/knee extension). \n\u2022 Core: Abdominals, Obliques (stabilize torso, maintain upright posture). \n\u2022 Back: Erector Spinae (support spine). \n\u2022 Shoulders & Arms: Deltoids, Biceps (assist in pulling and catching the bag). [2, 6, 7, 8, 9]  \n\nMovement Patterns & Phases \n\n1. Setup/Pull (Hip Hinge & Pull): From a deadlift-like stance, you hinge back, then explosively extend hips and knees (triple extension) to lift the bag. \n2. Catch (Scoop & Rack): Quickly flip elbows under the bag, catching it in the \"front rack\" position on your biceps/shoulders. \n3. Squat (Lowering & Ascent): Drop into a front squat, inhaling as you descend and exhaling as you drive up. \n4. Transition (Cyclical): Often, you immediately initiate the next pull from the bottom of the squat without fully locking out, creating a continuous flow. [4, 6, 10, 11, 12]  \n\nBenefits \n\n\u2022 Develops full-body power and functional strength. \n\u2022 Builds core strength and endurance. \n\u2022 Improves coordination and athletic movement patterns (hinge, pull, squat). [2, 3, 4, 6, 8, 11, 13]  \n\n**Citations:**\n\n[1]\u00a0https://ultimatesandbagtraining.com/ultimate-sandbag-training-clean-challenge/\n[2]\u00a0https://www.setforset.com/blogs/news/sandbag-workouts\n[3]\u00a0https://brickhousenutrition.com/blogs/articles/sandbag-training-101-is-this-the-ultimate-full-body-workout-tool\n[4]\u00a0https://www.youtube.com/watch?v=7SVl53PxSyk\n[5]\u00a0https://www.fitandwell.com/news/a-trainer-recommends-this-five-move-beginner-strength-training-workout-for-building-full-body-muscle\n[6]\u00a0https://www.instagram.com/reel/CvNxrEugtzi/\n[7]\u00a0https://gym-mikolo.com/blogs/home-gym/mastering-the-sandbag-zercher-squat-the-ultimate-strength-building-exercise\n[8]\u00a0https://pubmed.ncbi.nlm.nih.gov/26618060/\n[9]\u00a0https://www.healthline.com/health/exercise-fitness/squats-benefits\n[10]\u00a0https://www.drsarasolomon.com/sandbag-squats/\n[11]\u00a0https://ultimatesandbagtraining.com/9-ultimate-sandbag-exercises-that-make-functional-strength-better/\n[12]\u00a0https://titan.fitness/blogs/workouts/20-power-packed-sandbag-workouts-that-will-catapult-your-fitness-game\n[13]\u00a0https://mtntactical.com/knowledge/the-full-body-training-effect-of-sandbag-based-multi-modal-chassis-integrity-grinds/\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Hip Hinge",
+      "confidence": 0.9
+    },
+    {
+      "name": "Olympic Pull",
+      "confidence": 0.9
+    },
+    {
+      "name": "Squat",
+      "confidence": 0.9
+    },
+    {
+      "name": "Hip Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Knee Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.7
+    },
+    {
+      "name": "Elbow Flexion",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Gluteus Maximus",
+      "Rectus Femoris",
+      "Biceps Femoris",
+      "Erector Spinae"
+    ],
+    "secondary": [
+      "Deltoid (Anterior)",
+      "Deltoid (Lateral)",
+      "Biceps Brachii",
+      "Rectus Abdominis",
+      "External Obliques",
+      "Latissimus Dorsi",
+      "Trapezius (Upper)",
+      "Forearm Flexors"
+    ]
+  },
+  "processed_at": "2026-01-07T22:05:26.890207"
+}

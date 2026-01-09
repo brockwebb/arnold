@@ -1,0 +1,57 @@
+{
+  "exercise_id": "CUSTOM:Sandbag_March",
+  "exercise_name": "Sandbag March",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "sandbag march muscles worked",
+    "retrieved_at": "The",
+    "raw_text": "The Sandbag March is a dynamic exercise that builds functional strength, targeting your legs (quads, glutes, hamstrings), core (abs, obliques, lower back) for stability, and upper back/shoulders to maintain posture, working through the locomotion/marching movement pattern to improve balance, coordination, and endurance, mimicking real-world movement. It's excellent for training your body to move as an integrated system, unlike static exercises. [1, 2, 3, 4, 5, 6]  \nMuscles Worked \n\n\u2022 Primary Movers (Legs): Glutes, Quadriceps, Hamstrings, Hip Flexors. \n\u2022 Core (Stabilizers): Abdominals, Obliques, Erector Spinae (lower back). \n\u2022 Upper Body (Stabilizers): Upper Back (Rhomboids, Traps), Rear Deltoids, Lats (to keep the bag tight). [1, 2, 3, 7, 8]  \n\nMovement Patterns & Benefits \n\n\u2022 Locomotion: It's a fundamental walking pattern, enhancing balance and preventing shuffling. \n\u2022 Dynamic Stability: The unstable nature of the sandbag forces deep core engagement to prevent swaying, improving anti-rotation and anti-extension. \n\u2022 Single-Leg Strength: It trains single-leg stability and coordination, crucial for walking, running, and reducing fall risk. \n\u2022 Posterior Chain Activation: Works the glutes and hamstrings together, vital for power and stability. \n\u2022 Full-Body Integration: Connects upper body tension (pulling handles apart) with lower body movement, building resilient, connected strength. [2, 3, 4, 5, 6, 8, 9]  \n\nHow It Works (Bear Hug Carry Example) \n\n1. Grab the Sandbag: Bear-hug it tightly to your chest for maximum core/upper back engagement. \n2. March: Lift one knee high (engaging hip flexors) while keeping your torso tall and stable. \n3. Maintain Tension: \"Pull\" the handles apart to keep the upper back engaged and prevent rounding. \n4. Coordinate: Your core and glutes work together to stabilize your pelvis and body as you move through single-leg stances. [2, 4, 7, 8]  \n\n**Citations:**\n\n[1]\u00a0http://www.brandonsmitley.com/thirst-gym-terre-haute-sandbag-zercher-walking-lunge/\n[2]\u00a0https://ultimatesandbagtraining.com/how-carries-lead-to-the-best-core-and-glute-training/\n[3]\u00a0http://www.brandonsmitley.com/thirst-gym-terre-haute-sandbag-zercher-curtsy-lunge/\n[4]\u00a0https://www.nifs.org/blog/topic/marching\n[5]\u00a0https://ultimatesandbagtraining.com/ultimate-sandbag-training-movement-strength/\n[6]\u00a0https://ultimatesandbagtraining.com/9-ultimate-sandbag-exercises-that-make-functional-strength-better/\n[7]\u00a0https://www.youtube.com/watch?v=bk_B0CKGor4\n[8]\u00a0https://ultimatesandbagtraining.com/muscles-made-smarter-ultimate-sandbag-exercises/\n[9]\u00a0https://ultimatesandbagtraining.com/best-way-test-functional-strength/\n\n\n\n\n\n\n---",
+    "citations": []
+  },
+  "movement_patterns": [
+    {
+      "name": "Loaded Carry",
+      "confidence": 1.0
+    },
+    {
+      "name": "Hip Flexion",
+      "confidence": 0.9
+    },
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.8
+    },
+    {
+      "name": "Anti-Rotation",
+      "confidence": 0.8
+    },
+    {
+      "name": "Hip Extension",
+      "confidence": 0.7
+    },
+    {
+      "name": "Scapular Retraction",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Gluteus Maximus",
+      "Rectus Femoris",
+      "Iliopsoas",
+      "Rectus Abdominis",
+      "External Obliques"
+    ],
+    "secondary": [
+      "Biceps Femoris",
+      "Erector Spinae",
+      "Trapezius (Middle)",
+      "Rhomboids",
+      "Deltoid (Posterior)",
+      "Latissimus Dorsi",
+      "Transverse Abdominis",
+      "Gluteus Medius"
+    ]
+  },
+  "processed_at": "2026-01-07T15:10:39.407765"
+}

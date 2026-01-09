@@ -1,0 +1,42 @@
+{
+  "exercise_id": "CUSTOM:Hollow_Rock",
+  "exercise_name": "Hollow Rock",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "hollow rock muscles worked",
+    "retrieved_at": "Hollow",
+    "raw_text": "Hollow rocks primarily work your deep core (transverse abdominis), rectus abdominis (six-pack), and obliques for stabilization, with secondary engagement of hip flexors, quads, glutes, and back muscles, all while teaching a dynamic spinal stabilization pattern by rocking between the lower back and shoulder blades, maintaining a rigid, curved body shape. [1, 2, 3, 4]  \nMuscles Worked \n\n\u2022 Primary (Core): \n\n    \u2022 Rectus Abdominis: The main \"six-pack\" muscle, controls the rocking motion and maintains the hollow shape. \n    \u2022 Transverse Abdominis (TVA): Deepest core muscle, acts like a natural corset to stabilize the spine and pelvis. \n    \u2022 Obliques (Internal & External): Prevent torso rotation and add stability. \n\n\u2022 Secondary (Supporting): \n\n    \u2022 Hip Flexors & Quads: Keep legs lifted and stable. \n    \u2022 Glutes: Engage to maintain tension in the lower body. \n    \u2022 Erector Spinae & Upper Back: Stabilize the spine and support the rounded posture. \n    \u2022 Shoulders (Deltoids): Stabilize the arms overhead. [1, 2, 3, 4, 5, 6]  \n\nMovement Pattern \n\n1. Starting Position: Lie on your back, arms extended overhead, legs straight out, lower back pressed firmly into the floor (posterior pelvic tilt). \n2. The Rock: Engage your core to lift your head, shoulders, and legs slightly off the floor, creating a \"hollow\" shape. \n3. Dynamic Motion: Gently rock back and forth, shifting weight between your lower back/glutes and your shoulder blades. \n4. Key Principle: The goal is to maintain constant tension in your core, keeping your lower back glued to the floor and preventing it from arching or lifting, controlling the movement through the entire body, not just the abs. [2, 3, 5, 7, 8]  \n\nBenefits \n\n\u2022 Develops midline stability for other lifts (squats, presses). \n\u2022 Builds core endurance and body awareness. \n\u2022 Foundation for advanced gymnastics and calisthenics. [9, 10, 11, 12, 13]  \n\n**Citations:**\n\n[1]\u00a0https://calisthenics.com/exercise/tuck-hollow-body-rocks/\n[2]\u00a0https://calisthenics.com/exercise/hollow-body-rocks/\n[3]\u00a0https://www.hevyapp.com/exercises/hollow-rock-hold/\n[4]\u00a0https://www.self.com/story/how-to-do-hollow-body-hold-exercise\n[5]\u00a0https://dieringe.com/exercises/hollow-body-rocks\n[6]\u00a0https://barbend.com/reverse-hollow-rock-superman/\n[7]\u00a0https://www.youtube.com/watch?v=6zc40i_yh8Q\n[8]\u00a0https://fitnesslabnb.com/movement-tip-hollow-rock/\n[9]\u00a0https://www.calixpert.com/exercises/hollow-body-rocks\n[10]\u00a0https://www.acefitness.org/resources/pros/expert-articles/8989/crunch-time-an-evidence-based-approach-to-training-the-abs/\n[11]\u00a0https://barbend.com/hollow-rocks/\n[12]\u00a0https://www.garagegymreviews.com/hollow-rock-exercise\n[13]\u00a0https://www.youtube.com/watch?v=z5iIF4TgKKo\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_002.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Anti-Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Anti-Lateral Flexion",
+      "confidence": 0.7
+    },
+    {
+      "name": "Conditioning",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Rectus Abdominis",
+      "Transverse Abdominis",
+      "External Obliques",
+      "Internal Obliques"
+    ],
+    "secondary": [
+      "Iliopsoas",
+      "Rectus Femoris",
+      "Gluteus Maximus",
+      "Erector Spinae",
+      "Deltoid (Anterior)"
+    ]
+  },
+  "processed_at": "2026-01-07T22:04:24.323980"
+}

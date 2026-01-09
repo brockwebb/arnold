@@ -1,0 +1,47 @@
+{
+  "exercise_id": "EXERCISE:SANDBAG_SHOULDERING",
+  "exercise_name": "Sandbag Shouldering",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "sandbag shouldering muscles worked",
+    "retrieved_at": "2026-01-07",
+    "raw_text": "Sandbag Shouldering is a full-body, functional movement targeting legs (glutes, hamstrings), hips, core (abs, lower back, obliques), shoulders, traps, and arms (biceps/forearms) by lifting a shifting load from the ground to the shoulder, emphasizing explosive hip power, core stability, and grip strength through a dynamic hip hinge and upward drive, mimicking real-world lifting. The pattern involves a deadlift-like pull, transitioning to a powerful hip extension (like a front squat/leg press), and finishing with a shoulder stabilization, building total-body coordination.\n\nMuscles Worked\n* Legs: Glutes, Hamstrings, Quadriceps (especially during the drive up).\n* Hips & Core: Hip extensors, Abdominals, Obliques, Lower Back (erector spinae) for stability.\n* Back: Upper Back (traps, rhomboids) for stabilization and pulling.\n* Shoulders & Arms: Deltoids, Biceps, Forearms (grip).\n\nMovement Pattern (Ground-to-Shoulder)\n1. Setup: Stand over the sandbag with feet shoulder-width apart, hips hinged back, chest up, and a firm grip on the bag.\n2. First Pull (Deadlift): Pull the bag into your lap, keeping your back straight, similar to a deadlift, focusing on hip hinge.\n3. Second Pull (Explosion): From the lap, explode upwards by driving your hips forward and extending your legs (like a front squat/leg press).\n4. Shoulder Transfer: As you drive up, use your hips and torso to launch the bag upward, catching it on your shoulder, stabilizing with the opposite hand.\n5. Stabilization: Brace your core and hold the bag securely on the shoulder.\n\nKey Concepts\n* Full-Body Integration: It's not just arms or legs; the whole body works together.\n* Hip Hinge Foundation: Strong hip hinge mobility and strength are crucial for getting the bag to the lap.\n* Unstable Load: The shifting weight constantly challenges core stabilizers (abs, obliques, lower back).\n* Power Development: Builds explosive power through the hips and posterior chain.\n* Functional Strength: Mimics real-world lifting and carrying.",
+    "citations": [
+      {"index": 1, "url": "https://www.youtube.com/shorts/JVTG45FA_D8"},
+      {"index": 2, "url": "https://freedomstrength.us/pages/sandbag-training-guides"},
+      {"index": 3, "url": "https://brickhousenutrition.com/blogs/articles/sandbag-training-101-is-this-the-ultimate-full-body-workout-tool"},
+      {"index": 4, "url": "https://www.youtube.com/watch?v=dUn1tdQWBfg"},
+      {"index": 5, "url": "https://rb100.fitness/challenges/2025/100-sandbag-shouldering/"},
+      {"index": 6, "url": "https://www.onnit.com/blogs/the-edge/skill-of-the-week-sandbag-shouldering"},
+      {"index": 7, "url": "https://gymbox.de/en/sandbag-exercise-lift/"},
+      {"index": 8, "url": "https://mirafit.co.uk/blog/strongman-sandbag-workout/"},
+      {"index": 9, "url": "https://gripzilla.co/blogs/news/best-sandbag-exercise"},
+      {"index": 10, "url": "https://www.youtube.com/watch?v=jD2gnbCIYJI"}
+    ]
+  },
+  "movement_patterns": [
+    {"name": "Hip Hinge", "confidence": 0.95},
+    {"name": "Hip Extension", "confidence": 0.90},
+    {"name": "Squat", "confidence": 0.80},
+    {"name": "Anti-Extension", "confidence": 0.85},
+    {"name": "Loaded Carry", "confidence": 0.70}
+  ],
+  "muscles": {
+    "primary": [
+      "Gluteus Maximus",
+      "Biceps Femoris",
+      "Rectus Femoris",
+      "Erector Spinae"
+    ],
+    "secondary": [
+      "Trapezius (Upper)",
+      "Rhomboids",
+      "Deltoid (Anterior)",
+      "Biceps Brachii",
+      "Forearm Flexors",
+      "Rectus Abdominis",
+      "External Obliques"
+    ]
+  },
+  "processed_at": "2026-01-07T14:00:00Z"
+}

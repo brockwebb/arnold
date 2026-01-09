@@ -1,0 +1,55 @@
+{
+  "exercise_id": "CANONICAL:ARNOLD:DYNAMIC_LUNGES",
+  "exercise_name": "Dynamic Lunges",
+  "source": {
+    "type": "google_ai_overview",
+    "query": "dynamic walking lunges muscles worked",
+    "retrieved_at": "Dynamic",
+    "raw_text": "Dynamic lunges primarily work your quadriceps, glutes, and hamstrings, using hip/knee flexion/extension for movement, while engaging calves and core for stabilization and balance, promoting strength, power, and coordination in a single-leg pattern. Key movement patterns involve controlled steps, lowering into a split stance, and driving back up, with variations like walking or reverse lunges altering emphasis on posterior vs. anterior chain muscles. [1, 2, 3, 4, 5]  \nMuscles Worked \n\n\u2022 Primary Movers: \n\n    \u2022 Quadriceps: Front of the thigh, extending the knee to push up. \n    \u2022 Glutes (Gluteus Maximus): Buttocks, extending the hip and powering the ascent. \n    \u2022 Hamstrings: Back of the thigh, assisting hip extension and controlling knee flexion. \n\n\u2022 Stabilizers & Synergists: \n\n    \u2022 Calves (Gastrocnemius, Soleus): Help stabilize the ankle and push off. \n    \u2022 Hip Flexors: Control the forward/backward leg motion and stabilize the hip. \n    \u2022 Adductors: Inner thigh muscles assist in stability and movement. \n    \u2022 Core (Abs, Obliques, Spinal Erectors): Maintain an upright torso and balance. [1, 2, 4, 5, 6, 7]  \n\nMovement Patterns \n\n\u2022 Phases: Lunges involve an eccentric phase (lengthening muscles to lower down) and a concentric phase (shortening muscles to push up). \n\u2022 Key Actions: Stepping (forward, backward, or laterally), lowering the hips, and driving back to the start. \n\u2022 Stance Variations: \n\n    \u2022 Shorter Stride: Emphasizes quads. \n    \u2022 Longer Stride/Reverse Lunge: Increases hamstring and glute engagement. \n    \u2022 Narrow Stance: Shifts focus to the anterior chain (quads). \n    \u2022 Wide Stance: Engages adductors more powerfully. \n\n\u2022 Dynamic Elements: Incorporating movement (walking lunges, jumping lunges) adds power and challenge, working arms and core more dynamically for balance and momentum. [2, 3, 5, 8, 9]  \n\nHow Variations Change Focus \n\n\u2022 Forward Lunge: Classic quad focus, but requires good balance. \n\u2022 Reverse Lunge: Easier on knees, greater hamstring/glute emphasis due to backward step. \n\u2022 Walking Lunge: Continuous movement, builds endurance. \n\u2022 Lunge with Twist: Adds core rotation and mobility work. [3, 5, 7, 10, 11]  \n\n**Citations:**\n\n[1]\u00a0https://www.freerx.com/Blog/Details?s=%09Lunges:+Discover+the+Muscles+They+Target%09\n[2]\u00a0https://www.thewellnews.com/health/the-ultimate-gym-guide-lunges/\n[3]\u00a0https://www.youtube.com/watch?v=Jrqi8GQZ8kQ\n[4]\u00a0https://www.muscleandmotion.com/how-to-do-lunges-a-complete-guide/\n[5]\u00a0https://www.healthline.com/health/fitness-exercise/lunges-muscles-worked\n[6]\u00a0https://frederickymca.org/3-simple-tweaks-to-lift-your-lunge-game\n[7]\u00a0https://www.rzonefitness.com/2024/12/alternating-forward-lunges/\n[8]\u00a0https://www.youtube.com/watch?v=2vRwZ0Ad35Q\n[9]\u00a0https://www.muscleandstrength.com/articles/10-lunge-variations-bigger-stronger-legs\n[10]\u00a0https://www.instagram.com/reel/DPd8dEiDR2N/\n[11]\u00a0https://www.americansportandfitness.com/blogs/fitness-blog/lunge-variations-to-lean-tone-legs\n\n\n\n\n---",
+    "citations": [],
+    "batch_file": "batch_003.md"
+  },
+  "movement_patterns": [
+    {
+      "name": "Lunge",
+      "confidence": 1.0
+    },
+    {
+      "name": "Hip Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Knee Extension",
+      "confidence": 0.9
+    },
+    {
+      "name": "Hip Flexion",
+      "confidence": 0.8
+    },
+    {
+      "name": "Knee Flexion",
+      "confidence": 0.7
+    },
+    {
+      "name": "Anti-Lateral Flexion",
+      "confidence": 0.6
+    }
+  ],
+  "muscles": {
+    "primary": [
+      "Rectus Femoris",
+      "Gluteus Maximus",
+      "Biceps Femoris"
+    ],
+    "secondary": [
+      "Gastrocnemius",
+      "Soleus",
+      "Iliopsoas",
+      "Hip Adductors",
+      "Rectus Abdominis",
+      "External Obliques",
+      "Erector Spinae"
+    ]
+  },
+  "processed_at": "2026-01-08T08:34:11.187694"
+}
