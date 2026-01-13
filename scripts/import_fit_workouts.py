@@ -85,7 +85,7 @@ def parse_fit_file(filepath: Path) -> Optional[dict]:
     """
     Parse a FIT file and extract workout data.
     
-    Returns dict with session data and lap splits, or None if parsing fails.
+    Returns dict with session data, lap splits, and HR samples, or None if parsing fails.
     """
     try:
         fit = fitparse.FitFile(str(filepath))
@@ -97,6 +97,7 @@ def parse_fit_file(filepath: Path) -> Optional[dict]:
         "source_file": filepath.name,
         "source_path": str(filepath),
         "laps": [],
+        "hr_samples": [],
     }
     
     # Extract session data
@@ -110,8 +111,8 @@ def parse_fit_file(filepath: Path) -> Optional[dict]:
         print(f"  WARN: No sport type found in {filepath.name}")
         return None
     
-    # Extract lap data
-    fit = fitparse.FitFile(str(filepath))  # Re-read for laps
+    # Extract lap data and HR samples (re-read to iterate both message types)
+    fit = fitparse.FitFile(str(filepath))
     for i, record in enumerate(fit.get_messages('lap'), 1):
         lap = {"lap_number": i}
         for field in record:
@@ -119,7 +120,49 @@ def parse_fit_file(filepath: Path) -> Optional[dict]:
                 lap[field.name] = field.value
         workout["laps"].append(lap)
     
+    # Extract HR samples from 'record' messages
+    fit = fitparse.FitFile(str(filepath))  # Re-read for record messages
+    workout["hr_samples"] = extract_hr_samples_from_fit(fit)
+    
     return workout
+
+
+def extract_hr_samples_from_fit(fit: fitparse.FitFile) -> list:
+    """
+    Extract per-second HR samples from FIT file 'record' messages.
+    
+    FIT 'record' messages contain per-second data points with:
+      - heart_rate: bpm
+      - timestamp: datetime
+      - cadence: spm (optional)
+      - speed/enhanced_speed: m/s (optional)
+      - altitude/enhanced_altitude: meters (optional)
+    
+    Returns list of dicts with hr_value and sample_time.
+    Skips records without valid HR data (handles auto-pause gaps gracefully).
+    """
+    samples = []
+    
+    for record in fit.get_messages('record'):
+        sample = {'hr_value': None, 'sample_time': None}
+        
+        for field in record:
+            if field.name == 'heart_rate' and field.value is not None:
+                # HR values should be positive integers
+                try:
+                    hr = int(field.value)
+                    if 30 <= hr <= 250:  # Sanity check for valid HR range
+                        sample['hr_value'] = hr
+                except (ValueError, TypeError):
+                    pass
+            elif field.name == 'timestamp' and field.value is not None:
+                sample['sample_time'] = field.value
+        
+        # Only include samples with both HR and timestamp
+        if sample['hr_value'] and sample['sample_time']:
+            samples.append(sample)
+    
+    return samples
 
 
 def format_session_for_postgres(raw: dict) -> dict:
@@ -264,6 +307,47 @@ def check_postgres_duplicate(conn, session: dict) -> Optional[int]:
     except Exception as e:
         print(f"  WARN: Duplicate check failed: {e}")
         return None
+
+
+def insert_hr_samples_to_postgres(conn, endurance_session_id: int, samples: list, source: str, dry_run: bool = False) -> int:
+    """
+    Batch insert HR samples for a FIT-imported session.
+    
+    Args:
+        conn: Postgres connection
+        endurance_session_id: FK to endurance_sessions
+        samples: List of dicts with 'sample_time' and 'hr_value'
+        source: Source identifier (e.g., 'suunto_fit', 'garmin_fit')
+        dry_run: If True, don't actually insert
+    
+    Returns:
+        Number of samples inserted
+    """
+    if not samples:
+        return 0
+    
+    if dry_run:
+        print(f"  Would insert {len(samples)} HR samples")
+        return len(samples)
+    
+    query = """
+    INSERT INTO hr_samples (endurance_session_id, sample_time, hr_value, source)
+    VALUES %s
+    """
+    values = [
+        (endurance_session_id, s['sample_time'], s['hr_value'], source)
+        for s in samples
+    ]
+    
+    try:
+        with conn.cursor() as cur:
+            execute_values(cur, query, values, page_size=1000)
+        conn.commit()
+        return len(samples)
+    except Exception as e:
+        conn.rollback()
+        print(f"  ERROR: Failed to insert HR samples: {e}")
+        return 0
 
 
 def insert_session_to_postgres(conn, session: dict, laps: list, dry_run: bool = False) -> Optional[int]:
@@ -522,6 +606,13 @@ def main():
             print(f"  ✓ Postgres: {session.get('name')} (ID: {postgres_id})")
             print(f"    {session.get('distance_miles')}mi | {(session.get('duration_seconds') or 0)//60}min | HR {session.get('avg_hr')}/{session.get('max_hr')} | TSS {session.get('tss')}")
             
+            # Insert HR samples (Issue #23: Extract per-second HR from FIT files)
+            hr_samples = raw.get('hr_samples', [])
+            hr_source = f"{session.get('source')}_fit"  # e.g., 'suunto_fit', 'garmin_fit'
+            hr_count = insert_hr_samples_to_postgres(pg_conn, postgres_id, hr_samples, hr_source, dry_run=args.dry_run)
+            if hr_count > 0:
+                print(f"  ✓ HR samples: {hr_count} samples ({hr_source})")
+            
             # Create Neo4j reference (lightweight)
             neo4j_id = None
             if neo4j_driver and not args.dry_run:
@@ -538,6 +629,7 @@ def main():
                     "neo4j_id": neo4j_id,
                     "date": str(session.get('session_date')),
                     "distance_miles": session.get('distance_miles'),
+                    "hr_samples_count": hr_count,
                 }
             
             imported += 1

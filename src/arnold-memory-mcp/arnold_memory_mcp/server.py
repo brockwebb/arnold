@@ -2,22 +2,34 @@
 """Arnold Memory MCP Server.
 
 This MCP server provides context management and coaching continuity:
-- load_briefing: Comprehensive context for conversation start
+- load_briefing: Comprehensive context for conversation start (CONSOLIDATED)
 - store_observation: Persist coaching insights
 - get_observations: Retrieve past observations
+- search_observations: Semantic search over observations
+- debrief_session: End-of-session knowledge capture protocol
 - get_block_summary: Get/generate block summaries
+- store_block_summary: Store block summaries
+
+ARCHITECTURE NOTE (Jan 2026):
+load_briefing consolidates context from BOTH databases:
+- Neo4j: Goals, block, injuries, observations, relationships
+- Postgres: Readiness (HRV, sleep), training load (ACWR), HRR trends
+
+This eliminates the need to call multiple tools at conversation start.
+One call gets everything the coach needs.
 """
 
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 import mcp.types as types
-from typing import Any
+from typing import Any, List, Dict
 import asyncio
 import json
 import logging
 import os
 
 from neo4j_client import Neo4jMemoryClient
+from postgres_client import PostgresAnalyticsClient
 
 # Configure logging
 logging.basicConfig(
@@ -33,9 +45,155 @@ logger = logging.getLogger(__name__)
 # Initialize server
 server = Server("arnold-memory-mcp")
 neo4j_client = Neo4jMemoryClient()
+postgres_client = PostgresAnalyticsClient()
 
 # Default person_id (loaded from profile on first use)
 _cached_person_id = None
+
+
+# =============================================================================
+# PERSONALITY ASSEMBLY
+# =============================================================================
+
+# Tags that indicate observations relevant to coaching personality
+PERSONALITY_TAGS = {
+    # Physical patterns
+    'physical': {'asymmetry', 'fatigue', 'form', 'grip', 'balance', 'mobility', 
+                 'flexibility', 'rom', 'technique', 'breakdown'},
+    # Programming preferences
+    'programming': {'programming', 'loading', 'autoregulation', 'pyramid', 
+                   'progression', 'rep_scheme', 'volume', 'intensity'},
+    # Communication/interaction
+    'communication': {'communication', 'feedback', 'coaching_style', 'trust', 
+                     'interaction', 'preference'},
+    # Baselines and reference points
+    'baselines': {'baseline', 'progression', 'pr', 'working_weight', 'capacity'},
+    # Flags and constraints
+    'flags': {'surgery', 'injury', 'clearance', 'recovery', 'pain', 'watch', 'caution'}
+}
+
+
+def categorize_observation(obs: Dict) -> str:
+    """Determine which category an observation belongs to based on type and tags."""
+    obs_type = obs.get('observation_type', '')
+    tags = set(obs.get('tags', []) or [])
+    
+    # Flags are always flags
+    if obs_type == 'flag':
+        return 'flags'
+    
+    # Check tag overlap with each category
+    scores = {}
+    for category, category_tags in PERSONALITY_TAGS.items():
+        overlap = len(tags & category_tags)
+        if overlap > 0:
+            scores[category] = overlap
+    
+    if scores:
+        return max(scores, key=scores.get)
+    
+    # Default based on type
+    if obs_type == 'pattern':
+        return 'physical'
+    elif obs_type == 'preference':
+        return 'programming'
+    elif obs_type == 'decision':
+        return 'programming'
+    
+    return 'other'
+
+
+def truncate_observation(content: str, max_len: int = 150) -> str:
+    """Truncate observation to actionable summary."""
+    if len(content) <= max_len:
+        return content
+    # Find a good break point
+    truncated = content[:max_len]
+    # Try to break at sentence or phrase boundary
+    for sep in ['. ', ' - ', ', ', ' ']:
+        last_sep = truncated.rfind(sep)
+        if last_sep > max_len // 2:
+            return truncated[:last_sep + 1].strip()
+    return truncated.strip() + '...'
+
+
+def assemble_coaching_notes(observations: List[Dict]) -> List[str]:
+    """
+    Assemble observations into categorized coaching notes.
+    
+    Instead of listing raw observations, organizes them into actionable
+    coaching guidance by category.
+    
+    Returns list of formatted lines for the briefing.
+    """
+    if not observations:
+        return []
+    
+    # Categorize observations
+    categorized = {
+        'physical': [],
+        'programming': [],
+        'communication': [],
+        'baselines': [],
+        'flags': [],
+        'other': []
+    }
+    
+    for obs in observations:
+        category = categorize_observation(obs)
+        categorized[category].append(obs)
+    
+    lines = []
+    lines.append("")
+    lines.append(f"## Athlete-Specific Coaching Notes")
+    lines.append(f"*Based on {len(observations)} observations from past sessions*")
+    
+    # Physical Patterns
+    physical = categorized['physical'][:4]  # Limit to 4
+    if physical:
+        lines.append("")
+        lines.append("### Physical Patterns")
+        for obs in physical:
+            content = truncate_observation(obs.get('content', ''))
+            lines.append(f"- {content}")
+    
+    # Programming Approach
+    programming = categorized['programming'][:4]
+    if programming:
+        lines.append("")
+        lines.append("### Programming Approach")
+        for obs in programming:
+            content = truncate_observation(obs.get('content', ''))
+            lines.append(f"- {content}")
+    
+    # Communication Style
+    communication = categorized['communication'][:3]
+    if communication:
+        lines.append("")
+        lines.append("### Communication")
+        for obs in communication:
+            content = truncate_observation(obs.get('content', ''))
+            lines.append(f"- {content}")
+    
+    # Active Flags (always show all)
+    flags = categorized['flags']
+    if flags:
+        lines.append("")
+        lines.append("### ⚠️ Active Flags")
+        for obs in flags:
+            content = truncate_observation(obs.get('content', ''), max_len=200)
+            lines.append(f"- {content}")
+    
+    # Reference Points / Baselines
+    baselines = categorized['baselines'][:3]
+    if baselines:
+        lines.append("")
+        lines.append("### Reference Points")
+        for obs in baselines:
+            content = truncate_observation(obs.get('content', ''))
+            lines.append(f"- {content}")
+    
+    return lines
 
 
 def get_person_id() -> str:
@@ -63,20 +221,28 @@ async def list_tools_handler() -> list[types.Tool]:
             name="load_briefing",
             description="""Load comprehensive coaching context for conversation start.
 
-Call this FIRST in any training conversation. Returns everything needed for effective coaching:
+Call this FIRST in any training conversation. Returns EVERYTHING needed for effective coaching in ONE call:
 
-- **Athlete identity**: Name, phenotype (lifelong athlete), total training age
-- **Background**: Martial arts, endurance sports, running preferences  
-- **Goals**: Active goals with required modalities, target dates, priorities
-- **Training levels**: Per-modality level (novice/intermediate/advanced) and progression model
-- **Current block**: Name, type, week X of Y, intent, volume/intensity targets
-- **Medical**: Active injuries with constraints, resolved history
-- **Recent workouts**: Last 14 days with patterns trained
-- **Coaching observations**: Persistent notes from past conversations
-- **Upcoming sessions**: Planned workouts
-- **Equipment**: Available equipment
+**From Neo4j (relationships/context):**
+- Athlete identity: Name, phenotype (lifelong athlete), total training age
+- Background: Martial arts, endurance sports, running preferences  
+- Goals: Active goals with required modalities, target dates, priorities
+- Training levels: Per-modality level (novice/intermediate/advanced) and progression model
+- Current block: Name, type, week X of Y, intent, volume/intensity targets
+- Medical: Active injuries with constraints, resolved history
+- Coaching observations: Patterns, preferences, flags assembled from past sessions
+- Upcoming sessions: Planned workouts
+- Equipment: Available equipment
 
-This establishes coaching continuity - Claude knows the full picture from message one.""",
+**From Postgres (analytics/measurements):**
+- Readiness: Today's HRV (with 7d/30d comparisons), sleep, resting HR
+- Training load: ACWR (injury risk zone), 28-day volume, pattern gaps
+- HRR trends: Per-stratum recovery trends and alerts
+- Data gaps: Missing sensor data, active annotations
+
+**Coaching notes:** Pre-computed insights surfaced for coach attention
+
+This is THE consolidated briefing. No need to call multiple tools.""",
             inputSchema={
                 "type": "object",
                 "properties": {},
@@ -236,6 +402,81 @@ Captures:
                 },
                 "required": ["block_id", "content"]
             }
+        ),
+        types.Tool(
+            name="debrief_session",
+            description="""End-of-session knowledge capture protocol.
+
+Trigger: User says "Coach, let's debrief" or similar.
+
+This tool captures learnings from the current session and stores them in the 
+knowledge graph. It batches multiple observations and creates relationship links.
+
+**The collaborative flow:**
+1. Claude reviews the session and proposes observations to capture
+2. User confirms, corrects, or adds ("don't forget X")
+3. Claude calls this tool with the agreed observations
+4. Tool stores observations and creates graph relationships
+
+**What to look for (guidelines, not checklist):**
+- **Emergent preferences**: Athlete keeps adding warmups? That's a preference.
+- **Deviations from plan**: Changed exercises, adjusted loads, skipped sets — and WHY
+- **Patterns noticed**: HRV correlations, fatigue signatures, time-of-day effects
+- **Feedback received**: How athlete responded to coaching cues or suggestions
+- **Medical/symptoms**: Pain, discomfort, or recovery notes not captured elsewhere
+- **What worked**: Cues that clicked, progressions that felt right
+- **What didn't**: Approaches to avoid next time
+
+Use your judgment. Not everything needs capturing — focus on what will inform 
+future coaching. Quality over quantity.
+
+Returns summary of stored observations and created links.""",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "observations": {
+                        "type": "array",
+                        "description": "List of observations to store",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "content": {
+                                    "type": "string",
+                                    "description": "The observation content"
+                                },
+                                "observation_type": {
+                                    "type": "string",
+                                    "enum": ["pattern", "preference", "insight", "flag", "decision"],
+                                    "description": "Type of observation"
+                                },
+                                "tags": {
+                                    "type": "array",
+                                    "items": {"type": "string"},
+                                    "description": "Keywords for retrieval"
+                                },
+                                "link_to_workout": {
+                                    "type": "string",
+                                    "description": "Optional: workout date (YYYY-MM-DD) to link this observation to"
+                                },
+                                "link_to_goal": {
+                                    "type": "string",
+                                    "description": "Optional: goal name to link this observation to"
+                                },
+                                "link_to_injury": {
+                                    "type": "string",
+                                    "description": "Optional: injury name to link this observation to"
+                                }
+                            },
+                            "required": ["content", "observation_type"]
+                        }
+                    },
+                    "session_summary": {
+                        "type": "string",
+                        "description": "Optional brief narrative of the session"
+                    }
+                },
+                "required": ["observations"]
+            }
         )
     ]
 
@@ -250,12 +491,14 @@ async def call_tool_handler(name: str, arguments: dict[str, Any]) -> list[types.
         return [types.TextContent(type="text", text=f"❌ {str(e)}")]
 
     # =========================================================================
-    # LOAD BRIEFING
+    # LOAD BRIEFING (CONSOLIDATED)
     # =========================================================================
     
     if name == "load_briefing":
         try:
-            logger.info(f"Loading briefing for {person_id}")
+            logger.info(f"Loading consolidated briefing for {person_id}")
+            
+            # Get Neo4j context (relationships, goals, block, etc.)
             briefing = neo4j_client.load_briefing(person_id)
             
             if not briefing:
@@ -263,6 +506,9 @@ async def call_tool_handler(name: str, arguments: dict[str, Any]) -> list[types.
                     type="text",
                     text="❌ Could not load briefing. Check profile exists."
                 )]
+            
+            # Get Postgres analytics (readiness, training load, HRR)
+            analytics = postgres_client.get_analytics_for_briefing()
             
             # Format as readable briefing
             lines = []
@@ -276,6 +522,70 @@ async def call_tool_handler(name: str, arguments: dict[str, Any]) -> list[types.
                 lines.append(f"**Athlete Type:** {athlete.get('phenotype')} ({athlete.get('training_age_total', '?')} years total)")
                 if athlete.get("phenotype_notes"):
                     lines.append(f"  {athlete.get('phenotype_notes')[:200]}...")
+            
+            # =================================================================
+            # ANALYTICS SECTION (NEW - from Postgres)
+            # =================================================================
+            lines.append("")
+            lines.append("## Today's Status")
+            
+            readiness = analytics.get("readiness", {})
+            training_load = analytics.get("training_load", {})
+            hrr = analytics.get("hrr", {})
+            
+            # HRV
+            if readiness.get("hrv"):
+                hrv = readiness["hrv"]
+                trend_emoji = "📈" if hrv.get("trend") == "improving" else "📉" if hrv.get("trend") == "declining" else "➡️"
+                vs_7d = f" ({hrv['vs_7d_pct']:+d}% vs 7d)" if hrv.get('vs_7d_pct') else ""
+                lines.append(f"- **HRV:** {hrv['value']} ms{vs_7d} {trend_emoji}")
+            else:
+                lines.append("- **HRV:** No data")
+            
+            # Sleep
+            if readiness.get("sleep"):
+                sleep = readiness["sleep"]
+                quality_str = f" ({sleep['quality_pct']}% quality)" if sleep.get('quality_pct') else ""
+                lines.append(f"- **Sleep:** {sleep['hours']} hrs{quality_str}")
+            else:
+                lines.append("- **Sleep:** No data")
+            
+            # RHR
+            if readiness.get("resting_hr"):
+                lines.append(f"- **Resting HR:** {readiness['resting_hr']} bpm")
+            
+            # ACWR
+            if training_load.get("acwr"):
+                acwr = training_load["acwr"]
+                zone_emoji = "🔴" if acwr['zone'] == 'high_risk' else "🟢" if acwr['zone'] == 'optimal' else "🟡"
+                lines.append(f"- **ACWR:** {acwr['value']} ({acwr['zone']}) {zone_emoji}")
+            
+            # HRR summary
+            if hrr.get("intervals") and hrr.get("strata"):
+                hrr_summary = []
+                for strat, data in hrr["strata"].items():
+                    if isinstance(data, dict) and data.get("baseline_hrr60"):
+                        trend = data.get("trend", "stable")
+                        alert = "⚠️" if data.get("has_alert") else ""
+                        hrr_summary.append(f"{strat}: {data['current_avg']} bpm ({trend}){alert}")
+                if hrr_summary:
+                    lines.append(f"- **HRR:** {'; '.join(hrr_summary)}")
+            
+            # Training load summary
+            lines.append(f"- **28d Volume:** {training_load.get('workouts_28d', 0)} workouts, {training_load.get('total_sets_28d', 0)} sets")
+            
+            # Pattern gaps
+            if training_load.get("pattern_gaps"):
+                lines.append(f"- **Pattern Gaps (10d):** {', '.join(training_load['pattern_gaps'])}")
+            
+            # Data completeness
+            completeness = readiness.get("data_completeness", 0)
+            if completeness < 3:
+                lines.append(f"- **Data:** {completeness}/4 sources available")
+            
+            # =================================================================
+            # NEO4J CONTEXT (existing)
+            # =================================================================
             
             # BACKGROUND
             bg = briefing.get("background", {})
@@ -365,16 +675,13 @@ async def call_tool_handler(name: str, arguments: dict[str, Any]) -> list[types.
                 lines.append(f"## Recent Workouts ({briefing.get('workouts_this_week', 0)} this week)")
                 for w in recent[:7]:  # Last 7
                     patterns = ", ".join(w.get("patterns", [])[:3]) or "—"
-                    lines.append(f"- {w.get('date')}: {w.get('type', 'workout')} ({w.get('sets', 0)} sets) — {patterns}")
+                    workout_name = w.get('name') or w.get('type') or 'workout'
+                    lines.append(f"- {w.get('date')}: {workout_name} ({w.get('sets', 0)} sets) — {patterns}")
             
-            # OBSERVATIONS
+            # COACHING NOTES (assembled from observations)
             observations = briefing.get("observations", [])
-            if observations:
-                lines.append("")
-                lines.append("## Coaching Observations")
-                for obs in observations[:5]:  # Most recent 5
-                    obs_type = obs.get('observation_type', 'insight')
-                    lines.append(f"- [{obs_type}] {obs.get('content')}")
+            coaching_notes = assemble_coaching_notes(observations)
+            lines.extend(coaching_notes)
             
             # UPCOMING
             upcoming = briefing.get("upcoming_sessions", [])
@@ -384,22 +691,6 @@ async def call_tool_handler(name: str, arguments: dict[str, Any]) -> list[types.
                 for s in upcoming:
                     lines.append(f"- {s.get('date')}: {s.get('goal', 'Workout')} [{s.get('status')}]")
             
-            # PATTERN GAPS
-            pattern_gaps = briefing.get("pattern_gaps", [])
-            if pattern_gaps:
-                lines.append("")
-                lines.append("## Pattern Gaps (7+ days)")
-                for pg in pattern_gaps:
-                    lines.append(f"- **{pg['pattern']}**: {pg['days']} days")
-            
-            # MUSCLE VOLUME THIS WEEK
-            muscle_vol = briefing.get("muscle_volume_this_week", [])
-            if muscle_vol:
-                lines.append("")
-                lines.append("## Muscle Volume This Week (Primary)")
-                for mv in muscle_vol:
-                    lines.append(f"- {mv['muscle']}: {mv['sets']} sets, {mv['reps']} reps")
-            
             # EQUIPMENT
             equipment = briefing.get("equipment", [])
             if equipment:
@@ -407,6 +698,24 @@ async def call_tool_handler(name: str, arguments: dict[str, Any]) -> list[types.
                 lines.append("## Equipment Available")
                 eq_list = [e.get('equipment') for e in equipment if e.get('equipment')]
                 lines.append(", ".join(eq_list[:10]))  # First 10
+            
+            # =================================================================
+            # COACHING NOTES (from analytics)
+            # =================================================================
+            analytics_notes = analytics.get("coaching_notes", [])
+            if analytics_notes:
+                lines.append("")
+                lines.append("## ⚡ Coaching Alerts")
+                for note in analytics_notes:
+                    lines.append(f"- {note}")
+            
+            # ANNOTATIONS (context for unusual data)
+            annotations = analytics.get("annotations", [])
+            if annotations:
+                lines.append("")
+                lines.append("## Active Annotations")
+                for a in annotations[:3]:  # Top 3
+                    lines.append(f"- [{a['reason']}] {a.get('explanation', '')[:80]}")
             
             return [types.TextContent(
                 type="text",
@@ -601,6 +910,120 @@ Use `store_block_summary` to create the summary."""
             logger.error(f"Error storing block summary: {str(e)}", exc_info=True)
             return [types.TextContent(type="text", text=f"❌ Error: {str(e)}")]
 
+    # =========================================================================
+    # DEBRIEF SESSION
+    # =========================================================================
+    
+    elif name == "debrief_session":
+        try:
+            observations_input = arguments.get("observations", [])
+            session_summary = arguments.get("session_summary")
+            
+            if not observations_input:
+                return [types.TextContent(
+                    type="text",
+                    text="❌ No observations provided. Review the session and propose observations first."
+                )]
+            
+            logger.info(f"Debriefing session: {len(observations_input)} observations")
+            
+            stored = []
+            links_created = []
+            
+            for obs in observations_input:
+                content = obs.get("content")
+                obs_type = obs.get("observation_type", "insight")
+                tags = obs.get("tags", [])
+                
+                if not content:
+                    continue
+                
+                # Store the observation
+                result = neo4j_client.store_observation(
+                    person_id=person_id,
+                    content=content,
+                    observation_type=obs_type,
+                    tags=tags
+                )
+                
+                obs_id = result["id"]
+                stored.append({
+                    "id": obs_id,
+                    "type": obs_type,
+                    "content": content[:60] + "..." if len(content) > 60 else content
+                })
+                
+                # Create relationship links if specified
+                with neo4j_client.driver.session(database=neo4j_client.database) as session:
+                    
+                    # Link to workout by date
+                    if obs.get("link_to_workout"):
+                        workout_date = obs["link_to_workout"]
+                        link_result = session.run("""
+                            MATCH (o:Observation {id: $obs_id})
+                            MATCH (p:Person {id: $person_id})-[:PERFORMED]->(w:Workout)
+                            WHERE toString(w.date) = $workout_date
+                            MERGE (o)-[r:ABOUT_WORKOUT]->(w)
+                            RETURN w.date as linked_date
+                        """, obs_id=obs_id, person_id=person_id, workout_date=workout_date).single()
+                        
+                        if link_result:
+                            links_created.append(f"→ Workout ({workout_date})")
+                    
+                    # Link to goal by name
+                    if obs.get("link_to_goal"):
+                        goal_name = obs["link_to_goal"]
+                        link_result = session.run("""
+                            MATCH (o:Observation {id: $obs_id})
+                            MATCH (p:Person {id: $person_id})-[:HAS_GOAL]->(g:Goal)
+                            WHERE toLower(g.name) CONTAINS toLower($goal_name)
+                            MERGE (o)-[r:INFORMS]->(g)
+                            RETURN g.name as linked_goal
+                        """, obs_id=obs_id, person_id=person_id, goal_name=goal_name).single()
+                        
+                        if link_result:
+                            links_created.append(f"→ Goal ({link_result['linked_goal']})")
+                    
+                    # Link to injury by name
+                    if obs.get("link_to_injury"):
+                        injury_name = obs["link_to_injury"]
+                        link_result = session.run("""
+                            MATCH (o:Observation {id: $obs_id})
+                            MATCH (p:Person {id: $person_id})-[:HAS_INJURY]->(i:Injury)
+                            WHERE toLower(i.name) CONTAINS toLower($injury_name)
+                            MERGE (o)-[r:RELATED_TO]->(i)
+                            RETURN i.name as linked_injury
+                        """, obs_id=obs_id, person_id=person_id, injury_name=injury_name).single()
+                        
+                        if link_result:
+                            links_created.append(f"→ Injury ({link_result['linked_injury']})")
+            
+            # Build response
+            lines = [f"✅ **Session Debriefed**\n"]
+            lines.append(f"**Stored {len(stored)} observations:**\n")
+            
+            for s in stored:
+                lines.append(f"- [{s['type']}] {s['content']}")
+            
+            if links_created:
+                lines.append(f"\n**Links created:** {len(links_created)}")
+                for link in links_created:
+                    lines.append(f"  {link}")
+            
+            if session_summary:
+                lines.append(f"\n**Session summary:** {session_summary}")
+            
+            lines.append(f"\n_These observations will inform future coaching via load_briefing()._")
+            
+            return [types.TextContent(
+                type="text",
+                text="\n".join(lines)
+            )]
+            
+        except Exception as e:
+            logger.error(f"Error debriefing session: {str(e)}", exc_info=True)
+            return [types.TextContent(type="text", text=f"❌ Error: {str(e)}")]
+
     else:
         return [types.TextContent(
             type="text",
@@ -610,7 +1033,7 @@ Use `store_block_summary` to create the summary."""
 
 def main():
     """Run the MCP server."""
-    logger.info("Starting Arnold Memory MCP Server")
+    logger.info("Starting Arnold Memory MCP Server (consolidated briefing)")
     asyncio.run(run_server())
 
 
@@ -628,6 +1051,7 @@ async def run_server():
         raise
     finally:
         neo4j_client.close()
+        postgres_client.close()
         logger.info("Arnold Memory MCP Server stopped")
 
 

@@ -260,19 +260,30 @@ class Neo4jMemoryClient:
             
             # =========================================================
             # RECENT WORKOUTS (Last 14 days)
+            # Match all workout types - :Workout, :StrengthWorkout, :EnduranceWorkout
+            # Deduplicate by date, preferring nodes with actual structure (sets > 0)
             # =========================================================
             recent_result = session.run("""
-                MATCH (p:Person {id: $person_id})-[:PERFORMED]->(w:Workout)
-                WHERE w.date >= date() - duration('P14D')
+                MATCH (p:Person {id: $person_id})-[:PERFORMED]->(w)
+                WHERE (w:Workout OR w:StrengthWorkout OR w:EnduranceWorkout)
+                  AND w.date >= date() - duration('P14D')
                 OPTIONAL MATCH (w)-[:HAS_BLOCK]->(wb:WorkoutBlock)-[:CONTAINS]->(s:Set)
                 OPTIONAL MATCH (s)-[:OF_EXERCISE]->(e:Exercise)-[:INVOLVES]->(mp:MovementPattern)
                 WITH w, count(DISTINCT s) as sets, collect(DISTINCT mp.name) as patterns
-                RETURN toString(w.date) as date,
-                       w.type as type,
-                       w.duration_minutes as duration,
-                       sets,
-                       patterns
-                ORDER BY w.date DESC
+                WITH w.date as workout_date,
+                     collect({name: coalesce(w.name, w.type), type: w.type, 
+                              duration: w.duration_minutes, sets: sets, patterns: patterns}) as workouts
+                // Pick the workout with most sets (prefers :Workout with structure over reference nodes)
+                WITH workout_date, 
+                     reduce(best = workouts[0], w IN workouts | 
+                         CASE WHEN w.sets > best.sets THEN w ELSE best END) as best
+                RETURN toString(workout_date) as date,
+                       best.name as name,
+                       best.type as type,
+                       best.duration as duration,
+                       best.sets as sets,
+                       best.patterns as patterns
+                ORDER BY workout_date DESC
             """, person_id=person_id)
             
             briefing["recent_workouts"] = [dict(r) for r in recent_result]

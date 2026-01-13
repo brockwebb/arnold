@@ -8,15 +8,22 @@ Handles large files (200MB+) without loading into memory.
 Outputs:
   - staging/apple_health_hr.parquet         Heart rate samples (aggregated hourly)
   - staging/apple_health_hr_raw.parquet     Heart rate samples (raw, if requested)
-  - staging/apple_health_weight.parquet     Body mass measurements
+  - staging/apple_health_hrv.parquet        HRV measurements (SDNN algorithm)
+  - staging/apple_health_resting_hr.parquet Resting heart rate
   - staging/apple_health_sleep.parquet      Sleep analysis sessions
+  - staging/apple_health_weight.parquet     Body mass measurements
   - staging/apple_health_workouts.parquet   Workout sessions
-  - staging/apple_health_hrv.parquet        HRV measurements
   - staging/apple_health_steps.parquet      Daily step counts
+  - staging/apple_health_bp.parquet         Blood pressure readings
+  - staging/apple_health_walking_*.parquet  Gait/mobility metrics
   - staging/clinical_labs.parquet           Lab results (FHIR)
   - staging/clinical_conditions.parquet     Diagnoses (FHIR)
   - staging/clinical_medications.parquet    Medications (FHIR)
   - staging/clinical_immunizations.parquet  Immunizations (FHIR)
+
+Source Priority:
+  This importer pulls ALL data. Source priority is resolved downstream via
+  config/sources.yaml. See scripts/sync/source_resolver.py for details.
 
 Usage:
   python import_apple_health.py                    # Incremental import (from cutoff date)
@@ -63,12 +70,16 @@ DB_CONFIG = {
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S %z"
 
 # Record types to extract from export.xml
+# NOTE: Import ALL data from all sources. Source priority is resolved downstream
+# via config/sources.yaml - see scripts/sync/source_resolver.py
 RECORD_TYPES = {
     "HKQuantityTypeIdentifierHeartRate": "hr",
     "HKQuantityTypeIdentifierHeartRateVariabilitySDNN": "hrv",
+    "HKQuantityTypeIdentifierRestingHeartRate": "resting_hr",
+    "HKCategoryTypeIdentifierSleepAnalysis": "sleep",
+    "HKQuantityTypeIdentifierBodyTemperature": "body_temp",
     "HKQuantityTypeIdentifierBodyMass": "weight",
     "HKQuantityTypeIdentifierStepCount": "steps",
-    "HKQuantityTypeIdentifierRestingHeartRate": "resting_hr",
     "HKQuantityTypeIdentifierBodyMassIndex": "bmi",
     "HKQuantityTypeIdentifierBodyFatPercentage": "body_fat",
     "HKQuantityTypeIdentifierLeanBodyMass": "lean_mass",
@@ -76,8 +87,12 @@ RECORD_TYPES = {
     "HKQuantityTypeIdentifierBloodPressureDiastolic": "bp_diastolic",
     "HKQuantityTypeIdentifierOxygenSaturation": "spo2",
     "HKQuantityTypeIdentifierRespiratoryRate": "resp_rate",
-    "HKQuantityTypeIdentifierBodyTemperature": "body_temp",
-    "HKCategoryTypeIdentifierSleepAnalysis": "sleep",
+    # Gait/mobility metrics
+    "HKQuantityTypeIdentifierWalkingAsymmetryPercentage": "walking_asymmetry",
+    "HKQuantityTypeIdentifierWalkingDoubleSupportPercentage": "walking_double_support",
+    "HKQuantityTypeIdentifierWalkingStepLength": "walking_step_length",
+    "HKQuantityTypeIdentifierWalkingSpeed": "walking_speed",
+    "HKQuantityTypeIdentifierAppleWalkingSteadiness": "walking_steadiness",
 }
 
 
@@ -381,6 +396,42 @@ def process_steps_records(records: List[Dict]) -> pd.DataFrame:
     }).reset_index()
     
     daily.columns = ["date", "source_name", "steps"]
+    return daily
+
+
+def process_gait_records(records: List[Dict], metric_name: str) -> pd.DataFrame:
+    """Process gait/mobility records, aggregating to daily averages.
+    
+    Gait metrics include:
+    - walking_asymmetry: Left/right leg imbalance (%)
+    - walking_double_support: Time both feet on ground (%)
+    - walking_step_length: Stride length (cm or in)
+    - walking_speed: Walking pace (km/hr or mi/hr)
+    - walking_steadiness: Fall risk (0-1 scale)
+    """
+    if not records:
+        return pd.DataFrame()
+    
+    df = pd.DataFrame(records)
+    df["value"] = pd.to_numeric(df["value"], errors="coerce")
+    df["timestamp"] = df["start_date"].apply(parse_apple_date)
+    df = df.dropna(subset=["timestamp", "value"])
+    
+    if len(df) == 0:
+        return pd.DataFrame()
+    
+    df["date"] = df["timestamp"].dt.date
+    
+    # Aggregate to daily: mean, min, max, count
+    daily = df.groupby(["date", "source_name"]).agg({
+        "value": ["mean", "min", "max", "count"],
+        "unit": "first"
+    }).reset_index()
+    
+    daily.columns = ["date", "source_name", f"{metric_name}_avg", f"{metric_name}_min", 
+                     f"{metric_name}_max", f"{metric_name}_count", "unit"]
+    daily[f"{metric_name}_avg"] = daily[f"{metric_name}_avg"].round(2)
+    
     return daily
 
 
@@ -853,6 +904,28 @@ def main():
             resting_hr_df = resting_hr_df.rename(columns={"hrv_ms": "resting_hr"})
             tables["apple_health_resting_hr"] = resting_hr_df
             save_parquet(resting_hr_df, "apple_health_resting_hr", args.verbose)
+        
+        # Body Temperature
+        body_temp_df = process_hrv_records(records_by_type["body_temp"])  # Same processing
+        if len(body_temp_df) > 0:
+            body_temp_df = body_temp_df.rename(columns={"hrv_ms": "temp_c"})
+            tables["apple_health_body_temp"] = body_temp_df
+            save_parquet(body_temp_df, "apple_health_body_temp", args.verbose)
+        
+        # Gait/mobility metrics
+        gait_metrics = [
+            ("walking_asymmetry", "asymmetry"),
+            ("walking_double_support", "double_support"),
+            ("walking_step_length", "step_length"),
+            ("walking_speed", "speed"),
+            ("walking_steadiness", "steadiness"),
+        ]
+        
+        for record_type, short_name in gait_metrics:
+            gait_df = process_gait_records(records_by_type[record_type], short_name)
+            if len(gait_df) > 0:
+                tables[f"apple_health_{record_type}"] = gait_df
+                save_parquet(gait_df, f"apple_health_{record_type}", args.verbose)
     
     # Process clinical records
     clinical_dir = RAW_DIR / "clinical-records"

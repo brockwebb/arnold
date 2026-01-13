@@ -73,6 +73,23 @@ The system advises; the human decides.
 
 ---
 
+## Source Configuration
+
+Data source priorities are defined in `config/sources.yaml`. This config-driven approach allows:
+
+- **Device changes** without code changes
+- **Algorithm documentation** (e.g., SDNN vs RMSSD for HRV)
+- **AI-friendly** self-documenting format with prompt instructions
+
+Key components:
+- `config/sources.yaml` — Source priority definitions
+- `scripts/sync/source_resolver.py` — Resolution logic
+- `scripts/sync/validate_config.py` — Configuration validation
+
+See [DATA_SOURCES.md](../DATA_SOURCES.md) for detailed provenance documentation.
+
+---
+
 ## Related Documents
 
 - [TRAINING_METRICS.md](../TRAINING_METRICS.md) — Evidence-based metrics with citations

@@ -257,12 +257,25 @@ def step_apple(dry_run: bool = False) -> bool:
     """Import Apple Health exports (XML → staging parquet → Postgres)."""
     log("=== Step: Apple Health Import ===")
     
-    script_path = SCRIPTS / "import_apple_health.py"
-    if not script_path.exists():
-        log("import_apple_health.py not found, skipping", "WARN")
+    # Step 1: Parse XML to staging parquet
+    parser_path = SCRIPTS / "sync" / "import_apple_health.py"
+    if not parser_path.exists():
+        log("sync/import_apple_health.py not found, skipping", "WARN")
         return True
     
-    return run_script("import_apple_health.py", dry_run=dry_run)
+    if not run_script("sync/import_apple_health.py", ["--verbose"] if not dry_run else [], dry_run=dry_run):
+        return False
+    
+    # Step 2: Load staging parquet to Postgres
+    loader_path = SCRIPTS / "sync" / "apple_health_to_postgres.py"
+    if not loader_path.exists():
+        log("sync/apple_health_to_postgres.py not found, skipping loader", "WARN")
+        return True
+    
+    args = ["--verbose"]
+    if dry_run:
+        args.append("--dry-run")
+    return run_script("sync/apple_health_to_postgres.py", args, dry_run=False)  # Script handles dry-run
 
 
 def step_neo4j(dry_run: bool = False) -> bool:

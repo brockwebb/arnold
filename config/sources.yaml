@@ -1,0 +1,421 @@
+# ==============================================================================
+# DATA SOURCE CONFIGURATION - Arnold Fitness Coaching System
+# ==============================================================================
+#
+# WHAT THIS FILE DOES:
+#   Defines which data source to use when multiple devices provide the same
+#   metric. Importers pull ALL data from ALL sources. This config tells the
+#   analytics layer which source to prefer.
+#
+# ------------------------------------------------------------------------------
+# FOR AI ASSISTANTS (Claude, GPT, etc.)
+# ------------------------------------------------------------------------------
+#
+# When helping a user modify this file:
+#
+# 1. PRESERVE ALL COMMENTS - They document rationale and are part of the spec
+#
+# 2. VALIDATE CHANGES:
+#    - Source names must exist in 'registered_sources' section
+#    - Check 'algorithm' compatibility before suggesting source changes
+#    - If algorithms differ (e.g., SDNN vs RMSSD), warn about trend breaks
+#
+# 3. AFTER CHANGES:
+#    - Remind user to run: python scripts/validate_config.py
+#    - If primary source changed, suggest creating a data annotation for the
+#      transition date to explain any discontinuity in trends
+#
+# 4. COMMON TASKS:
+#    - "Add new device" → Add to registered_sources, then add to relevant metrics
+#    - "Stop using device" → Remove from primary, optionally keep in fallback
+#    - "Switch primary" → Update primary field, check algorithm compatibility
+#
+# ------------------------------------------------------------------------------
+# FOR HUMANS
+# ------------------------------------------------------------------------------
+#
+# To change which device is used for a metric:
+#   1. Find the metric in the 'metrics' section below
+#   2. Change the 'primary' field to your preferred source
+#   3. Run: python scripts/validate_config.py
+#   4. Run: python scripts/sync_pipeline.py
+#
+# To add a new device:
+#   1. Add it to 'registered_sources' section
+#   2. Add it to relevant metrics (primary or fallback)
+#   3. Create an importer in scripts/sync/ if one doesn't exist
+#
+# To retire a device:
+#   1. Change 'primary' to your new preferred source
+#   2. Optionally move old device to 'fallback' list (keeps historical data useful)
+#   3. Add a data annotation noting the transition date
+#
+# ==============================================================================
+
+
+# ------------------------------------------------------------------------------
+# REGISTERED SOURCES
+# ------------------------------------------------------------------------------
+# All valid source identifiers. Importers must use these exact names.
+# Add new devices here before using them in metric priorities.
+
+registered_sources:
+
+  # --- Wearable Rings ---
+  ultrahuman:
+    name: "Ultrahuman Ring Air"
+    type: ring
+    metrics_provided:
+      - hrv
+      - resting_hr
+      - sleep
+      - skin_temp
+      - recovery_score
+      - steps
+    notes: |
+      Primary biometric source. Worn 24/7.
+      HRV algorithm: RMSSD (root mean square of successive differences)
+      Sleep detection: PPG + temperature + movement
+
+  oura:
+    name: "Oura Ring"
+    type: ring
+    metrics_provided:
+      - hrv
+      - resting_hr
+      - sleep
+      - skin_temp
+      - readiness_score
+    notes: |
+      Not currently used. Listed for future compatibility.
+      HRV algorithm: RMSSD
+
+  # --- Watches ---
+  apple_watch:
+    name: "Apple Watch"
+    type: watch
+    metrics_provided:
+      - hrv
+      - resting_hr
+      - sleep
+      - steps
+      - workout_hr
+      - blood_oxygen
+      - ecg
+      - walking_metrics
+    notes: |
+      HRV algorithm: SDNN (standard deviation of NN intervals)
+      WARNING: SDNN and RMSSD are NOT comparable. Do not mix Apple HRV
+      with ring-based HRV in trend analysis.
+
+  garmin:
+    name: "Garmin Watch"
+    type: watch
+    metrics_provided:
+      - hrv
+      - resting_hr
+      - sleep
+      - steps
+      - workout_hr
+      - training_load
+    notes: |
+      Not currently used. Listed for future compatibility.
+
+  # --- Chest Straps ---
+  polar_h10:
+    name: "Polar H10 Chest Strap"
+    type: chest_strap
+    metrics_provided:
+      - workout_hr
+    notes: |
+      Gold standard for exercise heart rate.
+      Used during strength and running workouts.
+      Data imported via FIT files from Polar Flow.
+
+  # --- Manual / Apps ---
+  apple_health:
+    name: "Apple Health (aggregator)"
+    type: aggregator
+    metrics_provided:
+      - weight
+      - blood_pressure
+      - steps
+      - workouts
+      - clinical_labs
+      - clinical_conditions
+      - clinical_medications
+      - clinical_immunizations
+    notes: |
+      Aggregates data from multiple sources.
+      Primary for: manual entries (weight, BP), clinical records (FHIR).
+      NOT primary for metrics where dedicated devices exist.
+
+  manual:
+    name: "Manual Entry"
+    type: manual
+    metrics_provided:
+      - weight
+      - blood_pressure
+      - race_results
+    notes: |
+      Direct entry into Arnold or Apple Health.
+
+
+# ------------------------------------------------------------------------------
+# METRIC PRIORITIES
+# ------------------------------------------------------------------------------
+# For each metric type, defines which source to use.
+#
+# Fields:
+#   primary    - First choice source (required)
+#   fallback   - Ordered list of backup sources if primary unavailable
+#   algorithm  - Algorithm/methodology used (for documentation)
+#   unit       - Expected unit of measurement
+#   grain      - Temporal granularity (daily, hourly, per_reading)
+#   notes      - Rationale for source selection, compatibility warnings
+
+metrics:
+
+  # --- Heart Rate Variability ---
+  hrv:
+    primary: ultrahuman
+    fallback: []  # No fallback - algorithms incompatible
+    algorithm: rmssd
+    unit: ms
+    grain: daily
+    notes: |
+      CRITICAL: Do NOT add apple_watch as fallback.
+      
+      Ultrahuman uses RMSSD (root mean square of successive differences).
+      Apple Watch uses SDNN (standard deviation of NN intervals).
+      
+      These measure different aspects of HRV and are NOT comparable.
+      A "50ms" reading from each device means different things.
+      Mixing them would corrupt trend analysis.
+      
+      If you switch to a different ring (Oura, etc.), verify it uses RMSSD
+      before adding as fallback. If switching to watch-only, accept that
+      historical trends will have a discontinuity.
+
+  # --- Resting Heart Rate ---
+  resting_hr:
+    primary: ultrahuman
+    fallback:
+      - apple_watch
+    algorithm: overnight_minimum
+    unit: bpm
+    grain: daily
+    notes: |
+      Ultrahuman measures during sleep when truly at rest.
+      Apple samples throughout day - less consistent but usable as fallback.
+      
+      Switching sources may show a small systematic offset in trends.
+
+  # --- Sleep ---
+  sleep:
+    primary: ultrahuman
+    fallback:
+      - apple_watch
+    algorithm: ppg_temp_movement
+    unit: minutes
+    grain: nightly
+    notes: |
+      Ring-based detection (Ultrahuman) uses:
+      - PPG for heart rate and HRV patterns
+      - Temperature for circadian phase
+      - Accelerometer for movement
+      
+      Watch-based detection is less accurate for:
+      - Sleep onset (ring detects temp drop)
+      - Stage classification
+      - Brief awakenings
+      
+      Fallback acceptable if ring unavailable for a night.
+
+  # --- Skin Temperature ---
+  skin_temp:
+    primary: ultrahuman
+    fallback: []
+    algorithm: deviation_from_baseline
+    unit: celsius_delta
+    grain: daily
+    notes: |
+      Ring placement (finger) provides more consistent readings than wrist.
+      No fallback - watch temp data not comparable.
+
+  # --- Workout Heart Rate ---
+  workout_hr:
+    primary: polar_h10
+    fallback:
+      - apple_watch
+    algorithm: chest_strap_ecg
+    unit: bpm
+    grain: per_second
+    notes: |
+      Chest strap is gold standard for exercise HR accuracy.
+      Watch optical sensor acceptable for easy/moderate efforts.
+      Watch may be inaccurate during:
+      - High intensity intervals
+      - Wrist movement (rowing, kettlebells)
+      - Cold weather (poor skin contact)
+
+  # --- Ambient Heart Rate ---
+  ambient_hr:
+    primary: apple_watch
+    fallback: []
+    algorithm: optical_ppg
+    unit: bpm
+    grain: hourly
+    notes: |
+      Daytime HR when not exercising.
+      Watch is always on wrist, captures throughout day.
+      Ring could provide this but watch has better coverage.
+
+  # --- Steps ---
+  steps:
+    primary: apple_watch
+    fallback:
+      - ultrahuman
+    algorithm: accelerometer
+    unit: count
+    grain: daily
+    notes: |
+      Watch is primary because always on wrist.
+      Ring may be removed during some activities.
+      Both are reasonably accurate - fallback is acceptable.
+
+  # --- Weight ---
+  weight:
+    primary: apple_health
+    fallback:
+      - manual
+    algorithm: manual_entry
+    unit: lbs
+    grain: per_reading
+    notes: |
+      Manual scale entries recorded in Apple Health.
+      Could add smart scale integration in future.
+
+  # --- Blood Pressure ---
+  blood_pressure:
+    primary: apple_health
+    fallback:
+      - manual
+    algorithm: manual_entry
+    unit: mmHg
+    grain: per_reading
+    notes: |
+      Manual cuff readings recorded in Apple Health.
+      Format: systolic/diastolic (e.g., 120/80)
+
+  # --- Walking Metrics (Gait Analysis) ---
+  walking_asymmetry:
+    primary: apple_watch
+    fallback: []
+    algorithm: motion_sensors
+    unit: percent
+    grain: daily
+    notes: |
+      Apple-specific metric. Useful for injury detection.
+      Asymmetry > 10% may indicate compensation pattern.
+
+  walking_steadiness:
+    primary: apple_watch
+    fallback: []
+    algorithm: motion_sensors
+    unit: score
+    grain: weekly
+    notes: |
+      Apple-specific fall risk metric.
+      Values: OK, Low, Very Low
+
+  walking_speed:
+    primary: apple_watch
+    fallback: []
+    algorithm: gps_plus_motion
+    unit: km_per_hour
+    grain: daily
+    notes: |
+      Functional mobility indicator.
+      Declines may indicate fatigue or injury.
+
+
+# ------------------------------------------------------------------------------
+# CLINICAL DATA
+# ------------------------------------------------------------------------------
+# Medical records from healthcare providers via Apple Health FHIR integration.
+# No source priority needed - Apple Health is the only source.
+
+clinical:
+  labs:
+    source: apple_health
+    format: fhir
+    coding: loinc
+    notes: |
+      Lab results synced from patient portals.
+      LOINC codes enable standardized queries.
+
+  conditions:
+    source: apple_health
+    format: fhir
+    coding: icd10_snomed
+    notes: |
+      Diagnoses from medical records.
+      ICD-10 and SNOMED codes for interoperability.
+
+  medications:
+    source: apple_health
+    format: fhir
+    coding: rxnorm
+    notes: |
+      Prescription history.
+      RxNorm codes for drug identification.
+
+  immunizations:
+    source: apple_health
+    format: fhir
+    coding: cvx
+    notes: |
+      Vaccination records.
+      CVX codes for vaccine identification.
+
+
+# ------------------------------------------------------------------------------
+# TRAINING DATA
+# ------------------------------------------------------------------------------
+# Workout logging and endurance activity data.
+
+training:
+  strength_workouts:
+    source: arnold
+    notes: |
+      Manual logging via Arnold coaching interface.
+      Captures: sets, reps, load, RPE, exercise selection.
+
+  endurance_workouts:
+    source: polar_flow
+    format: fit
+    notes: |
+      Exported from Polar Flow as FIT files.
+      Captures: HR zones, distance, pace, elevation.
+
+  race_results:
+    source: manual
+    notes: |
+      Historical race data imported manually.
+      Archive spans 2005-2023.
+
+
+# ------------------------------------------------------------------------------
+# VERSION HISTORY
+# ------------------------------------------------------------------------------
+# Track changes to source priorities for debugging trend discontinuities.
+
+changelog:
+  - date: "2026-01-10"
+    change: "Initial config creation"
+    rationale: "Replace hardcoded device preferences with config-driven resolution"
+    
+  - date: "2025-05-13"
+    change: "Started using Ultrahuman Ring"
+    rationale: "Primary biometric source from this date forward"

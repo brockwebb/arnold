@@ -46,6 +46,112 @@ class PostgresTrainingClient:
     # WORKOUT LOGGING
     # =========================================================================
 
+    def log_endurance_session(
+        self,
+        session_date: str,
+        name: str = None,
+        sport: str = 'running',
+        distance_miles: float = None,
+        duration_minutes: float = None,
+        avg_pace: str = None,
+        avg_hr: int = None,
+        max_hr: int = None,
+        elevation_gain_m: int = None,
+        rpe: int = None,
+        notes: str = None,
+        tags: List[str] = None,
+        source: str = 'logged',
+        tss: float = None
+    ) -> Dict[str, Any]:
+        """
+        Log an endurance session (running, cycling, hiking, etc.).
+        
+        Args:
+            session_date: YYYY-MM-DD
+            name: Session name (e.g., "Easy run", "Tempo")
+            sport: Type of activity (running, cycling, hiking, swimming)
+            distance_miles: Distance in miles
+            duration_minutes: Duration in minutes
+            avg_pace: Pace string (e.g., "9:30")
+            avg_hr: Average heart rate
+            max_hr: Maximum heart rate
+            elevation_gain_m: Elevation gain in meters
+            rpe: Session RPE (1-10)
+            notes: Session notes
+            tags: Tags for categorization
+            source: 'logged', 'from_plan', 'imported'
+            tss: Training Stress Score (if calculated)
+            
+        Returns:
+            Dict with session_id, sport, distance_miles
+        """
+        cursor = self.conn.cursor(cursor_factory=RealDictCursor)
+        
+        try:
+            # Convert duration to seconds for DB
+            duration_seconds = int(duration_minutes * 60) if duration_minutes else None
+            
+            cursor.execute("""
+                INSERT INTO endurance_sessions (
+                    session_date, name, sport, source,
+                    distance_miles, duration_seconds, duration_minutes,
+                    avg_pace, avg_hr, max_hr,
+                    elevation_gain_m, rpe, notes, tags, tss
+                ) VALUES (
+                    %(session_date)s, %(name)s, %(sport)s, %(source)s,
+                    %(distance_miles)s, %(duration_seconds)s, %(duration_minutes)s,
+                    %(avg_pace)s, %(avg_hr)s, %(max_hr)s,
+                    %(elevation_gain_m)s, %(rpe)s, %(notes)s, %(tags)s, %(tss)s
+                )
+                RETURNING id
+            """, {
+                'session_date': session_date,
+                'name': name or f"{sport.title()} session",
+                'sport': sport,
+                'source': source,
+                'distance_miles': distance_miles,
+                'duration_seconds': duration_seconds,
+                'duration_minutes': duration_minutes,
+                'avg_pace': avg_pace,
+                'avg_hr': avg_hr,
+                'max_hr': max_hr,
+                'elevation_gain_m': elevation_gain_m,
+                'rpe': rpe,
+                'notes': notes,
+                'tags': tags,
+                'tss': tss
+            })
+            
+            session_id = cursor.fetchone()['id']
+            self.conn.commit()
+            
+            return {
+                'session_id': session_id,
+                'sport': sport,
+                'distance_miles': distance_miles,
+                'date': session_date
+            }
+            
+        except Exception as e:
+            self.conn.rollback()
+            logger.error(f"Error logging endurance session: {e}")
+            raise
+
+    def update_endurance_session_neo4j_id(self, session_id: int, neo4j_id: str) -> bool:
+        """Update endurance session with Neo4j reference node ID."""
+        cursor = self.conn.cursor()
+        try:
+            cursor.execute(
+                "UPDATE endurance_sessions SET neo4j_id = %s WHERE id = %s",
+                (neo4j_id, session_id)
+            )
+            self.conn.commit()
+            return cursor.rowcount > 0
+        except Exception as e:
+            self.conn.rollback()
+            logger.error(f"Error updating endurance neo4j_id: {e}")
+            return False
+
     def log_strength_session(
         self,
         session_date: str,

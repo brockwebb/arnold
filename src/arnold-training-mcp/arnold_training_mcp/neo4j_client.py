@@ -184,7 +184,7 @@ class Neo4jTrainingClient:
             
             return results
 
-    def resolve_exercises(self, names: List[str], confidence_threshold: float = 0.5) -> Dict[str, Any]:
+    def resolve_exercises(self, names: List[str], confidence_threshold: float = 0.3) -> Dict[str, Any]:
         """
         Batch resolve exercise names to IDs.
         
@@ -1477,6 +1477,69 @@ class Neo4jTrainingClient:
                 plan_id=plan_id,
                 total_volume_lbs=total_volume_lbs,
                 total_sets=total_sets
+            )
+            
+            record = result.single()
+            if record:
+                return {"id": record["id"]}
+            return None
+
+    def create_endurance_workout_ref(
+        self,
+        postgres_id: int,
+        date: str,
+        name: str,
+        sport: str,
+        person_id: str,
+        distance_miles: float = None,
+        duration_minutes: float = None
+    ) -> dict:
+        """
+        Create lightweight EnduranceWorkout reference node in Neo4j.
+        
+        Per ADR-002: Facts live in Postgres, but we need Neo4j references
+        for relationship queries (goals, blocks, injuries, etc.)
+        
+        Args:
+            postgres_id: The endurance_sessions.id from Postgres
+            date: Workout date YYYY-MM-DD
+            name: Workout name
+            sport: running, cycling, hiking, etc.
+            person_id: Person ID for PERFORMED relationship
+            distance_miles: Optional distance for quick queries
+            duration_minutes: Optional duration
+            
+        Returns:
+            Dict with id (Neo4j UUID)
+        """
+        with self.driver.session(database=self.database) as session:
+            result = session.run("""
+                MATCH (p:Person {id: $person_id})
+                
+                // Create EnduranceWorkout reference node
+                CREATE (ew:EnduranceWorkout {
+                    id: randomUUID(),
+                    postgres_id: $postgres_id,
+                    date: date($date),
+                    name: $name,
+                    sport: $sport,
+                    distance_miles: $distance_miles,
+                    duration_minutes: $duration_minutes,
+                    created_at: datetime()
+                })
+                
+                // Link to person
+                CREATE (p)-[:PERFORMED]->(ew)
+                
+                RETURN ew.id as id
+            """,
+                person_id=person_id,
+                postgres_id=postgres_id,
+                date=date,
+                name=name,
+                sport=sport,
+                distance_miles=distance_miles,
+                duration_minutes=duration_minutes
             )
             
             record = result.single()

@@ -546,15 +546,15 @@ def sync_sessions(from_date: date, to_date: date, dry_run: bool = False) -> dict
         session_id = upsert_session(cur, session)
         imported += 1
         
-        # Insert HR samples
+        # Insert HR samples with source provenance
         if samples:
             sample_data = [
-                (session_id, s["sample_time"], s["hr_value"])
+                (session_id, s["sample_time"], s["hr_value"], 'polar_api')
                 for s in samples
             ]
             execute_batch(
                 cur,
-                "INSERT INTO hr_samples (session_id, sample_time, hr_value) VALUES (%s, %s, %s)",
+                "INSERT INTO hr_samples (session_id, sample_time, hr_value, source) VALUES (%s, %s, %s, %s)",
                 sample_data,
                 page_size=1000,
             )

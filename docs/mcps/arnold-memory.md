@@ -1,10 +1,11 @@
 # arnold-memory-mcp
 
 > **Purpose:** Coaching context, persistent observations, and conversation continuity
+> **Updated:** January 13, 2026 - Consolidated briefing architecture
 
 ## What This MCP Owns
 
-- **Coaching briefings** (load full context at conversation start)
+- **Coaching briefings** (consolidated context at conversation start)
 - **Observations** (patterns, preferences, insights, flags, decisions)
 - **Block summaries** (what happened and what was learned)
 - **Semantic search** over coaching memory
@@ -13,8 +14,8 @@
 
 | This MCP Does | This MCP Does NOT |
 |---------------|-------------------|
-| Load comprehensive context | Execute workouts |
-| Store coaching observations | Calculate metrics |
+| Load comprehensive context (Neo4j + Postgres) | Execute workouts |
+| Store coaching observations | Calculate raw metrics |
 | Summarize training blocks | Manage profile |
 | Search past insights | Create plans |
 
@@ -22,14 +23,45 @@
 
 | Tool | Purpose |
 |------|---------|
-| `load_briefing` | Full coaching context for conversation start |
+| `load_briefing` | **THE** briefing - full context from both databases |
 | `store_observation` | Persist insight for future reference |
 | `get_observations` | Retrieve observations by type/tags |
 | `search_observations` | Semantic search over coaching memory |
 | `get_block_summary` | Retrieve or request block summary |
 | `store_block_summary` | Save block summary with learnings |
+| `debrief_session` | End-of-session knowledge capture |
 
 ## Key Decisions
+
+### Consolidated Briefing (Jan 2026)
+
+**Context:** Architecture had drifted to 3 separate calls at conversation start:
+- `memory:load_briefing` (Neo4j only)
+- `analytics:check_red_flags` (Postgres)
+- `training:get_planning_status` (mixed)
+
+This violated the original design intent of "one call gets everything."
+
+**Decision:** Consolidate into single `load_briefing` that queries both databases:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    load_briefing                                 │
+│                                                                  │
+│  ┌──────────────────────┐    ┌──────────────────────┐          │
+│  │       Neo4j          │    │      Postgres         │          │
+│  │  - Goals, Block      │    │  - HRV, Sleep, RHR    │          │
+│  │  - Injuries          │    │  - ACWR, Load         │          │
+│  │  - Observations      │    │  - HRR Trends         │          │
+│  │  - Equipment         │    │  - Annotations        │          │
+│  │  - Recent Workouts   │    │  - Pattern Gaps       │          │
+│  └──────────────────────┘    └──────────────────────┘          │
+│                                                                  │
+│                    → Single formatted response                   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Consequence:** One tool call establishes full coaching context. Deprecated `training:get_coach_briefing`.
 
 ### Three-Tier Memory Architecture
 
@@ -41,21 +73,6 @@
 3. **Long-term** — Complete graph in Neo4j
 
 **Consequence:** `load_briefing` provides essential context. `search_observations` retrieves relevant details on demand.
-
-### load_briefing as First Call
-
-**Context:** Coaching quality depends on knowing the athlete's current state, goals, constraints.
-
-**Decision:** `load_briefing` returns comprehensive context in one call:
-- Athlete identity and background
-- Active goals with modalities
-- Current block (type, week N of M, intent)
-- Recent workouts (last 14 days)
-- Active injuries
-- Coaching observations
-- Upcoming plans
-
-**Consequence:** Single tool call establishes full coaching context. No need for multiple queries.
 
 ### Observation Types
 
@@ -78,47 +95,71 @@
 
 **Consequence:** Query "why does my deadlift break down?" finds fatigue patterns even without exact keyword match.
 
-```cypher
-// Vector index for semantic search
-CREATE VECTOR INDEX observation_embedding IF NOT EXISTS
-FOR (o:CoachingObservation) ON (o.embedding)
-OPTIONS {indexConfig: {`vector.dimensions`: 1536, `vector.similarity_function`: 'cosine'}}
-```
+## load_briefing Response Structure
 
-### Block Summaries as Learning Capture
-
-**Context:** Blocks contain valuable lessons that shouldn't be lost.
-
-**Decision:** At block end, store summary with:
-- Narrative content
-- Key metrics (volume, PRs, compliance)
-- Key learnings (list of insights)
-
-**Consequence:** Future blocks can reference what worked/didn't work in past blocks.
-
-## Data Model
+The consolidated briefing returns:
 
 ```
-(Person)-[:HAS_OBSERVATION]->(CoachingObservation)
-(CoachingObservation {
-  type: 'pattern'|'preference'|'insight'|'flag'|'decision',
-  content: String,
-  tags: [String],
-  embedding: [Float],
-  created_at: DateTime
-})
+# COACHING CONTEXT: [Name]
 
-(Block)-[:HAS_SUMMARY]->(BlockSummary)
-(BlockSummary {
-  content: String,
-  key_metrics: Map,
-  key_learnings: [String]
-})
+## Today's Status
+- HRV: [value] ([trend])
+- Sleep: [hours] ([quality])
+- ACWR: [value] ([zone])
+- HRR: [per-stratum summary]
+- 28d Volume: [workouts], [sets]
+- Pattern Gaps: [list]
+
+## Athletic Background
+[martial arts, running, etc.]
+
+## Active Goals
+[goals with modalities and training levels]
+
+## Training Levels by Modality
+[per-modality: level, years, progression model]
+
+## Current Block
+[name, type, week X of Y, intent, volume/intensity]
+
+## Medical / Constraints
+[active injuries with constraints]
+
+## Recent Workouts
+[last 7 with patterns trained]
+
+## Athlete-Specific Coaching Notes
+[observations organized by category]
+
+## Upcoming Sessions
+[planned workouts]
+
+## Equipment Available
+[list]
+
+## ⚡ Coaching Alerts
+[pre-computed insights requiring attention]
+
+## Active Annotations
+[context for unusual data]
 ```
+
+## Data Sources
+
+| Section | Source | Purpose |
+|---------|--------|---------|
+| Today's Status | Postgres | Current biometrics, load |
+| Goals, Block | Neo4j | Training structure |
+| Injuries | Neo4j | Constraints |
+| Recent Workouts | Neo4j | Training history |
+| Observations | Neo4j | Coaching memory |
+| HRR Trends | Postgres | Recovery tracking |
+| Annotations | Postgres | Data context |
 
 ## Dependencies
 
-- **Neo4j** — Observation storage, vector index
+- **Neo4j** — Observation storage, vector index, relationships
+- **Postgres** — Analytics, biometrics, time-series
 - **OpenAI API** — Embedding generation
 - **profile.json** — Person ID resolution
 
@@ -126,8 +167,8 @@ OPTIONS {indexConfig: {`vector.dimensions`: 1536, `vector.similarity_function`: 
 
 ### Conversation Start
 ```python
-briefing = load_briefing()  # Full context
-# Claude now knows goals, block, injuries, recent history
+briefing = load_briefing()  # ONE call gets everything
+# Claude now knows goals, block, injuries, readiness, HRR, recent history
 ```
 
 ### During Coaching
@@ -147,6 +188,23 @@ results = search_observations(
     query="shoulder mobility issues",
     threshold=0.7
 )
+```
+
+## Migration Notes
+
+**Deprecated tools:**
+- `training:get_coach_briefing` — Use `memory:load_briefing` instead
+
+**Old pattern (DON'T DO THIS):**
+```
+1. memory:load_briefing
+2. analytics:check_red_flags  
+3. training:get_planning_status
+```
+
+**New pattern:**
+```
+1. memory:load_briefing  # That's it
 ```
 
 ## Known Issues / Tech Debt

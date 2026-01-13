@@ -392,12 +392,33 @@ g.close()
 - Form analysis integration
 - Multi-user support
 
+### ✅ HRR Pipeline (Q1 2025)
+- Heart Rate Recovery extraction from Polar sessions
+- Gap-aware EWMA/CUSUM trend detection
+- Per-stratum SDD thresholds
+
 ### 🚀 Future
 - Nutrition integration
-- Recovery tracking (HRV, sleep)
 - AI workout generation
 
 **See [PROJECT_STATUS.md](PROJECT_STATUS.md) for detailed roadmap.**
+
+---
+
+## Heart Rate Recovery (HRR) Pipeline
+
+This pipeline extracts robust in-session HRR intervals (HRR30/60, HRR_frac, early slope, AUC₀₋₆₀) using a local pre-peak baseline, flags truncated windows and τ censoring, and computes a per-interval confidence score (R², accel quietness, window length, normalized magnitude). Intervals are weighted by confidence into a `weighted_value` stream and monitored with gap-aware EWMA (λ=0.2) and one-sided CUSUM detectors; alert thresholds are tied to per-stratum SDD (data-driven) rather than hard bpm cutoffs. τ is retained only as a descriptive metric for uncensored windows (do not use censored τ for alerts). Defaults: include events ≥5 bpm above local baseline, single-event actionable ≈13 bpm, and practical alerting when EWMA/CUSUM exceed SDD (recommended alert ~12 bpm for this dataset). This setup prioritizes reliable longitudinal signals from messy field data while minimizing false alarms.
+
+**Usage:**
+```bash
+# Extract intervals with stratified visualization
+python scripts/hrr_batch.py --output outputs/hrr_all.csv --plot-beeswarm --stratified
+
+# Test EWMA/CUSUM detectors
+python src/arnold/hrr/detect.py
+```
+
+**See [docs/hrr-data-quality-checklist.md](docs/hrr-data-quality-checklist.md) for implementation details.**
 
 ---
 

@@ -74,17 +74,12 @@ async def list_tools_handler() -> list[types.Tool]:
         # =====================================================================
         types.Tool(
             name="get_coach_briefing",
-            description="""Get everything the coach needs to know at conversation start.
+            description="""[DEPRECATED] Use memory:load_briefing instead.
 
-Returns:
-- Active training plan and goal
-- Current block (type, week N of M, intent)
-- Recent workouts (last 5)
-- Next planned session
-- Active injuries
-- Workouts this week
+This tool is deprecated as of Jan 2026. The consolidated briefing in arnold-memory-mcp
+provides everything this tool did PLUS analytics (HRV, sleep, ACWR, HRR trends).
 
-Call this FIRST in any training conversation to load context.""",
+If called, returns a deprecation notice directing to load_briefing.""",
             inputSchema={
                 "type": "object",
                 "properties": {}
@@ -169,8 +164,8 @@ If needs_clarification or not_found are non-empty, discuss with user before proc
                     },
                     "confidence_threshold": {
                         "type": "number",
-                        "description": "Minimum score (0-1) to auto-accept (default 0.5)",
-                        "default": 0.5
+                        "description": "Minimum score (0-1) to auto-accept (default 0.3)",
+                        "default": 0.3
                     }
                 },
                 "required": ["names"]
@@ -1275,72 +1270,164 @@ Rest is part of training too."""
             
             logger.info(f"Logging ad-hoc workout for {workout_data.get('date')}")
             
-            # Transform to Postgres format
-            sets = []
-            set_order = 1
+            # ================================================================
+            # WORKOUT TYPE DETECTION
+            # Route to endurance if: sport, distance_miles, or endurance-y name
+            # ================================================================
+            is_endurance = (
+                workout_data.get('sport') or
+                workout_data.get('distance_miles') or
+                workout_data.get('distance_km') or
+                workout_data.get('avg_pace') or
+                any(kw in workout_data.get('name', '').lower() 
+                    for kw in ['run', 'walk', 'hike', 'bike', 'cycle', 'swim', 'row', 'ruck'])
+            )
             
-            for exercise in workout_data.get("exercises", []):
-                exercise_id = exercise.get("exercise_id")
-                exercise_name = exercise.get("exercise_name")
+            if is_endurance:
+                # ============================================================
+                # ENDURANCE WORKOUT PATH
+                # ============================================================
+                logger.info(f"Detected endurance workout, routing to endurance_sessions")
                 
-                # If no ID, try to resolve or create custom
-                if not exercise_id and exercise_name:
-                    # Try to find existing
-                    results = neo4j_client.search_exercises(exercise_name, limit=1)
-                    if results and results[0]['score'] > 5:
-                        exercise_id = results[0]['exercise_id']
+                # Normalize distance to miles if km provided
+                distance_miles = workout_data.get('distance_miles')
+                if not distance_miles and workout_data.get('distance_km'):
+                    distance_miles = float(workout_data['distance_km']) * 0.621371
+                
+                # Infer sport from name if not provided
+                sport = workout_data.get('sport', 'running')
+                name_lower = workout_data.get('name', '').lower()
+                if not workout_data.get('sport'):
+                    if any(k in name_lower for k in ['bike', 'cycle', 'cycling']):
+                        sport = 'cycling'
+                    elif any(k in name_lower for k in ['swim', 'swimming', 'pool']):
+                        sport = 'swimming'
+                    elif any(k in name_lower for k in ['hike', 'hiking', 'backpack']):
+                        sport = 'hiking'
+                    elif any(k in name_lower for k in ['walk', 'walking', 'ruck']):
+                        sport = 'walking'
+                    elif any(k in name_lower for k in ['row', 'rowing', 'erg']):
+                        sport = 'rowing'
                     else:
-                        # Create custom exercise
-                        exercise_id = 'CUSTOM:' + exercise_name.replace(' ', '_')
-                        neo4j_client.create_custom_exercise(exercise_id, exercise_name)
+                        sport = 'running'  # Default
                 
-                for s in exercise.get("sets", []):
-                    sets.append({
-                        'exercise_id': exercise_id,
-                        'exercise_name': exercise_name,
-                        'block_name': 'Main',
-                        'block_type': 'main',
-                        'set_order': set_order,
-                        'actual_reps': s.get('reps'),
-                        'actual_load_lbs': s.get('load_lbs'),
-                        'actual_rpe': s.get('rpe'),
-                        'notes': s.get('notes')
-                    })
-                    set_order += 1
-            
-            # Write to Postgres
-            result = postgres_client.log_strength_session(
-                session_date=workout_data['date'],
-                name=workout_data.get('name', 'Ad-hoc Workout'),
-                sets=sets,
-                duration_minutes=workout_data.get('duration_minutes'),
-                notes=workout_data.get('notes'),
-                source='adhoc'
-            )
-            
-            # Create Neo4j reference
-            neo4j_ref = neo4j_client.create_strength_workout_ref(
-                postgres_id=result['session_id'],
-                date=workout_data['date'],
-                name=workout_data.get('name', 'Ad-hoc Workout'),
-                person_id=person_id
-            )
-            
-            if neo4j_ref:
-                postgres_client.update_session_neo4j_id(
-                    result['session_id'],
-                    neo4j_ref.get('id')
+                result = postgres_client.log_endurance_session(
+                    session_date=workout_data['date'],
+                    name=workout_data.get('name'),
+                    sport=sport,
+                    distance_miles=distance_miles,
+                    duration_minutes=workout_data.get('duration_minutes'),
+                    avg_pace=workout_data.get('avg_pace'),
+                    avg_hr=workout_data.get('avg_hr'),
+                    max_hr=workout_data.get('max_hr'),
+                    elevation_gain_m=workout_data.get('elevation_gain_m'),
+                    rpe=workout_data.get('rpe') or workout_data.get('session_rpe'),
+                    notes=workout_data.get('notes'),
+                    source='adhoc'
                 )
+                
+                # Create Neo4j reference for endurance workout
+                neo4j_ref = neo4j_client.create_endurance_workout_ref(
+                    postgres_id=result['session_id'],
+                    date=workout_data['date'],
+                    name=workout_data.get('name', f'{sport.title()} session'),
+                    sport=sport,
+                    person_id=person_id
+                )
+                
+                if neo4j_ref:
+                    postgres_client.update_endurance_session_neo4j_id(
+                        result['session_id'],
+                        neo4j_ref.get('id')
+                    )
+                
+                # Build distance string
+                dist_str = f"{result['distance_miles']:.1f} mi" if result.get('distance_miles') else "N/A"
+                
+                return [types.TextContent(
+                    type="text",
+                    text=f"""✅ Endurance workout logged!
+
+**Date:** {workout_data['date']}
+**Sport:** {result['sport']}
+**Distance:** {dist_str}
+**Session ID:** {result['session_id']} (Postgres)
+**Neo4j Ref:** {neo4j_ref.get('id') if neo4j_ref else 'N/A'}"""
+                )]
             
-            return [types.TextContent(
-                type="text",
-                text=f"""✅ Workout logged!
+            else:
+                # ============================================================
+                # STRENGTH WORKOUT PATH (original behavior)
+                # ============================================================
+                logger.info(f"Detected strength workout, routing to strength_sessions")
+                
+                # Transform to Postgres format
+                sets = []
+                set_order = 1
+                
+                for exercise in workout_data.get("exercises", []):
+                    exercise_id = exercise.get("exercise_id")
+                    exercise_name = exercise.get("exercise_name")
+                    
+                    # If no ID, try to resolve or create custom
+                    if not exercise_id and exercise_name:
+                        # Try to find existing
+                        results = neo4j_client.search_exercises(exercise_name, limit=1)
+                        if results and results[0]['score'] > 5:
+                            exercise_id = results[0]['exercise_id']
+                        else:
+                            # Create custom exercise
+                            exercise_id = 'CUSTOM:' + exercise_name.replace(' ', '_')
+                            neo4j_client.create_custom_exercise(exercise_id, exercise_name)
+                    
+                    for s in exercise.get("sets", []):
+                        sets.append({
+                            'exercise_id': exercise_id,
+                            'exercise_name': exercise_name,
+                            'block_name': 'Main',
+                            'block_type': 'main',
+                            'set_order': set_order,
+                            'actual_reps': s.get('reps'),
+                            'actual_load_lbs': s.get('load_lbs'),
+                            'actual_rpe': s.get('rpe'),
+                            'notes': s.get('notes')
+                        })
+                        set_order += 1
+                
+                # Write to Postgres
+                result = postgres_client.log_strength_session(
+                    session_date=workout_data['date'],
+                    name=workout_data.get('name', 'Ad-hoc Workout'),
+                    sets=sets,
+                    duration_minutes=workout_data.get('duration_minutes'),
+                    notes=workout_data.get('notes'),
+                    session_rpe=workout_data.get('session_rpe') or workout_data.get('rpe'),
+                    source='adhoc'
+                )
+                
+                # Create Neo4j reference
+                neo4j_ref = neo4j_client.create_strength_workout_ref(
+                    postgres_id=result['session_id'],
+                    date=workout_data['date'],
+                    name=workout_data.get('name', 'Ad-hoc Workout'),
+                    person_id=person_id
+                )
+                
+                if neo4j_ref:
+                    postgres_client.update_session_neo4j_id(
+                        result['session_id'],
+                        neo4j_ref.get('id')
+                    )
+                
+                return [types.TextContent(
+                    type="text",
+                    text=f"""✅ Strength workout logged!
 
 **Date:** {workout_data['date']}
 **Session ID:** {result['session_id']} (Postgres)
 **Neo4j Ref:** {neo4j_ref.get('id') if neo4j_ref else 'N/A'}
 **Sets:** {result['set_count']}"""
-            )]
+                )]
             
         except Exception as e:
             logger.error(f"Error logging workout: {str(e)}", exc_info=True)

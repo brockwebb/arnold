@@ -1,0 +1,31 @@
+{
+  "use_local_baseline": true,
+  "fallback_to_session_min": true,
+  "min_effort_bpm": 5,
+  "single_event_actionable_bpm": 13,
+  "exceptional_bpm": 18,
+  "min_window_seconds": 120,
+  "tau_cap_seconds": 300,
+  "min_tau_r2": 0.6,
+  "hrr_frac_actionable": 0.3,
+  "confidence_weights": {
+    "mag_weight": 0.5,
+    "frac_weight": 0.3,
+    "conf_weight": 0.2
+  },
+  "ewma": {
+    "lambda": 0.20,
+    "min_events": 5,
+    "warning_sdd_multiplier": 1.0,
+    "action_sdd_multiplier": 2.0
+  },
+  "cusum": {
+    "k_multiplier": 0.5,
+    "h_multiplier": 4.0,
+    "window_events": 4
+  },
+  "defaults": {
+    "include_truncated_windows": false,
+    "min_r2_for_reporting_tau": 0.6
+  }
+}

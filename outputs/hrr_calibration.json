@@ -1,0 +1,13 @@
+{
+  "min_peak_minus_rest": 13.6,
+  "min_total_drop": 17.3,
+  "allowed_up_per_sec": 1.0,
+  "smooth_kernel": 3,
+  "instrument_noise_sd": 0.438,
+  "te_peak_minus_rest": 9.05,
+  "te_total_drop": 11.56,
+  "te_hrr60": 7.42,
+  "sessions_analyzed": 61,
+  "intervals_analyzed": 566,
+  "calibration_date": "2026-01-11T22:56:35.810730"
+}
