@@ -120,6 +120,9 @@ class HRRInterval:
     hr_at_30: Optional[float] = None
     hr_at_60: Optional[float] = None
     hr_at_120: Optional[float] = None
+    hr_at_180: Optional[float] = None
+    hr_at_240: Optional[float] = None
+    hr_at_300: Optional[float] = None
     
     # Baseline/resting context
     session_min_hr: Optional[float] = None      # Minimum HR in session (5th percentile)
@@ -131,6 +134,9 @@ class HRRInterval:
     hrr30: Optional[float] = None
     hrr60: Optional[float] = None
     hrr120: Optional[float] = None
+    hrr180: Optional[float] = None
+    hrr240: Optional[float] = None
+    hrr300: Optional[float] = None
     total_drop: Optional[float] = None  # peak - nadir
     
     # Ratios (literature-standard)
@@ -149,10 +155,13 @@ class HRRInterval:
     
     # Exponential fit
     tau: Optional[float] = None              # Time constant
-    tau_censored: bool = False               # True if tau hit upper bound (300s)
+    tau_censored: bool = False               # True if tau hit upper bound (600s)
     r2_30: Optional[float] = None
     r2_60: Optional[float] = None
     r2_120: Optional[float] = None
+    r2_180: Optional[float] = None
+    r2_240: Optional[float] = None
+    r2_300: Optional[float] = None
     
     # Half-recovery time (T50)
     t50: Optional[float] = None              # Seconds to reach 50% of total drop
@@ -187,10 +196,11 @@ def classify_stratum(sport_type: str) -> str:
         return 'OTHER'
 
 
-def write_intervals_to_db(df: pd.DataFrame, conn, clear_existing: bool = False) -> int:
+def write_intervals_to_db(df: pd.DataFrame, conn, clear_existing: bool = False, session_ids: List[int] = None) -> int:
     """
     Write HRR intervals to hr_recovery_intervals table.
     
+    If session_ids provided with clear_existing, only clears those sessions.
     Returns number of rows inserted.
     """
     if len(df) == 0:
@@ -199,8 +209,13 @@ def write_intervals_to_db(df: pd.DataFrame, conn, clear_existing: bool = False) 
     cur = conn.cursor()
     
     if clear_existing:
-        cur.execute("DELETE FROM hr_recovery_intervals")
-        print(f"Cleared existing rows from hr_recovery_intervals")
+        if session_ids:
+            # Only clear specified sessions
+            cur.execute("DELETE FROM hr_recovery_intervals WHERE polar_session_id = ANY(%s)", (session_ids,))
+            print(f"Cleared existing rows for session(s) {session_ids}")
+        else:
+            cur.execute("DELETE FROM hr_recovery_intervals")
+            print(f"Cleared ALL existing rows from hr_recovery_intervals")
     
     # Prepare data with new columns
     inserted = 0
@@ -235,14 +250,24 @@ def write_intervals_to_db(df: pd.DataFrame, conn, clear_existing: bool = False) 
                 hr_30s,
                 hr_60s,
                 hr_120s,
+                hr_180s,
+                hr_240s,
+                hr_300s,
                 hr_nadir,
                 hrr30_abs,
                 hrr60_abs,
                 hrr120_abs,
+                hrr180_abs,
+                hrr240_abs,
+                hrr300_abs,
                 total_drop,
                 hrr60_frac,
                 tau_seconds,
                 tau_fit_r2,
+                tau_censored,
+                r2_180,
+                r2_240,
+                r2_300,
                 decline_slope_60s,
                 auc_60s,
                 session_type,
@@ -261,6 +286,7 @@ def write_intervals_to_db(df: pd.DataFrame, conn, clear_existing: bool = False) 
             ) VALUES (
                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
             )
         """, (
@@ -273,14 +299,24 @@ def write_intervals_to_db(df: pd.DataFrame, conn, clear_existing: bool = False) 
             int(row['hr_at_30']) if pd.notna(row.get('hr_at_30')) else None,
             int(row['hr_at_60']) if pd.notna(row.get('hr_at_60')) else None,
             int(row['hr_at_120']) if pd.notna(row.get('hr_at_120')) else None,
+            int(row['hr_at_180']) if pd.notna(row.get('hr_at_180')) else None,
+            int(row['hr_at_240']) if pd.notna(row.get('hr_at_240')) else None,
+            int(row['hr_at_300']) if pd.notna(row.get('hr_at_300')) else None,
             int(row['nadir_hr']) if pd.notna(row.get('nadir_hr')) else None,
             int(row['hrr30']) if pd.notna(row.get('hrr30')) else None,
             int(row['hrr60']) if pd.notna(row.get('hrr60')) else None,
             int(row['hrr120']) if pd.notna(row.get('hrr120')) else None,
+            int(row['hrr180']) if pd.notna(row.get('hrr180')) else None,
+            int(row['hrr240']) if pd.notna(row.get('hrr240')) else None,
+            int(row['hrr300']) if pd.notna(row.get('hrr300')) else None,
             int(row['total_drop']) if pd.notna(row.get('total_drop')) else None,
             float(row['hrr_frac']) if pd.notna(row.get('hrr_frac')) else None,
             float(row['tau']) if pd.notna(row.get('tau')) else None,
             float(row['r2_60']) if pd.notna(row.get('r2_60')) else None,
+            row.get('tau_censored', False),
+            float(row['r2_180']) if pd.notna(row.get('r2_180')) else None,
+            float(row['r2_240']) if pd.notna(row.get('r2_240')) else None,
+            float(row['r2_300']) if pd.notna(row.get('r2_300')) else None,
             float(row['recovery_rate_60']) if pd.notna(row.get('recovery_rate_60')) else None,
             float(row['auc_0_60']) if pd.notna(row.get('auc_0_60')) else None,
             row.get('sport_type', 'UNKNOWN'),
@@ -384,9 +420,9 @@ def fit_exponential(hr_window: np.ndarray) -> Tuple[float, float, bool]:
     Fit exponential decay to HR window.
     Returns (r2, tau, censored)
     
-    censored=True if tau hit upper bound (300s), indicating incomplete recovery.
+    censored=True if tau hit upper bound (600s), indicating incomplete recovery.
     """
-    TAU_UPPER_BOUND = 300  # Cap value
+    TAU_UPPER_BOUND = 600  # Cap value (extended for 5-min windows)
     
     n = len(hr_window)
     if n < 10:
@@ -477,13 +513,13 @@ def find_t50(hr_window: np.ndarray) -> Optional[float]:
 # =============================================================================
 
 def extend_interval(hr: np.ndarray, peak_idx: int, cfg: Config) -> Tuple[int, int, float, str]:
-    """Extend from peak, tracking nadir, until plateau or 120s."""
+    """Extend from peak, tracking nadir, until plateau or 300s (5 minutes)."""
     n = len(hr)
     nadir = hr[peak_idx]
     nadir_idx = peak_idx
     seconds_above = 0
     
-    for t in range(peak_idx + 1, min(peak_idx + 121, n)):
+    for t in range(peak_idx + 1, min(peak_idx + 301, n)):
         if hr[t] < nadir:
             nadir = hr[t]
             nadir_idx = t
@@ -497,9 +533,9 @@ def extend_interval(hr: np.ndarray, peak_idx: int, cfg: Config) -> Tuple[int, in
             else:
                 seconds_above = 0
     
-    end_idx = min(peak_idx + 120, n - 1)
-    if peak_idx + 120 <= n:
-        return end_idx, nadir_idx, nadir, "reached_120"
+    end_idx = min(peak_idx + 300, n - 1)
+    if peak_idx + 300 <= n:
+        return end_idx, nadir_idx, nadir, "reached_300"
     else:
         return end_idx, nadir_idx, nadir, "end_of_data"
 
@@ -610,6 +646,34 @@ def extract_interval_features(
         r2_120, _, _ = fit_exponential(window_120)
         interval.r2_120 = round(r2_120, 3)
     
+    # Extended timepoints (180s, 240s, 300s) for 5-minute recovery windows
+    if peak_idx + 180 < n:
+        interval.hr_at_180 = hr[peak_idx + 180]
+        interval.hrr180 = peak_hr - hr[peak_idx + 180]
+        
+        # R² at 180s
+        window_180 = hr[peak_idx:peak_idx + 181]
+        r2_180, _, _ = fit_exponential(window_180)
+        interval.r2_180 = round(r2_180, 3)
+    
+    if peak_idx + 240 < n:
+        interval.hr_at_240 = hr[peak_idx + 240]
+        interval.hrr240 = peak_hr - hr[peak_idx + 240]
+        
+        # R² at 240s
+        window_240 = hr[peak_idx:peak_idx + 241]
+        r2_240, _, _ = fit_exponential(window_240)
+        interval.r2_240 = round(r2_240, 3)
+    
+    if peak_idx + 300 < n:
+        interval.hr_at_300 = hr[peak_idx + 300]
+        interval.hrr300 = peak_hr - hr[peak_idx + 300]
+        
+        # R² at 300s
+        window_300 = hr[peak_idx:peak_idx + 301]
+        r2_300, _, _ = fit_exponential(window_300)
+        interval.r2_300 = round(r2_300, 3)
+    
     # Ratios
     if interval.hrr30 and interval.hrr60 and interval.hrr60 > 0:
         interval.ratio_30_60 = round(interval.hrr30 / interval.hrr60, 3)
@@ -635,7 +699,8 @@ def extract_interval_features(
             interval.high_quality = True
     
     # Mark truncated windows (recovery likely incomplete)
-    if duration < 120 and end_reason != "reached_120":
+    # For 5-min windows, truncated if <300s and didn't reach full window
+    if duration < 300 and end_reason != "reached_300":
         interval.truncated_window = True
     
     # Compute confidence score for trend weighting
@@ -721,13 +786,18 @@ def process_session(
 # Batch Processing
 # =============================================================================
 
-def process_all_sessions(cfg: Config, progress: bool = True) -> pd.DataFrame:
-    """Process all sessions and return aggregate DataFrame."""
+def process_all_sessions(cfg: Config, progress: bool = True, session_ids: List[int] = None) -> pd.DataFrame:
+    """Process all sessions (or specific ones if session_ids provided) and return aggregate DataFrame."""
     
     conn = get_db_connection()
     sessions = get_all_sessions(conn)
     
-    print(f"Found {len(sessions)} sessions with sufficient data")
+    # Filter to specific sessions if requested
+    if session_ids:
+        sessions = [s for s in sessions if s['session_id'] in session_ids]
+        print(f"Processing {len(sessions)} specified session(s): {session_ids}")
+    else:
+        print(f"Found {len(sessions)} sessions with sufficient data")
     
     all_intervals = []
     
@@ -1371,6 +1441,8 @@ def main():
                        help='Write intervals to hr_recovery_intervals table in Postgres')
     parser.add_argument('--clear-existing', action='store_true',
                        help='Clear existing rows before writing (use with --write-db)')
+    parser.add_argument('--session-id', type=int, nargs='+',
+                       help='Process only these session ID(s). With --write-db, only clears/writes these sessions.')
     
     args = parser.parse_args()
     
@@ -1407,7 +1479,7 @@ def main():
     print("HRR Batch Processor")
     print("=" * 40)
     
-    df = process_all_sessions(cfg)
+    df = process_all_sessions(cfg, session_ids=args.session_id)
     
     if len(df) == 0:
         print("No intervals found!")
@@ -1455,7 +1527,7 @@ def main():
     if args.write_db:
         print(f"\nWriting {len(df)} intervals to hr_recovery_intervals...")
         conn = get_db_connection()
-        inserted = write_intervals_to_db(df, conn, clear_existing=args.clear_existing)
+        inserted = write_intervals_to_db(df, conn, clear_existing=args.clear_existing, session_ids=args.session_id)
         conn.close()
         print(f"Inserted {inserted} rows into hr_recovery_intervals")
 

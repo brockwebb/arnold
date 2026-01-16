@@ -2,13 +2,18 @@
 
 Per ADR-002: Executed workouts live in Postgres (facts/measurements).
 Plans stay in Neo4j (intentions/relationships).
+
+Updated Jan 2026 (Issue 013): Uses unified segment-based schema:
+- workouts_v2 → segments → sport-specific child tables
+- v2_strength_sets, v2_running_intervals, v2_rowing_intervals, etc.
 """
 
 import os
 import logging
 from typing import Optional, List, Dict, Any
-from datetime import date, datetime
+from datetime import date, datetime, time
 from decimal import Decimal
+import uuid
 
 import psycopg2
 from psycopg2.extras import RealDictCursor, execute_values
@@ -17,6 +22,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 logger = logging.getLogger(__name__)
+
+# Default user_id from profile
+DEFAULT_USER_ID = "73d17934-4397-4498-ba15-52e19b2ce08f"
 
 
 class PostgresTrainingClient:
@@ -43,8 +51,186 @@ class PostgresTrainingClient:
             self._conn.close()
 
     # =========================================================================
-    # WORKOUT LOGGING
+    # WORKOUT LOGGING (v2 schema - Issue 013)
     # =========================================================================
+
+    def log_strength_session(
+        self,
+        session_date: str,
+        name: str,
+        sets: List[Dict[str, Any]],
+        duration_minutes: int = None,
+        notes: str = None,
+        tags: List[str] = None,
+        session_rpe: int = None,
+        source: str = 'logged',
+        block_id: str = None,
+        plan_id: str = None,
+        user_id: str = None
+    ) -> Dict[str, Any]:
+        """
+        Log a strength training session to v2 schema.
+        
+        Creates: workouts_v2 → segments → v2_strength_sets
+        
+        Args:
+            session_date: YYYY-MM-DD
+            name: Session name/goal
+            sets: List of set dicts with:
+                - exercise_id: Neo4j exercise ID
+                - exercise_name: For convenience
+                - block_name: "Warm-Up", "Main Work", etc.
+                - block_type: warmup/main/accessory/finisher
+                - set_order: Position in workout
+                - actual_reps, actual_load_lbs, actual_rpe (for executed)
+                - prescribed_reps, prescribed_load_lbs, prescribed_rpe (if from plan)
+                - notes, is_deviation, deviation_reason
+                - tempo, rest_seconds
+            duration_minutes: Total duration
+            notes: Session notes
+            tags: Tags for categorization (stored in extra JSONB)
+            session_rpe: Overall session RPE
+            source: 'logged', 'from_plan', 'imported'
+            block_id: Neo4j Block ID (training phase)
+            plan_id: Neo4j PlannedWorkout ID (if from plan)
+            user_id: User UUID (defaults to profile)
+            
+        Returns:
+            Dict with workout_id, segment_id, set_count
+        """
+        cursor = self.conn.cursor(cursor_factory=RealDictCursor)
+        user_id = user_id or DEFAULT_USER_ID
+        
+        try:
+            # Parse date and create start_time
+            if isinstance(session_date, str):
+                parsed_date = datetime.strptime(session_date, '%Y-%m-%d').date()
+            else:
+                parsed_date = session_date
+            
+            # Default to 9am if no time specified
+            start_time = datetime.combine(parsed_date, time(9, 0))
+            
+            # Duration in seconds
+            duration_seconds = int(duration_minutes * 60) if duration_minutes else None
+            
+            # Build extra JSONB
+            extra = {}
+            if tags:
+                extra['tags'] = tags
+            if block_id:
+                extra['block_id'] = block_id
+            if name:
+                extra['name'] = name
+            
+            # 1. Insert workout
+            cursor.execute("""
+                INSERT INTO workouts_v2 (
+                    user_id, start_time, duration_seconds, rpe, notes,
+                    source, source_fidelity
+                ) VALUES (
+                    %(user_id)s, %(start_time)s, %(duration_seconds)s, %(rpe)s, %(notes)s,
+                    %(source)s, %(source_fidelity)s
+                )
+                RETURNING workout_id
+            """, {
+                'user_id': user_id,
+                'start_time': start_time,
+                'duration_seconds': duration_seconds,
+                'rpe': session_rpe,
+                'notes': notes,
+                'source': source,
+                'source_fidelity': 4 if source == 'logged' else 3
+            })
+            
+            workout_id = cursor.fetchone()['workout_id']
+            
+            # 2. Insert segment (single strength segment)
+            segment_extra = extra.copy()
+            cursor.execute("""
+                INSERT INTO segments (
+                    workout_id, seq, sport_type, duration_seconds, 
+                    planned_segment_id, extra
+                ) VALUES (
+                    %(workout_id)s, 1, 'strength', %(duration_seconds)s,
+                    %(plan_id)s, %(extra)s
+                )
+                RETURNING segment_id
+            """, {
+                'workout_id': workout_id,
+                'duration_seconds': duration_seconds,
+                'plan_id': plan_id,
+                'extra': psycopg2.extras.Json(segment_extra)
+            })
+            
+            segment_id = cursor.fetchone()['segment_id']
+            
+            # 3. Insert sets into v2_strength_sets
+            if sets:
+                set_values = []
+                for i, s in enumerate(sets):
+                    # Use actual values if available, fall back to prescribed
+                    reps = s.get('actual_reps') or s.get('reps') or s.get('prescribed_reps')
+                    load = s.get('actual_load_lbs') or s.get('load_lbs') or s.get('prescribed_load_lbs')
+                    rpe = s.get('actual_rpe') or s.get('rpe') or s.get('prescribed_rpe')
+                    
+                    # Build set extra
+                    set_extra = {}
+                    if s.get('prescribed_reps'):
+                        set_extra['prescribed_reps'] = s['prescribed_reps']
+                    if s.get('prescribed_load_lbs'):
+                        set_extra['prescribed_load'] = s['prescribed_load_lbs']
+                    if s.get('prescribed_rpe'):
+                        set_extra['prescribed_rpe'] = s['prescribed_rpe']
+                    if s.get('is_deviation'):
+                        set_extra['is_deviation'] = True
+                        set_extra['deviation_reason'] = s.get('deviation_reason')
+                    if s.get('block_name'):
+                        set_extra['block_name'] = s['block_name']
+                    if s.get('block_type'):
+                        set_extra['block_type'] = s['block_type']
+                    
+                    set_values.append((
+                        segment_id,
+                        s.get('set_order', i + 1),
+                        s.get('exercise_id'),
+                        s.get('exercise_name') or s.get('name') or 'Unknown',
+                        reps,
+                        load,
+                        'lb',
+                        rpe,
+                        s.get('rest_seconds'),
+                        False,  # failed
+                        None,   # pain_scale
+                        s.get('set_type') == 'warmup' or s.get('is_warmup', False),
+                        s.get('tempo') or s.get('tempo_code'),
+                        s.get('notes'),
+                        psycopg2.extras.Json(set_extra) if set_extra else None
+                    ))
+                
+                execute_values(cursor, """
+                    INSERT INTO v2_strength_sets (
+                        segment_id, seq, exercise_id, exercise_name,
+                        reps, load, load_unit, rpe,
+                        rest_seconds, failed, pain_scale, is_warmup,
+                        tempo_code, notes, extra
+                    ) VALUES %s
+                """, set_values)
+            
+            self.conn.commit()
+            
+            return {
+                'session_id': str(workout_id),  # For backward compat
+                'workout_id': str(workout_id),
+                'segment_id': str(segment_id),
+                'set_count': len(sets),
+                'date': session_date
+            }
+            
+        except Exception as e:
+            self.conn.rollback()
+            logger.error(f"Error logging strength session: {e}")
+            raise
 
     def log_endurance_session(
         self,
@@ -61,15 +247,21 @@ class PostgresTrainingClient:
         notes: str = None,
         tags: List[str] = None,
         source: str = 'logged',
-        tss: float = None
+        tss: float = None,
+        avg_cadence: int = None,
+        user_id: str = None
     ) -> Dict[str, Any]:
         """
-        Log an endurance session (running, cycling, hiking, etc.).
+        Log an endurance session to v2 schema.
+        
+        Creates: workouts_v2 → segments → sport-specific interval table
+        
+        Routes to: v2_running_intervals, v2_rowing_intervals, v2_cycling_intervals, etc.
         
         Args:
             session_date: YYYY-MM-DD
             name: Session name (e.g., "Easy run", "Tempo")
-            sport: Type of activity (running, cycling, hiking, swimming)
+            sport: Type of activity (running, cycling, hiking, swimming, rowing)
             distance_miles: Distance in miles
             duration_minutes: Duration in minutes
             avg_pace: Pace string (e.g., "9:30")
@@ -81,52 +273,183 @@ class PostgresTrainingClient:
             tags: Tags for categorization
             source: 'logged', 'from_plan', 'imported'
             tss: Training Stress Score (if calculated)
+            avg_cadence: Cadence (steps/strokes per minute)
+            user_id: User UUID
             
         Returns:
-            Dict with session_id, sport, distance_miles
+            Dict with workout_id, segment_id, sport, distance_miles
         """
         cursor = self.conn.cursor(cursor_factory=RealDictCursor)
+        user_id = user_id or DEFAULT_USER_ID
         
         try:
-            # Convert duration to seconds for DB
+            # Parse date and create start_time
+            if isinstance(session_date, str):
+                parsed_date = datetime.strptime(session_date, '%Y-%m-%d').date()
+            else:
+                parsed_date = session_date
+            
+            start_time = datetime.combine(parsed_date, time(9, 0))
             duration_seconds = int(duration_minutes * 60) if duration_minutes else None
             
+            # Convert distance to meters
+            distance_m = float(distance_miles) * 1609.344 if distance_miles else None
+            
+            # Build extra
+            extra = {}
+            if tags:
+                extra['tags'] = tags
+            if name:
+                extra['name'] = name
+            if tss:
+                extra['tss'] = tss
+            
+            # 1. Insert workout
             cursor.execute("""
-                INSERT INTO endurance_sessions (
-                    session_date, name, sport, source,
-                    distance_miles, duration_seconds, duration_minutes,
-                    avg_pace, avg_hr, max_hr,
-                    elevation_gain_m, rpe, notes, tags, tss
+                INSERT INTO workouts_v2 (
+                    user_id, start_time, duration_seconds, rpe, notes,
+                    source, source_fidelity
                 ) VALUES (
-                    %(session_date)s, %(name)s, %(sport)s, %(source)s,
-                    %(distance_miles)s, %(duration_seconds)s, %(duration_minutes)s,
-                    %(avg_pace)s, %(avg_hr)s, %(max_hr)s,
-                    %(elevation_gain_m)s, %(rpe)s, %(notes)s, %(tags)s, %(tss)s
+                    %(user_id)s, %(start_time)s, %(duration_seconds)s, %(rpe)s, %(notes)s,
+                    %(source)s, %(source_fidelity)s
                 )
-                RETURNING id
+                RETURNING workout_id
             """, {
-                'session_date': session_date,
-                'name': name or f"{sport.title()} session",
-                'sport': sport,
-                'source': source,
-                'distance_miles': distance_miles,
+                'user_id': user_id,
+                'start_time': start_time,
                 'duration_seconds': duration_seconds,
-                'duration_minutes': duration_minutes,
-                'avg_pace': avg_pace,
-                'avg_hr': avg_hr,
-                'max_hr': max_hr,
-                'elevation_gain_m': elevation_gain_m,
                 'rpe': rpe,
                 'notes': notes,
-                'tags': tags,
-                'tss': tss
+                'source': source,
+                'source_fidelity': 4 if source == 'logged' else 3
             })
             
-            session_id = cursor.fetchone()['id']
+            workout_id = cursor.fetchone()['workout_id']
+            
+            # 2. Insert segment
+            cursor.execute("""
+                INSERT INTO segments (
+                    workout_id, seq, sport_type, duration_seconds, extra
+                ) VALUES (
+                    %(workout_id)s, 1, %(sport)s, %(duration_seconds)s, %(extra)s
+                )
+                RETURNING segment_id
+            """, {
+                'workout_id': workout_id,
+                'sport': sport,
+                'duration_seconds': duration_seconds,
+                'extra': psycopg2.extras.Json(extra) if extra else None
+            })
+            
+            segment_id = cursor.fetchone()['segment_id']
+            
+            # 3. Insert sport-specific interval
+            interval_extra = {}
+            if name:
+                interval_extra['name'] = name
+            
+            if sport == 'running':
+                cursor.execute("""
+                    INSERT INTO v2_running_intervals (
+                        segment_id, seq, distance_m, duration_seconds,
+                        avg_pace_per_km, avg_hr, max_hr, avg_cadence,
+                        elevation_gain_m, extra
+                    ) VALUES (
+                        %(segment_id)s, 1, %(distance_m)s, %(duration_seconds)s,
+                        %(avg_pace)s, %(avg_hr)s, %(max_hr)s, %(avg_cadence)s,
+                        %(elevation_gain_m)s, %(extra)s
+                    )
+                    RETURNING interval_id
+                """, {
+                    'segment_id': segment_id,
+                    'distance_m': distance_m,
+                    'duration_seconds': duration_seconds,
+                    'avg_pace': avg_pace,
+                    'avg_hr': avg_hr,
+                    'max_hr': max_hr,
+                    'avg_cadence': avg_cadence,
+                    'elevation_gain_m': elevation_gain_m,
+                    'extra': psycopg2.extras.Json(interval_extra) if interval_extra else None
+                })
+                
+            elif sport == 'rowing':
+                cursor.execute("""
+                    INSERT INTO v2_rowing_intervals (
+                        segment_id, seq, distance_m, duration_seconds,
+                        avg_hr, max_hr, extra
+                    ) VALUES (
+                        %(segment_id)s, 1, %(distance_m)s, %(duration_seconds)s,
+                        %(avg_hr)s, %(max_hr)s, %(extra)s
+                    )
+                    RETURNING interval_id
+                """, {
+                    'segment_id': segment_id,
+                    'distance_m': distance_m,
+                    'duration_seconds': duration_seconds,
+                    'avg_hr': avg_hr,
+                    'max_hr': max_hr,
+                    'extra': psycopg2.extras.Json(interval_extra) if interval_extra else None
+                })
+                
+            elif sport == 'cycling':
+                cursor.execute("""
+                    INSERT INTO v2_cycling_intervals (
+                        segment_id, seq, distance_m, duration_seconds,
+                        avg_hr, max_hr, avg_cadence, elevation_gain_m, extra
+                    ) VALUES (
+                        %(segment_id)s, 1, %(distance_m)s, %(duration_seconds)s,
+                        %(avg_hr)s, %(max_hr)s, %(avg_cadence)s, %(elevation_gain_m)s, %(extra)s
+                    )
+                    RETURNING interval_id
+                """, {
+                    'segment_id': segment_id,
+                    'distance_m': distance_m,
+                    'duration_seconds': duration_seconds,
+                    'avg_hr': avg_hr,
+                    'max_hr': max_hr,
+                    'avg_cadence': avg_cadence,
+                    'elevation_gain_m': elevation_gain_m,
+                    'extra': psycopg2.extras.Json(interval_extra) if interval_extra else None
+                })
+                
+            elif sport == 'swimming':
+                cursor.execute("""
+                    INSERT INTO v2_swimming_laps (
+                        segment_id, seq, distance_m, duration_seconds,
+                        avg_hr, extra
+                    ) VALUES (
+                        %(segment_id)s, 1, %(distance_m)s, %(duration_seconds)s,
+                        %(avg_hr)s, %(extra)s
+                    )
+                    RETURNING lap_id
+                """, {
+                    'segment_id': segment_id,
+                    'distance_m': distance_m,
+                    'duration_seconds': duration_seconds,
+                    'avg_hr': avg_hr,
+                    'extra': psycopg2.extras.Json(interval_extra) if interval_extra else None
+                })
+            else:
+                # Generic fallback for hiking, walking, etc.
+                if distance_m:
+                    cursor.execute("""
+                        INSERT INTO v2_segment_events_generic (
+                            segment_id, seq, metric_name, metric_value, metric_unit, source
+                        ) VALUES (
+                            %(segment_id)s, 1, 'distance_m', %(distance_m)s, 'm', %(source)s
+                        )
+                    """, {
+                        'segment_id': segment_id,
+                        'distance_m': distance_m,
+                        'source': source
+                    })
+            
             self.conn.commit()
             
             return {
-                'session_id': session_id,
+                'session_id': str(workout_id),  # Backward compat
+                'workout_id': str(workout_id),
+                'segment_id': str(segment_id),
                 'sport': sport,
                 'distance_miles': distance_miles,
                 'date': session_date
@@ -137,147 +460,16 @@ class PostgresTrainingClient:
             logger.error(f"Error logging endurance session: {e}")
             raise
 
-    def update_endurance_session_neo4j_id(self, session_id: int, neo4j_id: str) -> bool:
-        """Update endurance session with Neo4j reference node ID."""
+    def update_session_neo4j_id(self, session_id: str, neo4j_id: str) -> bool:
+        """Update workout with Neo4j reference node ID (stored in extra JSONB)."""
         cursor = self.conn.cursor()
         try:
-            cursor.execute(
-                "UPDATE endurance_sessions SET neo4j_id = %s WHERE id = %s",
-                (neo4j_id, session_id)
-            )
-            self.conn.commit()
-            return cursor.rowcount > 0
-        except Exception as e:
-            self.conn.rollback()
-            logger.error(f"Error updating endurance neo4j_id: {e}")
-            return False
-
-    def log_strength_session(
-        self,
-        session_date: str,
-        name: str,
-        sets: List[Dict[str, Any]],
-        duration_minutes: int = None,
-        notes: str = None,
-        tags: List[str] = None,
-        session_rpe: int = None,
-        source: str = 'logged',
-        block_id: str = None,
-        plan_id: str = None
-    ) -> Dict[str, Any]:
-        """
-        Log a strength training session with all sets.
-        
-        Args:
-            session_date: YYYY-MM-DD
-            name: Session name/goal
-            sets: List of set dicts with:
-                - exercise_id: Neo4j exercise ID
-                - exercise_name: For convenience
-                - block_name: "Warm-Up", "Main Work", etc.
-                - block_type: warmup/main/accessory/finisher
-                - set_order: Position in workout
-                - actual_reps, actual_load_lbs, actual_rpe (for executed)
-                - prescribed_reps, prescribed_load_lbs, prescribed_rpe (if from plan)
-                - notes, is_deviation, deviation_reason
-            duration_minutes: Total duration
-            notes: Session notes
-            tags: Tags for categorization
-            session_rpe: Overall session RPE
-            source: 'logged', 'from_plan', 'imported'
-            block_id: Neo4j Block ID (training phase)
-            plan_id: Neo4j PlannedWorkout ID (if from plan)
-            
-        Returns:
-            Dict with session_id, neo4j_id (placeholder), set_count
-        """
-        cursor = self.conn.cursor(cursor_factory=RealDictCursor)
-        
-        try:
-            # Insert session
+            # session_id is now workout_id (UUID)
             cursor.execute("""
-                INSERT INTO strength_sessions (
-                    session_date, name, duration_minutes, notes, tags,
-                    session_rpe, source, block_id, plan_id, status
-                ) VALUES (
-                    %(session_date)s, %(name)s, %(duration_minutes)s, %(notes)s, %(tags)s,
-                    %(session_rpe)s, %(source)s, %(block_id)s, %(plan_id)s, 'completed'
-                )
-                RETURNING id
-            """, {
-                'session_date': session_date,
-                'name': name,
-                'duration_minutes': duration_minutes,
-                'notes': notes,
-                'tags': tags,
-                'session_rpe': session_rpe,
-                'source': source,
-                'block_id': block_id,
-                'plan_id': plan_id
-            })
-            
-            session_id = cursor.fetchone()['id']
-            
-            # Insert sets
-            if sets:
-                set_values = []
-                for i, s in enumerate(sets):
-                    set_values.append((
-                        session_id,
-                        s.get('block_name'),
-                        s.get('block_type', 'main'),
-                        s.get('set_order', i + 1),
-                        s['exercise_id'],
-                        s.get('exercise_name', 'Unknown'),
-                        s.get('prescribed_reps'),
-                        s.get('prescribed_load_lbs'),
-                        s.get('prescribed_rpe'),
-                        s.get('actual_reps'),
-                        s.get('actual_load_lbs'),
-                        s.get('actual_rpe'),
-                        s.get('set_type'),
-                        s.get('tempo'),
-                        s.get('rest_seconds'),
-                        s.get('is_deviation', False),
-                        s.get('deviation_reason'),
-                        s.get('notes')
-                    ))
-                
-                execute_values(cursor, """
-                    INSERT INTO strength_sets (
-                        session_id, block_name, block_type, set_order,
-                        exercise_id, exercise_name,
-                        prescribed_reps, prescribed_load_lbs, prescribed_rpe,
-                        actual_reps, actual_load_lbs, actual_rpe,
-                        set_type, tempo, rest_seconds,
-                        is_deviation, deviation_reason, notes
-                    ) VALUES %s
-                """, set_values)
-            
-            # Update session totals
-            cursor.execute("SELECT update_session_totals(%s)", (session_id,))
-            
-            self.conn.commit()
-            
-            return {
-                'session_id': session_id,
-                'set_count': len(sets),
-                'date': session_date
-            }
-            
-        except Exception as e:
-            self.conn.rollback()
-            logger.error(f"Error logging session: {e}")
-            raise
-
-    def update_session_neo4j_id(self, session_id: int, neo4j_id: str) -> bool:
-        """Update session with Neo4j reference node ID."""
-        cursor = self.conn.cursor()
-        try:
-            cursor.execute(
-                "UPDATE strength_sessions SET neo4j_id = %s WHERE id = %s",
-                (neo4j_id, session_id)
-            )
+                UPDATE segments 
+                SET extra = COALESCE(extra, '{}'::jsonb) || jsonb_build_object('neo4j_id', %s)
+                WHERE workout_id = %s::uuid
+            """, (neo4j_id, session_id))
             self.conn.commit()
             return cursor.rowcount > 0
         except Exception as e:
@@ -285,116 +477,123 @@ class PostgresTrainingClient:
             logger.error(f"Error updating neo4j_id: {e}")
             return False
 
+    def update_endurance_session_neo4j_id(self, session_id: str, neo4j_id: str) -> bool:
+        """Alias for update_session_neo4j_id - same in v2 schema."""
+        return self.update_session_neo4j_id(session_id, neo4j_id)
+
     # =========================================================================
-    # WORKOUT QUERIES
+    # WORKOUT QUERIES (v2 schema)
     # =========================================================================
 
     def get_session_by_date(self, session_date: str) -> Optional[Dict[str, Any]]:
         """
-        Get strength session(s) for a date with all sets.
+        Get workout(s) for a date with all sets/intervals.
         
-        Returns the most recent session if multiple exist.
+        Returns the most recent workout if multiple exist.
         """
         cursor = self.conn.cursor(cursor_factory=RealDictCursor)
         
-        # Get session
+        # Get workout + segment
         cursor.execute("""
-            SELECT id, session_date, name, duration_minutes, 
-                   total_volume_lbs, total_sets, total_reps,
-                   session_rpe, avg_rpe, max_rpe,
-                   notes, tags, status, source,
-                   neo4j_id, plan_id, block_id
-            FROM strength_sessions
-            WHERE session_date = %s
-            ORDER BY created_at DESC
+            SELECT 
+                w.workout_id, w.start_time::date as session_date,
+                w.duration_seconds, w.rpe as session_rpe, w.notes, w.source,
+                s.segment_id, s.sport_type, s.extra as segment_extra
+            FROM workouts_v2 w
+            JOIN segments s ON w.workout_id = s.workout_id
+            WHERE w.start_time::date = %s
+            ORDER BY w.created_at DESC
             LIMIT 1
         """, (session_date,))
         
-        session = cursor.fetchone()
-        if not session:
+        workout = cursor.fetchone()
+        if not workout:
             return None
         
-        # Get sets
-        cursor.execute("""
-            SELECT id, set_order, block_name, block_type,
-                   exercise_id, exercise_name,
-                   reps, load_lbs, rpe, volume_lbs,
-                   prescribed_reps, prescribed_load_lbs, prescribed_rpe,
-                   is_deviation, deviation_reason, notes
-            FROM strength_sets
-            WHERE session_id = %s
-            ORDER BY set_order
-        """, (session['id'],))
-        
-        sets = cursor.fetchall()
-        
-        return {
-            'session': self._convert_decimals(dict(session)),
-            'sets': [self._convert_decimals(dict(s)) for s in sets]
+        result = {
+            'session': self._convert_decimals(dict(workout)),
+            'sets': [],
+            'intervals': []
         }
+        
+        # Get sport-specific data
+        sport = workout['sport_type']
+        segment_id = workout['segment_id']
+        
+        if sport == 'strength':
+            cursor.execute("""
+                SELECT 
+                    set_id as id, seq as set_order, exercise_id, exercise_name,
+                    reps, load as load_lbs, rpe, rest_seconds,
+                    is_warmup, failed, notes, extra
+                FROM v2_strength_sets
+                WHERE segment_id = %s
+                ORDER BY seq
+            """, (segment_id,))
+            result['sets'] = [self._convert_decimals(dict(s)) for s in cursor.fetchall()]
+            
+            # Calculate totals
+            total_volume = sum(
+                (s.get('reps') or 0) * (s.get('load_lbs') or 0) 
+                for s in result['sets']
+            )
+            result['session']['total_volume_lbs'] = total_volume
+            result['session']['total_sets'] = len(result['sets'])
+            result['session']['total_reps'] = sum(s.get('reps') or 0 for s in result['sets'])
+            
+        elif sport == 'running':
+            cursor.execute("""
+                SELECT 
+                    interval_id as id, seq, distance_m, duration_seconds,
+                    avg_pace_per_km, avg_hr, max_hr, avg_cadence,
+                    elevation_gain_m, elevation_loss_m, extra
+                FROM v2_running_intervals
+                WHERE segment_id = %s
+                ORDER BY seq
+            """, (segment_id,))
+            result['intervals'] = [self._convert_decimals(dict(i)) for i in cursor.fetchall()]
+            
+        elif sport == 'rowing':
+            cursor.execute("""
+                SELECT 
+                    interval_id as id, seq, distance_m, duration_seconds,
+                    avg_500m_pace_seconds, stroke_rate, avg_hr, max_hr, extra
+                FROM v2_rowing_intervals
+                WHERE segment_id = %s
+                ORDER BY seq
+            """, (segment_id,))
+            result['intervals'] = [self._convert_decimals(dict(i)) for i in cursor.fetchall()]
+        
+        return result
 
     def get_recent_sessions(self, days: int = 7) -> List[Dict[str, Any]]:
-        """Get strength sessions from the last N days."""
+        """Get workouts from the last N days."""
         cursor = self.conn.cursor(cursor_factory=RealDictCursor)
         
         cursor.execute("""
-            SELECT id, session_date, name, duration_minutes,
-                   total_volume_lbs, total_sets, total_reps,
-                   session_rpe, avg_rpe, status, source, neo4j_id
-            FROM strength_sessions
-            WHERE session_date >= CURRENT_DATE - %s
-            ORDER BY session_date DESC
+            SELECT 
+                w.workout_id as id,
+                w.start_time::date as session_date,
+                s.sport_type,
+                COALESCE(s.extra->>'name', s.sport_type || ' session') as name,
+                w.duration_seconds / 60 as duration_minutes,
+                w.rpe as session_rpe,
+                w.source,
+                s.extra->>'neo4j_id' as neo4j_id,
+                -- Strength totals
+                CASE WHEN s.sport_type = 'strength' THEN (
+                    SELECT COUNT(*) FROM v2_strength_sets WHERE segment_id = s.segment_id
+                ) ELSE 0 END as total_sets,
+                CASE WHEN s.sport_type = 'strength' THEN (
+                    SELECT COALESCE(SUM(reps * load), 0) FROM v2_strength_sets WHERE segment_id = s.segment_id
+                ) ELSE 0 END as total_volume_lbs
+            FROM workouts_v2 w
+            JOIN segments s ON w.workout_id = s.workout_id
+            WHERE w.start_time >= CURRENT_DATE - %s
+            ORDER BY w.start_time DESC
         """, (days,))
         
         return [self._convert_decimals(dict(r)) for r in cursor.fetchall()]
-
-    def get_session_with_patterns(self, session_id: int) -> Dict[str, Any]:
-        """
-        Get session with movement pattern summary.
-        
-        Note: Patterns come from Neo4j exercise relationships,
-        but we can approximate from exercise names for common patterns.
-        """
-        cursor = self.conn.cursor(cursor_factory=RealDictCursor)
-        
-        # Get session
-        cursor.execute("""
-            SELECT * FROM strength_sessions WHERE id = %s
-        """, (session_id,))
-        session = cursor.fetchone()
-        
-        if not session:
-            return None
-        
-        # Get exercise names for pattern inference
-        cursor.execute("""
-            SELECT DISTINCT exercise_name, exercise_id
-            FROM strength_sets
-            WHERE session_id = %s
-        """, (session_id,))
-        
-        exercises = cursor.fetchall()
-        
-        # Infer patterns from exercise names (simple heuristic)
-        patterns = set()
-        for ex in exercises:
-            name_lower = ex['exercise_name'].lower()
-            if any(k in name_lower for k in ['deadlift', 'rdl', 'hip hinge', 'swing']):
-                patterns.add('Hip Hinge')
-            if any(k in name_lower for k in ['squat', 'lunge', 'leg press']):
-                patterns.add('Squat')
-            if any(k in name_lower for k in ['press', 'push', 'bench', 'dip']):
-                patterns.add('Push')
-            if any(k in name_lower for k in ['row', 'pull', 'chin', 'lat']):
-                patterns.add('Pull')
-            if any(k in name_lower for k in ['carry', 'hold', 'walk']):
-                patterns.add('Carry')
-        
-        return {
-            'session': self._convert_decimals(dict(session)),
-            'exercises': [dict(e) for e in exercises],
-            'patterns': list(patterns)
-        }
 
     def get_sessions_for_briefing(self, days: int = 7) -> List[Dict[str, Any]]:
         """
@@ -406,19 +605,25 @@ class PostgresTrainingClient:
         
         cursor.execute("""
             SELECT 
-                ss.id,
-                ss.session_date as date,
-                ss.name as type,
-                ss.total_sets as sets,
-                ss.total_volume_lbs as volume,
-                ss.session_rpe,
-                ARRAY_AGG(DISTINCT st.exercise_name) as exercises
-            FROM strength_sessions ss
-            LEFT JOIN strength_sets st ON ss.id = st.session_id
-            WHERE ss.session_date >= CURRENT_DATE - %s
-            GROUP BY ss.id, ss.session_date, ss.name, ss.total_sets, 
-                     ss.total_volume_lbs, ss.session_rpe
-            ORDER BY ss.session_date DESC
+                w.workout_id as id,
+                w.start_time::date as date,
+                s.sport_type as type,
+                COALESCE(s.extra->>'name', s.sport_type) as name,
+                w.rpe as session_rpe,
+                CASE WHEN s.sport_type = 'strength' THEN (
+                    SELECT COUNT(*) FROM v2_strength_sets WHERE segment_id = s.segment_id
+                ) ELSE 0 END as sets,
+                CASE WHEN s.sport_type = 'strength' THEN (
+                    SELECT COALESCE(SUM(reps * load), 0) FROM v2_strength_sets WHERE segment_id = s.segment_id
+                ) ELSE NULL END as volume,
+                CASE WHEN s.sport_type = 'strength' THEN (
+                    SELECT ARRAY_AGG(DISTINCT exercise_name) 
+                    FROM v2_strength_sets WHERE segment_id = s.segment_id
+                ) ELSE NULL END as exercises
+            FROM workouts_v2 w
+            JOIN segments s ON w.workout_id = s.workout_id
+            WHERE w.start_time >= CURRENT_DATE - %s
+            ORDER BY w.start_time DESC
             LIMIT 5
         """, (days,))
         
@@ -426,11 +631,22 @@ class PostgresTrainingClient:
         for row in cursor.fetchall():
             row_dict = self._convert_decimals(dict(row))
             # Infer patterns from exercises
-            patterns = self._infer_patterns(row_dict.get('exercises', []))
+            patterns = self._infer_patterns(row_dict.get('exercises') or [])
             row_dict['patterns'] = patterns
             results.append(row_dict)
         
         return results
+
+    def get_workouts_this_week(self) -> int:
+        """Get count of workouts this week (Mon-Sun)."""
+        cursor = self.conn.cursor()
+        
+        cursor.execute("""
+            SELECT COUNT(*) FROM workouts_v2
+            WHERE start_time >= date_trunc('week', CURRENT_DATE)
+        """)
+        
+        return cursor.fetchone()[0]
 
     def _infer_patterns(self, exercise_names: List[str]) -> List[str]:
         """Infer movement patterns from exercise names."""
@@ -451,17 +667,22 @@ class PostgresTrainingClient:
                 patterns.add('Carry')
             if any(k in name_lower for k in ['curl', 'extension', 'fly', 'raise']):
                 patterns.add('Isolation')
-        return list(patterns)[:3]  # Limit to top 3
+        return list(patterns)[:3]
 
     def _convert_decimals(self, d: Dict) -> Dict:
         """Convert Decimal types to float for JSON serialization."""
-        return {
-            k: float(v) if isinstance(v, Decimal) else v
-            for k, v in d.items()
-        }
+        result = {}
+        for k, v in d.items():
+            if isinstance(v, Decimal):
+                result[k] = float(v)
+            elif isinstance(v, uuid.UUID):
+                result[k] = str(v)
+            else:
+                result[k] = v
+        return result
 
     # =========================================================================
-    # EXERCISE HISTORY
+    # EXERCISE HISTORY (v2 schema)
     # =========================================================================
 
     def get_exercise_history(
@@ -469,47 +690,69 @@ class PostgresTrainingClient:
         exercise_id: str, 
         days: int = 180
     ) -> List[Dict[str, Any]]:
-        """Get progression history for an exercise."""
+        """Get progression history for an exercise from v2 schema."""
         cursor = self.conn.cursor(cursor_factory=RealDictCursor)
         
         cursor.execute("""
-            SELECT * FROM exercise_history(%s, %s)
+            SELECT 
+                w.start_time::date as session_date,
+                ss.reps,
+                ss.load as load_lbs,
+                ss.rpe,
+                (ss.reps * ss.load) as volume
+            FROM v2_strength_sets ss
+            JOIN segments s ON ss.segment_id = s.segment_id
+            JOIN workouts_v2 w ON s.workout_id = w.workout_id
+            WHERE ss.exercise_id = %s
+              AND w.start_time >= CURRENT_DATE - %s
+            ORDER BY w.start_time DESC, ss.seq
         """, (exercise_id, days))
         
         return [self._convert_decimals(dict(r)) for r in cursor.fetchall()]
 
     def get_exercise_pr(self, exercise_id: str) -> List[Dict[str, Any]]:
-        """Get personal records for an exercise."""
+        """Get personal records for an exercise from v2 schema."""
         cursor = self.conn.cursor(cursor_factory=RealDictCursor)
         
+        # Get max load per rep range
         cursor.execute("""
-            SELECT * FROM exercise_pr(%s)
+            SELECT 
+                ss.reps,
+                MAX(ss.load) as max_load,
+                MAX(ss.reps * ss.load) as max_volume
+            FROM v2_strength_sets ss
+            JOIN segments s ON ss.segment_id = s.segment_id
+            WHERE ss.exercise_id = %s
+              AND ss.reps IS NOT NULL
+              AND ss.load IS NOT NULL
+            GROUP BY ss.reps
+            ORDER BY ss.reps
         """, (exercise_id,))
         
         return [self._convert_decimals(dict(r)) for r in cursor.fetchall()]
 
     # =========================================================================
-    # WEEKLY STATS
+    # WEEKLY STATS (v2 schema)
     # =========================================================================
 
     def get_weekly_volume(self, weeks: int = 4) -> List[Dict[str, Any]]:
-        """Get weekly volume summary."""
+        """Get weekly volume summary from v2 schema."""
         cursor = self.conn.cursor(cursor_factory=RealDictCursor)
         
         cursor.execute("""
-            SELECT * FROM weekly_strength_volume
+            SELECT 
+                date_trunc('week', w.start_time)::date as week_start,
+                COUNT(DISTINCT w.workout_id) as workout_count,
+                SUM(ss.reps * ss.load) as total_volume,
+                COUNT(ss.set_id) as total_sets
+            FROM workouts_v2 w
+            JOIN segments s ON w.workout_id = s.workout_id
+            LEFT JOIN v2_strength_sets ss ON s.segment_id = ss.segment_id
+            WHERE s.sport_type = 'strength'
+              AND w.start_time >= CURRENT_DATE - (%s * 7)
+            GROUP BY date_trunc('week', w.start_time)
+            ORDER BY week_start DESC
             LIMIT %s
-        """, (weeks,))
+        """, (weeks, weeks))
         
         return [self._convert_decimals(dict(r)) for r in cursor.fetchall()]
-
-    def get_workouts_this_week(self) -> int:
-        """Get count of workouts this week (Mon-Sun)."""
-        cursor = self.conn.cursor()
-        
-        cursor.execute("""
-            SELECT COUNT(*) FROM strength_sessions
-            WHERE session_date >= date_trunc('week', CURRENT_DATE)
-        """)
-        
-        return cursor.fetchone()[0]

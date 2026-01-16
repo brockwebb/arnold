@@ -1416,7 +1416,7 @@ class Neo4jTrainingClient:
 
     def create_strength_workout_ref(
         self,
-        postgres_id: int,
+        workout_id: str,
         date: str,
         name: str,
         person_id: str,
@@ -1430,8 +1430,10 @@ class Neo4jTrainingClient:
         Per ADR-002: Facts live in Postgres, but we need Neo4j references
         for relationship queries (goals, blocks, injuries, etc.)
         
+        Updated for v2 schema: uses workout_id (UUID) from workouts_v2 table.
+        
         Args:
-            postgres_id: The strength_sessions.id from Postgres
+            workout_id: The workouts_v2.workout_id UUID from Postgres
             date: Workout date YYYY-MM-DD
             name: Workout name/goal
             person_id: Person ID for PERFORMED relationship
@@ -1440,7 +1442,7 @@ class Neo4jTrainingClient:
             total_sets: Optional set count
             
         Returns:
-            Dict with id (Neo4j UUID)
+            Dict with id (Neo4j node UUID), workout_id (Postgres UUID)
         """
         with self.driver.session(database=self.database) as session:
             result = session.run("""
@@ -1449,7 +1451,7 @@ class Neo4jTrainingClient:
                 // Create StrengthWorkout reference node
                 CREATE (sw:StrengthWorkout {
                     id: randomUUID(),
-                    postgres_id: $postgres_id,
+                    workout_id: $workout_id,
                     date: date($date),
                     name: $name,
                     total_volume_lbs: $total_volume_lbs,
@@ -1468,10 +1470,10 @@ class Neo4jTrainingClient:
                     CREATE (sw)-[:EXECUTED_FROM]->(pw)
                 )
                 
-                RETURN sw.id as id
+                RETURN sw.id as id, sw.workout_id as workout_id
             """,
                 person_id=person_id,
-                postgres_id=postgres_id,
+                workout_id=workout_id,
                 date=date,
                 name=name,
                 plan_id=plan_id,
@@ -1481,12 +1483,12 @@ class Neo4jTrainingClient:
             
             record = result.single()
             if record:
-                return {"id": record["id"]}
+                return {"id": record["id"], "workout_id": record["workout_id"]}
             return None
 
     def create_endurance_workout_ref(
         self,
-        postgres_id: int,
+        workout_id: str,
         date: str,
         name: str,
         sport: str,
@@ -1500,8 +1502,10 @@ class Neo4jTrainingClient:
         Per ADR-002: Facts live in Postgres, but we need Neo4j references
         for relationship queries (goals, blocks, injuries, etc.)
         
+        Updated for v2 schema: uses workout_id (UUID) from workouts_v2 table.
+        
         Args:
-            postgres_id: The endurance_sessions.id from Postgres
+            workout_id: The workouts_v2.workout_id UUID from Postgres
             date: Workout date YYYY-MM-DD
             name: Workout name
             sport: running, cycling, hiking, etc.
@@ -1510,7 +1514,7 @@ class Neo4jTrainingClient:
             duration_minutes: Optional duration
             
         Returns:
-            Dict with id (Neo4j UUID)
+            Dict with id (Neo4j node UUID), workout_id (Postgres UUID)
         """
         with self.driver.session(database=self.database) as session:
             result = session.run("""
@@ -1519,7 +1523,7 @@ class Neo4jTrainingClient:
                 // Create EnduranceWorkout reference node
                 CREATE (ew:EnduranceWorkout {
                     id: randomUUID(),
-                    postgres_id: $postgres_id,
+                    workout_id: $workout_id,
                     date: date($date),
                     name: $name,
                     sport: $sport,
@@ -1531,10 +1535,10 @@ class Neo4jTrainingClient:
                 // Link to person
                 CREATE (p)-[:PERFORMED]->(ew)
                 
-                RETURN ew.id as id
+                RETURN ew.id as id, ew.workout_id as workout_id
             """,
                 person_id=person_id,
-                postgres_id=postgres_id,
+                workout_id=workout_id,
                 date=date,
                 name=name,
                 sport=sport,
@@ -1544,7 +1548,7 @@ class Neo4jTrainingClient:
             
             record = result.single()
             if record:
-                return {"id": record["id"]}
+                return {"id": record["id"], "workout_id": record["workout_id"]}
             return None
 
     def create_custom_exercise(self, exercise_id: str, name: str) -> dict:

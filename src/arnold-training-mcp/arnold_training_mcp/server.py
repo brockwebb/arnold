@@ -1323,7 +1323,7 @@ Rest is part of training too."""
                     elevation_gain_m=workout_data.get('elevation_gain_m'),
                     rpe=workout_data.get('rpe') or workout_data.get('session_rpe'),
                     notes=workout_data.get('notes'),
-                    source='adhoc'
+                    source='logged'
                 )
                 
                 # Create Neo4j reference for endurance workout
@@ -1367,14 +1367,16 @@ Rest is part of training too."""
                 
                 for exercise in workout_data.get("exercises", []):
                     exercise_id = exercise.get("exercise_id")
-                    exercise_name = exercise.get("exercise_name")
+                    # Accept both 'exercise_name' and 'name' for flexibility
+                    exercise_name = exercise.get("exercise_name") or exercise.get("name")
                     
                     # If no ID, try to resolve or create custom
                     if not exercise_id and exercise_name:
-                        # Try to find existing
+                        # Try to find existing (threshold 3.0 for reasonable fuzzy match)
                         results = neo4j_client.search_exercises(exercise_name, limit=1)
-                        if results and results[0]['score'] > 5:
+                        if results and results[0]['score'] > 3.0:
                             exercise_id = results[0]['exercise_id']
+                            exercise_name = results[0]['name']  # Use canonical name
                         else:
                             # Create custom exercise
                             exercise_id = 'CUSTOM:' + exercise_name.replace(' ', '_')
@@ -1395,6 +1397,7 @@ Rest is part of training too."""
                         set_order += 1
                 
                 # Write to Postgres
+                # Note: strength_sessions source constraint allows: logged, from_plan, imported, migrated
                 result = postgres_client.log_strength_session(
                     session_date=workout_data['date'],
                     name=workout_data.get('name', 'Ad-hoc Workout'),
@@ -1402,7 +1405,7 @@ Rest is part of training too."""
                     duration_minutes=workout_data.get('duration_minutes'),
                     notes=workout_data.get('notes'),
                     session_rpe=workout_data.get('session_rpe') or workout_data.get('rpe'),
-                    source='adhoc'
+                    source='logged'
                 )
                 
                 # Create Neo4j reference

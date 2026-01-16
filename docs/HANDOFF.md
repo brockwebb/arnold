@@ -29,12 +29,21 @@ Arnold is an AI-native fitness coaching system that serves as a comprehensive "D
 
 | Issue | Priority | Description |
 |-------|----------|-------------|
-| 009 | High | Unified workout logging - single path, Claude determines type |
-| 011 | High | LaunchAgent plist for automated Ultrahuman sync |
+| 013 | High | Unified workout schema - segments + sport-specific tables |
+| 009 | High | Unified workout logging - needs MCP restart to verify fix |
 | 010 | Medium | Neo4j sync gap - silent failures |
 | 012 | Low | Sync script directory convention |
+| 011 | Closed | LaunchAgent plist (misdiagnosed - API data issue) |
 
 See `/docs/issues/` for details.
+
+### Major Architectural Work Pending
+
+**Issue 013 / ADR-006:** Complete redesign of workout storage schema.
+- Current two-table design (`strength_sessions`, `endurance_sessions`) doesn't scale
+- New design: `workouts` → `segments` → sport-specific child tables
+- Enables multi-modal sessions, arbitrary sports, decades of data
+- Consulted ChatGPT Health and Gemini 2.5 Pro for design validation
 
 ### Current Training Block
 - **Accumulation** - Week 3 of 4 (ends 2026-01-26)
@@ -72,7 +81,7 @@ See `/docs/issues/` for details.
 | Document | Purpose |
 |----------|---------|
 | `/docs/architecture/` | Full architecture docs (modular) |
-| `/docs/adr/` | Architecture Decision Records |
+| `/docs/adr/` | Architecture Decision Records (001-006) |
 | `/docs/issues/` | Open issues and bugs |
 | `/docs/handoffs/` | Thread-specific handoffs |
 | `/docs/handoffs/NEXT_THREAD.md` | Startup script for new threads |
@@ -103,6 +112,7 @@ See `/docs/issues/` for details.
 ## Conventions
 
 - **Issues:** `/docs/issues/NNN-description.md`
+- **ADRs:** `/docs/adr/NNN-description.md`
 - **Handoffs:** `/docs/handoffs/YYYY-MM-DD-topic.md`
 - **Transcripts:** `/mnt/transcripts/` (compacted conversations)
 - **Scripts:** `/scripts/` (sync, import, analysis tools)
