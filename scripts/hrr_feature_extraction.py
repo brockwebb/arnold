@@ -106,6 +106,7 @@ class RecoveryInterval:
     hr_240s: Optional[int] = None
     hr_300s: Optional[int] = None
     hr_nadir: Optional[int] = None
+    nadir_time_sec: Optional[int] = None  # Seconds from peak to nadir
     rhr_baseline: Optional[int] = None
     
     # Absolute metrics
@@ -498,7 +499,7 @@ def save_intervals(conn, intervals: List[RecoveryInterval],
     columns = [
         'polar_session_id' if source == 'polar' else 'endurance_session_id',
         'start_time', 'end_time', 'duration_seconds', 'interval_order',
-        'hr_peak', 'hr_30s', 'hr_60s', 'hr_90s', 'hr_120s', 'hr_180s', 'hr_240s', 'hr_300s', 'hr_nadir', 'rhr_baseline',
+        'hr_peak', 'hr_30s', 'hr_60s', 'hr_90s', 'hr_120s', 'hr_180s', 'hr_240s', 'hr_300s', 'hr_nadir', 'nadir_time_sec', 'rhr_baseline',
         'hrr30_abs', 'hrr60_abs', 'hrr90_abs', 'hrr120_abs', 'hrr180_abs', 'hrr240_abs', 'hrr300_abs', 'total_drop',
         'hr_reserve', 'hrr30_frac', 'hrr60_frac', 'hrr90_frac', 'hrr120_frac',
         'recovery_ratio', 'peak_pct_max',
@@ -524,7 +525,7 @@ def save_intervals(conn, intervals: List[RecoveryInterval],
             interval.start_time, interval.end_time, interval.duration_seconds, interval.interval_order,
             interval.hr_peak, interval.hr_30s, interval.hr_60s, interval.hr_90s, interval.hr_120s,
             interval.hr_180s, interval.hr_240s, interval.hr_300s,
-            interval.hr_nadir, interval.rhr_baseline,
+            interval.hr_nadir, interval.nadir_time_sec, interval.rhr_baseline,
             interval.hrr30_abs, interval.hrr60_abs, interval.hrr90_abs, interval.hrr120_abs,
             interval.hrr180_abs, interval.hrr240_abs, interval.hrr300_abs,
             interval.total_drop,
@@ -1319,7 +1320,13 @@ def compute_features(interval: RecoveryInterval, config: HRRConfig,
     interval.hr_180s = get_hr_at(180)
     interval.hr_240s = get_hr_at(240)
     interval.hr_300s = get_hr_at(300)
-    interval.hr_nadir = int(np.min(hr_array[:actual_length+1])) if actual_length > 0 else None
+    if actual_length > 0:
+        nadir_segment = hr_array[:actual_length+1]
+        interval.hr_nadir = int(np.min(nadir_segment))
+        interval.nadir_time_sec = int(np.argmin(nadir_segment))  # Seconds from onset to nadir
+    else:
+        interval.hr_nadir = None
+        interval.nadir_time_sec = None
     
     # === R² FOR ALL WINDOWS (no cascade, compute everything) ===
     interval.r2_0_30 = fit_window_r2(hr_array, 0, 30)

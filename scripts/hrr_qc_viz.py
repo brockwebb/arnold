@@ -71,18 +71,18 @@ def load_stored_intervals(conn, session_id: int) -> List[dict]:
     """
     Load STORED intervals from hr_recovery_intervals.
     
-    This is the authoritative data - what hrr_batch.py wrote after detection.
-    Gracefully handles missing columns for backward compatibility.
+    This is the authoritative data - what hrr_feature_extraction.py wrote after detection.
     """
     # Query ALL columns for full QC visibility
     query = """
         SELECT 
             id, start_time, end_time, duration_seconds,
-            hr_peak, hr_30s, hr_60s, hr_90s, hr_120s, hr_180s, hr_240s, hr_300s, hr_nadir, rhr_baseline,
+            hr_peak, hr_30s, hr_60s, hr_90s, hr_120s, hr_180s, hr_240s, hr_300s, hr_nadir, nadir_time_sec, rhr_baseline,
             hrr30_abs, hrr60_abs, hrr90_abs, hrr120_abs, hrr180_abs, hrr240_abs, hrr300_abs, total_drop,
             hr_reserve, recovery_ratio,
             tau_seconds, tau_fit_r2,
-            r2_0_30, r2_30_60, r2_delta,
+            r2_0_30, r2_30_60, r2_30_90, r2_delta,
+            r2_0_60, r2_0_90, r2_0_120, r2_0_180, r2_0_240, r2_0_300,
             slope_90_120, slope_90_120_r2,
             onset_delay_sec, onset_confidence,
             is_clean, actionable, confidence, stratum, is_deliberate, protocol_type,
@@ -92,101 +92,32 @@ def load_stored_intervals(conn, session_id: int) -> List[dict]:
         ORDER BY start_time
     """
     
-    # Fallback query without new columns
-    fallback_query = """
-        SELECT 
-            id,
-            start_time,
-            end_time,
-            duration_seconds,
-            hr_peak,
-            hr_60s,
-            hr_120s,
-            hr_180s,
-            hr_300s,
-            hr_nadir,
-            hrr60_abs,
-            hrr120_abs,
-            hrr180_abs,
-            hrr300_abs,
-            tau_fit_r2,
-            r2_300,
-            is_clean,
-            actionable,
-            confidence,
-            stratum,
-            is_deliberate,
-            protocol_type
-        FROM hr_recovery_intervals
-        WHERE polar_session_id = %s
-        ORDER BY start_time
-    """
-    
-    use_new_columns = True
-    try:
-        with conn.cursor() as cur:
-            cur.execute(query, (session_id,))
-            rows = cur.fetchall()
-    except Exception as e:
-        # Fallback to old schema
-        use_new_columns = False
-        conn.rollback()  # Clear the failed transaction
-        with conn.cursor() as cur:
-            cur.execute(fallback_query, (session_id,))
-            rows = cur.fetchall()
+    with conn.cursor() as cur:
+        cur.execute(query, (session_id,))
+        rows = cur.fetchall()
     
     intervals = []
     for idx, row in enumerate(rows):
-        # Parse based on new column order
-        # id, start_time, end_time, duration_seconds,
-        # hr_peak, hr_30s, hr_60s, hr_90s, hr_120s, hr_180s, hr_240s, hr_300s, hr_nadir, rhr_baseline,
-        # hrr30_abs, hrr60_abs, hrr90_abs, hrr120_abs, hrr180_abs, hrr240_abs, hrr300_abs, total_drop,
-        # hr_reserve, recovery_ratio,
-        # tau_seconds, tau_fit_r2,
-        # r2_0_30, r2_30_60, r2_delta,
-        # slope_90_120, slope_90_120_r2,
-        # onset_delay_sec, onset_confidence,
-        # is_clean, actionable, confidence, stratum, is_deliberate, protocol_type,
-        # interval_order, quality_status, quality_flags, quality_score, review_priority
-        if use_new_columns:
-            interval = {
-                'id': row[0], 'start_time': row[1], 'end_time': row[2], 'duration_seconds': row[3],
-                'hr_peak': row[4], 'hr_30s': row[5], 'hr_60s': row[6], 'hr_90s': row[7],
-                'hr_120s': row[8], 'hr_180s': row[9], 'hr_240s': row[10], 'hr_300s': row[11],
-                'hr_nadir': row[12], 'rhr_baseline': row[13],
-                'hrr30_abs': row[14], 'hrr60_abs': row[15], 'hrr90_abs': row[16], 'hrr120_abs': row[17],
-                'hrr180_abs': row[18], 'hrr240_abs': row[19], 'hrr300_abs': row[20], 'total_drop': row[21],
-                'hr_reserve': row[22], 'recovery_ratio': row[23],
-                'tau_seconds': row[24], 'tau_fit_r2': row[25],
-                'r2_0_30': row[26], 'r2_30_60': row[27], 'r2_delta': row[28],
-                'slope_90_120': row[29], 'slope_90_120_r2': row[30],
-                'onset_delay_sec': row[31], 'onset_confidence': row[32],
-                'is_clean': row[33], 'actionable': row[34], 'confidence': row[35],
-                'stratum': row[36], 'is_deliberate': row[37], 'protocol_type': row[38],
-                'interval_order': row[39], 'quality_status': row[40], 'quality_flags': row[41],
-                'quality_score': row[42], 'review_priority': row[43],
-                'r2_30_90': None,  # Not in DB yet
-            }
-        else:
-            # Fallback for old schema
-            interval = {
-                'id': row[0], 'start_time': row[1], 'end_time': row[2], 'duration_seconds': row[3],
-                'hr_peak': row[4], 'hr_60s': row[5], 'hr_120s': row[6], 'hr_180s': row[7],
-                'hr_300s': row[8], 'hr_nadir': row[9],
-                'hrr60_abs': row[10], 'hrr120_abs': row[11], 'hrr180_abs': row[12], 'hrr300_abs': row[13],
-                'tau_fit_r2': row[14], 'is_clean': row[16], 'actionable': row[17],
-                'confidence': row[18], 'stratum': row[19], 'is_deliberate': row[20], 'protocol_type': row[21],
-                'interval_order': idx + 1,
-                # Fill in missing fields
-                'hr_30s': None, 'hr_90s': None, 'hr_240s': None, 'rhr_baseline': None,
-                'hrr30_abs': None, 'hrr90_abs': None, 'hrr240_abs': None, 'total_drop': None,
-                'hr_reserve': None, 'recovery_ratio': None, 'tau_seconds': None,
-                'r2_0_30': None, 'r2_30_60': None, 'r2_30_90': None, 'r2_delta': None,
-                'slope_90_120': None, 'slope_90_120_r2': None,
-                'onset_delay_sec': None, 'onset_confidence': None,
-                'quality_status': None, 'quality_flags': None, 'quality_score': None, 'review_priority': None,
-            }
-        
+        # Column mapping (must match SELECT order exactly)
+        interval = {
+            'id': row[0], 'start_time': row[1], 'end_time': row[2], 'duration_seconds': row[3],
+            'hr_peak': row[4], 'hr_30s': row[5], 'hr_60s': row[6], 'hr_90s': row[7],
+            'hr_120s': row[8], 'hr_180s': row[9], 'hr_240s': row[10], 'hr_300s': row[11],
+            'hr_nadir': row[12], 'nadir_time_sec': row[13], 'rhr_baseline': row[14],
+            'hrr30_abs': row[15], 'hrr60_abs': row[16], 'hrr90_abs': row[17], 'hrr120_abs': row[18],
+            'hrr180_abs': row[19], 'hrr240_abs': row[20], 'hrr300_abs': row[21], 'total_drop': row[22],
+            'hr_reserve': row[23], 'recovery_ratio': row[24],
+            'tau_seconds': row[25], 'tau_fit_r2': row[26],
+            'r2_0_30': row[27], 'r2_30_60': row[28], 'r2_30_90': row[29], 'r2_delta': row[30],
+            'r2_0_60': row[31], 'r2_0_90': row[32], 'r2_0_120': row[33],
+            'r2_0_180': row[34], 'r2_0_240': row[35], 'r2_0_300': row[36],
+            'slope_90_120': row[37], 'slope_90_120_r2': row[38],
+            'onset_delay_sec': row[39], 'onset_confidence': row[40],
+            'is_clean': row[41], 'actionable': row[42], 'confidence': row[43],
+            'stratum': row[44], 'is_deliberate': row[45], 'protocol_type': row[46],
+            'interval_order': row[47], 'quality_status': row[48], 'quality_flags': row[49],
+            'quality_score': row[50], 'review_priority': row[51],
+        }
         intervals.append(interval)
     
     return intervals
@@ -375,28 +306,36 @@ def plot_session_qc(
     # Collect peaks that are used by intervals (to show unused peaks as gray)
     used_peak_times = set()
     
-    # Categorize intervals
-    # Priority: HRR300 (5-min) > HRR120 > HRR60 > rejected
-    # R² >= 0.75 is the actionable threshold - anything below goes to rejected
-    hrr300_intervals = []  # 5-minute deliberate tests (light purple)
-    hrr120_intervals = []  # 2-minute intervals (gold)
-    hrr60_intervals = []   # 1-minute intervals (green)
-    rejected_intervals = [] # Didn't meet quality gates (gray)
+    # Categorize intervals by BEST valid window (longest with R² >= threshold)
+    # Uses segment-specific R² values, not overall tau_fit_r2
+    # Priority: HRR300 > HRR240 > HRR180 > HRR120 > HRR60 > rejected
+    hrr300_intervals = []  # 5-minute (purple)
+    hrr240_intervals = []  # 4-minute (orange)
+    hrr180_intervals = []  # 3-minute (cyan)
+    hrr120_intervals = []  # 2-minute (gold)
+    hrr60_intervals = []   # 1-minute (green)
+    rejected_intervals = [] # No valid window (gray)
     
     for interval in intervals:
-        r2 = interval['tau_fit_r2']
         duration = interval['duration_seconds'] or 0
         
-        # Quality gate: R² must meet threshold
-        # Peak HR is NOT a validity criterion - recovery kinetics determine validity
-        if r2 is None or r2 < min_r2:
-            rejected_intervals.append(interval)
-        # 5-minute deliberate tests (duration >= 240s with hrr300 data)
-        elif duration >= 240 and interval['hrr300_abs'] is not None:
+        # Check windows from longest to shortest, use SEGMENT R² values
+        r2_300 = interval.get('r2_0_300')
+        r2_240 = interval.get('r2_0_240')
+        r2_180 = interval.get('r2_0_180')
+        r2_120 = interval.get('r2_0_120')
+        r2_60 = interval.get('r2_0_60')
+        
+        # Find best valid window (longest with R² >= threshold)
+        if duration >= 300 and r2_300 is not None and r2_300 >= min_r2:
             hrr300_intervals.append(interval)
-        elif interval['hrr120_abs'] is not None and duration >= 120:
+        elif duration >= 240 and r2_240 is not None and r2_240 >= min_r2:
+            hrr240_intervals.append(interval)
+        elif duration >= 180 and r2_180 is not None and r2_180 >= min_r2:
+            hrr180_intervals.append(interval)
+        elif duration >= 120 and r2_120 is not None and r2_120 >= min_r2:
             hrr120_intervals.append(interval)
-        elif interval['hrr60_abs'] is not None and interval['hrr60_abs'] >= 9:
+        elif duration >= 60 and r2_60 is not None and r2_60 >= min_r2:
             hrr60_intervals.append(interval)
         else:
             rejected_intervals.append(interval)
@@ -416,12 +355,20 @@ def plot_session_qc(
             ax.plot(start_min, interval['hr_peak'], 'v', color='red', markersize=5, alpha=0.8)
             used_peak_times.add(round(start_min, 2))
         
-        # Annotation with peak label
+        # Annotation with peak label and best R² (to show why rejected)
         mid_min = start_min + 0.5
         peak_label = get_peak_label(session_id, interval)
-        hrr60_val = interval['hrr60_abs'] or '?'
-        r2_val = f"{interval['tau_fit_r2']:.2f}" if interval['tau_fit_r2'] else '?'
-        ax.annotate(f"✗ {peak_label}\nHRR60={hrr60_val} r²={r2_val}",
+        
+        # Find best R² across all windows
+        r2_values = [
+            ('60', interval.get('r2_0_60')),
+            ('120', interval.get('r2_0_120')),
+            ('180', interval.get('r2_0_180')),
+        ]
+        best_r2 = max((v for _, v in r2_values if v is not None), default=None)
+        r2_str = f"{best_r2:.2f}" if best_r2 else '?'
+        
+        ax.annotate(f"✗ {peak_label}\nbest r²={r2_str}",
                    xy=(mid_min, (interval['hr_peak'] or 120) + 3), 
                    fontsize=6, ha='center', color='gray', alpha=0.8)
     
@@ -437,18 +384,17 @@ def plot_session_qc(
             ax.plot(start_min, interval['hr_peak'], 'v', color='green', markersize=5)
             used_peak_times.add(round(start_min, 2))
         
-        # Annotation with peak label and status
+        # Annotation with peak label and segment R²
         mid_min = start_min + 0.5
         peak_label = get_peak_label(session_id, interval)
-        status = get_status_indicator(interval)
         hrr60 = interval['hrr60_abs'] or '?'
-        r2 = interval['tau_fit_r2']
+        r2 = interval.get('r2_0_60')
         r2_str = f"{r2:.2f}" if r2 else '?'
         
-        ax.annotate(f"{status} {peak_label}\nHRR60={hrr60} r²={r2_str}",
+        ax.annotate(f"{peak_label}\nHRR60={hrr60} r²={r2_str}",
                    xy=(mid_min, (interval['hr_peak'] or 140) + 5),
                    fontsize=7, ha='center',
-                   bbox=dict(boxstyle='round,pad=0.2', facecolor='white', alpha=0.8))
+                   bbox=dict(boxstyle='round,pad=0.2', facecolor='#90EE90', alpha=0.8))
     
     # Plot HRR120 (gold triangle, gold window) - 120 seconds
     for interval in hrr120_intervals:
@@ -462,25 +408,71 @@ def plot_session_qc(
             ax.plot(start_min, interval['hr_peak'], 'v', color='goldenrod', markersize=5)
             used_peak_times.add(round(start_min, 2))
         
-        # Annotation with peak label and status
+        # Annotation with peak label and R² from segment
         mid_min = start_min + 1.0
         peak_label = get_peak_label(session_id, interval)
-        status = get_status_indicator(interval)
         hrr120 = interval['hrr120_abs'] or '?'
-        r2 = interval['tau_fit_r2']
+        r2 = interval.get('r2_0_120')
         r2_str = f"{r2:.2f}" if r2 else '?'
         
-        ax.annotate(f"{status} {peak_label}\nHRR120={hrr120} r²={r2_str}",
+        ax.annotate(f"{peak_label}\nHRR120={hrr120} r²={r2_str}",
                    xy=(mid_min, (interval['hr_peak'] or 140) + 5),
                    fontsize=7, ha='center',
                    bbox=dict(boxstyle='round,pad=0.2', facecolor='white', alpha=0.8))
     
+    # Plot HRR180 (cyan triangle, cyan window) - 180 seconds
+    for interval in hrr180_intervals:
+        start_offset = (interval['start_time'] - session_start).total_seconds()
+        start_min = start_offset / 60
+        end_min = start_min + 3.0  # 180s window
+        
+        ax.axvspan(start_min, end_min, alpha=0.30, color='cyan')
+        
+        if interval['hr_peak']:
+            ax.plot(start_min, interval['hr_peak'], 'v', color='darkcyan', markersize=5)
+            used_peak_times.add(round(start_min, 2))
+        
+        # Annotation
+        mid_min = start_min + 1.5
+        peak_label = get_peak_label(session_id, interval)
+        hrr180 = interval['hrr180_abs'] or '?'
+        r2 = interval.get('r2_0_180')
+        r2_str = f"{r2:.2f}" if r2 else '?'
+        
+        ax.annotate(f"{peak_label}\nHRR180={hrr180} r²={r2_str}",
+                   xy=(mid_min, (interval['hr_peak'] or 140) + 5),
+                   fontsize=7, ha='center',
+                   bbox=dict(boxstyle='round,pad=0.2', facecolor='#E0FFFF', alpha=0.8))
+    
+    # Plot HRR240 (orange triangle, orange window) - 240 seconds
+    for interval in hrr240_intervals:
+        start_offset = (interval['start_time'] - session_start).total_seconds()
+        start_min = start_offset / 60
+        end_min = start_min + 4.0  # 240s window
+        
+        ax.axvspan(start_min, end_min, alpha=0.30, color='orange')
+        
+        if interval['hr_peak']:
+            ax.plot(start_min, interval['hr_peak'], 'v', color='darkorange', markersize=5)
+            used_peak_times.add(round(start_min, 2))
+        
+        # Annotation
+        mid_min = start_min + 2.0
+        peak_label = get_peak_label(session_id, interval)
+        hrr240 = interval['hrr240_abs'] or '?'
+        r2 = interval.get('r2_0_240')
+        r2_str = f"{r2:.2f}" if r2 else '?'
+        
+        ax.annotate(f"{peak_label}\nHRR240={hrr240} r²={r2_str}",
+                   xy=(mid_min, (interval['hr_peak'] or 140) + 5),
+                   fontsize=7, ha='center',
+                   bbox=dict(boxstyle='round,pad=0.2', facecolor='#FFE4C4', alpha=0.8))
+    
     # Plot HRR300 (purple triangle, purple window) - 5-minute deliberate tests
     for interval in hrr300_intervals:
         start_offset = (interval['start_time'] - session_start).total_seconds()
-        duration = min(interval['duration_seconds'] or 300, 300)
         start_min = start_offset / 60
-        end_min = start_min + (duration / 60)
+        end_min = start_min + 5.0  # 300s window
         
         ax.axvspan(start_min, end_min, alpha=0.30, color='#DDA0DD')  # plum
         
@@ -488,20 +480,17 @@ def plot_session_qc(
             ax.plot(start_min, interval['hr_peak'], 'v', color='purple', markersize=5)
             used_peak_times.add(round(start_min, 2))
         
-        # Annotation with peak label and extended HRR values
-        mid_min = (start_min + end_min) / 2
+        # Annotation with peak label and segment R²
+        mid_min = start_min + 2.5
         peak_label = get_peak_label(session_id, interval)
-        status = get_status_indicator(interval)
-        hrr60 = interval['hrr60_abs'] or '?'
-        hrr120 = interval['hrr120_abs'] or '?'
         hrr300 = interval['hrr300_abs'] or '?'
-        r2 = interval['r2_300'] or interval['tau_fit_r2']
-        r2_str = f"{float(r2):.2f}" if r2 else '?'
+        r2 = interval.get('r2_0_300')
+        r2_str = f"{r2:.2f}" if r2 else '?'
         
         # Show deliberate test marker if annotated
-        deliberate_marker = '★ ' if interval.get('is_deliberate') else ''
+        deliberate_marker = '★' if interval.get('is_deliberate') else ''
         
-        ax.annotate(f"{status} {peak_label} {deliberate_marker}\nHRR 60/120/300={hrr60}/{hrr120}/{hrr300} r²={r2_str}",
+        ax.annotate(f"{peak_label} {deliberate_marker}\nHRR300={hrr300} r²={r2_str}",
                    xy=(mid_min, (interval['hr_peak'] or 140) + 5),
                    fontsize=7, ha='center',
                    bbox=dict(boxstyle='round,pad=0.2', facecolor='#F5E6F5', alpha=0.9))
@@ -518,7 +507,7 @@ def plot_session_qc(
     ax.grid(True, alpha=0.3)
     
     # Config note
-    valid_ct = len(hrr300_intervals) + len(hrr120_intervals) + len(hrr60_intervals)
+    valid_ct = len(hrr300_intervals) + len(hrr240_intervals) + len(hrr180_intervals) + len(hrr120_intervals) + len(hrr60_intervals)
     ax.text(0.01, 0.01, 
             f"Source: hr_recovery_intervals | Valid (R²≥{min_r2}): {valid_ct}/{len(intervals)}",
             transform=ax.transAxes, fontsize=7, color='gray')
@@ -532,8 +521,89 @@ def plot_session_qc(
     plt.close()
 
 
+def print_summary_tables(intervals: List[dict], session_id: int):
+    """
+    Print three compact summary tables for quick QC review.
+    
+    TABLE 1: Peaks (Identity + Context)
+    TABLE 2: R² Segments (available from DB)
+    TABLE 3: HRR Drops (Absolute bpm)
+    
+    These match the output format from hrr_feature_extraction.py.
+    """
+    if not intervals:
+        print("\nNo intervals to display.")
+        return
+    
+    # Helper formatters
+    def fmt(val, decimals=3):
+        if val is None:
+            return '-'
+        return f"{val:.{decimals}f}"
+    
+    def fmt_int(val):
+        if val is None:
+            return '-'
+        return str(int(val))
+    
+    # Separator
+    print(f"\n{'='*80}")
+    print(f"SESSION {session_id} - HRR SUMMARY ({len(intervals)} intervals)")
+    print(f"{'='*80}")
+    
+    # TABLE 1: Peaks
+    print(f"\n--- TABLE 1: Peaks ---")
+    print(f"{'Ord':>3} {'Label':>10} {'Peak':>4} {'Dur':>4} {'Onset':>5} {'Conf':>6} {'Status':>8}")
+    print(f"{'-'*3:>3} {'-'*10:>10} {'-'*4:>4} {'-'*4:>4} {'-'*5:>5} {'-'*6:>6} {'-'*8:>8}")
+    for i in intervals:
+        order = i.get('interval_order') or 0
+        label = get_peak_label(session_id, i)
+        peak = i.get('hr_peak') or 0
+        dur = i.get('duration_seconds') or 0
+        onset = fmt_int(i.get('onset_delay_sec')) if i.get('onset_delay_sec') else '-'
+        conf = (i.get('onset_confidence') or '-')[:3] if i.get('onset_confidence') else '-'
+        status = i.get('quality_status') or '?'
+        print(f"{order:>3} {label:>10} {peak:>4} {dur:>4} {onset:>5} {conf:>6} {status:>8}")
+    
+    # TABLE 2: R² by Window (matches hrr_feature_extraction.py format)
+    print(f"\n--- TABLE 2: R² by Window ---")
+    print(f"{'Ord':>3} {'0-30':>6} {'0-60':>6} {'30-90':>6} {'slp90':>7} {'0-120':>6} {'0-180':>6} {'0-240':>6} {'0-300':>6}")
+    print(f"{'-'*3:>3} {'-'*6:>6} {'-'*6:>6} {'-'*6:>6} {'-'*7:>7} {'-'*6:>6} {'-'*6:>6} {'-'*6:>6} {'-'*6:>6}")
+    for i in intervals:
+        order = i.get('interval_order') or 0
+        
+        # Mark failures with * if < 0.75
+        def mark(val, threshold=0.75):
+            if val is None:
+                return '-'
+            s = f"{val:.3f}"
+            if val < threshold:
+                return s + '*'
+            return s
+        
+        def fmt_slope(val):
+            if val is None:
+                return '-'
+            return f"{val:+.3f}"  # Show sign
+        
+        print(f"{order:>3} {mark(i.get('r2_0_30')):>6} {mark(i.get('r2_0_60')):>6} {mark(i.get('r2_30_90')):>6} {fmt_slope(i.get('slope_90_120')):>7} {mark(i.get('r2_0_120')):>6} {mark(i.get('r2_0_180')):>6} {mark(i.get('r2_0_240')):>6} {mark(i.get('r2_0_300')):>6}")
+    print(f"  (* = below 0.75, slp90 = 90-120s slope bpm/sec)")
+    
+    # TABLE 3: HRR Drops (standard metrics only - no HRR90)
+    print(f"\n--- TABLE 3: HRR Drops (bpm) ---")
+    print(f"{'Ord':>3} {'Peak':>4} {'HRR30':>6} {'HRR60':>6} {'HRR120':>6} {'HRR180':>6} {'HRR240':>6} {'HRR300':>6} {'MaxDrp':>6}")
+    print(f"{'-'*3:>3} {'-'*4:>4} {'-'*6:>6} {'-'*6:>6} {'-'*6:>6} {'-'*6:>6} {'-'*6:>6} {'-'*6:>6} {'-'*6:>6}")
+    for i in intervals:
+        order = i.get('interval_order') or 0
+        peak = i.get('hr_peak') or 0
+        print(f"{order:>3} {peak:>4} {fmt_int(i.get('hrr30_abs')):>6} {fmt_int(i.get('hrr60_abs')):>6} {fmt_int(i.get('hrr120_abs')):>6} {fmt_int(i.get('hrr180_abs')):>6} {fmt_int(i.get('hrr240_abs')):>6} {fmt_int(i.get('hrr300_abs')):>6} {fmt_int(i.get('total_drop')):>6}")
+    print(f"  (MaxDrp = peak - nadir, max observed drop)")
+    
+    print(f"{'='*80}\n")
+
+
 def print_interval_details(intervals: List[dict], session_id: int):
-    """Print detailed table of stored intervals with ALL QC metrics."""
+    """Print detailed table of stored intervals with ALL QC metrics (verbose mode)."""
     print(f"\n{'='*200}")
     print(f"Session {session_id} - FULL QC METRICS")
     print(f"{'='*200}")
@@ -658,7 +728,7 @@ def main():
     parser.add_argument('--list', action='store_true', help='List sessions with HRR intervals')
     parser.add_argument('--output-dir', default='/tmp', help='Output directory for PNG')
     parser.add_argument('--no-show', action='store_true', help='Save only, do not display')
-    parser.add_argument('--details', action='store_true', help='Print detailed interval table')
+    parser.add_argument('--details', action='store_true', help='Print verbose per-interval QC breakdown (in addition to summary tables)')
     parser.add_argument('--min-r2', type=float, default=0.75,
                        help='Minimum R² threshold for valid intervals (default: 0.75)')
     parser.add_argument('--age', type=int, default=None,
@@ -700,7 +770,10 @@ def main():
     
     print(f"Loaded {len(hr)} HR samples, {len(intervals)} stored intervals")
     
-    # Print details if requested
+    # Print summary tables (always)
+    print_summary_tables(intervals, args.session_id)
+    
+    # Print verbose details if requested
     if args.details:
         print_interval_details(intervals, args.session_id)
     
