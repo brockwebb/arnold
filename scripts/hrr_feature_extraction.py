@@ -37,110 +37,6 @@ from dotenv import load_dotenv
 load_dotenv(Path(__file__).parent.parent / '.env')
 
 
-def filter_quality_intervals(intervals: List[RecoveryInterval], 
-                             config: HRRConfig) -> Tuple[List[RecoveryInterval], List[RecoveryInterval], List[RecoveryInterval]]:
-    """
-    Filter intervals by quality using computed features.
-    Returns (valid_intervals, noise_intervals, rejected_intervals).
-    
-    Uses simple threshold gates on pre-computed features:
-    1. Sufficient samples
-    2. Sufficient signal (hr_reserve)
-    3. Sufficient drop (hrr60_abs)
-    4. Valid decay curve (tau or recovery_ratio)
-    """
-    valid = []
-    noise = []  # Floor effect - can't measure recovery meaningfully
-    rejected = []  # Had potential but didn't pass validation
-    
-    for interval in intervals:
-        # Gate 1: Sufficient samples
-        if not interval.samples or len(interval.samples) < 30:
-            interval._reject_reason = f"INSUFFICIENT_SAMPLES: {len(interval.samples) if interval.samples else 0}"
-            rejected.append(interval)
-            logger.debug(f"Rejected interval #{interval.interval_order}: {interval._reject_reason}")
-            continue
-        
-        # Gate 2: Low signal (floor effect)
-        if interval.hr_reserve is not None and interval.hr_reserve < config.low_signal_threshold_bpm:
-            interval._reject_reason = f"LOW_SIGNAL: hr_reserve={interval.hr_reserve} < {config.low_signal_threshold_bpm}"
-            noise.append(interval)
-            logger.debug(f"Noise interval #{interval.interval_order}: {interval._reject_reason}")
-            continue
-        
-        # Gate 3: Must have hr_60s measurement
-        if interval.hr_60s is None:
-            onset = interval.onset_delay_sec or 0
-            available = interval.duration_seconds - onset
-            interval._reject_reason = f"NO_HR60: need 60s from onset, have {available}s"
-            rejected.append(interval)
-            logger.debug(f"Rejected interval #{interval.interval_order}: {interval._reject_reason}")
-            continue
-        
-        # Gate 4: Onset quality - long onset with low confidence = unreliable
-        onset = interval.onset_delay_sec or 0
-        onset_conf = interval.onset_confidence
-        if onset > 60 and onset_conf == 'low':
-            interval._reject_reason = f"UNRELIABLE_ONSET: onset={onset}s with low confidence"
-            rejected.append(interval)
-            logger.debug(f"Rejected interval #{interval.interval_order}: {interval._reject_reason}")
-            continue
-        
-        # Gate 5: Minimum absolute drop (from onset-adjusted peak)
-        if interval.hrr60_abs is None or interval.hrr60_abs < config.min_hrr60_abs:
-            interval._reject_reason = f"LOW_DROP: hrr60_abs={interval.hrr60_abs} < {config.min_hrr60_abs}"
-            rejected.append(interval)
-            logger.debug(f"Rejected interval #{interval.interval_order}: {interval._reject_reason}")
-            continue
-        
-        # Gate 6: Persistence - hr_60s should be near nadir, not climbing back up
-        # If hr_60s is way above nadir, we caught the interval too late
-        # BUT: Only apply to short intervals (<=120s) where nadir should occur within 60s
-        # For longer intervals, nadir naturally occurs later - hr_60s above nadir is expected
-        if interval.hr_nadir is not None and interval.duration_seconds <= 120:
-            hr_above_nadir = interval.hr_60s - interval.hr_nadir
-            if hr_above_nadir > 15:  # hr_60s more than 15 bpm above nadir
-                interval._reject_reason = f"NOT_SUSTAINED: hr_60s={interval.hr_60s} is {hr_above_nadir}bpm above nadir={interval.hr_nadir}"
-                rejected.append(interval)
-                logger.debug(f"Rejected interval #{interval.interval_order}: {interval._reject_reason}")
-                continue
-        
-        # Gate 7: Valid decay curve - need BOTH reasonable tau AND ratio
-        # tau=300 (capped) means flat curve - not real exponential recovery
-        has_valid_tau = (interval.tau_seconds is not None and 
-                        interval.tau_seconds < 200 and 
-                        interval.tau_fit_r2 is not None and 
-                        interval.tau_fit_r2 >= 0.5)
-        has_valid_ratio = (interval.recovery_ratio is not None and 
-                          interval.recovery_ratio >= config.min_recovery_ratio)
-        
-        # If tau is capped (300s = flat), require much higher ratio to pass
-        tau_is_flat = (interval.tau_seconds is not None and interval.tau_seconds >= 200)
-        
-        if tau_is_flat:
-            # Flat curve - need strong ratio evidence (>= 25%)
-            if interval.recovery_ratio is None or interval.recovery_ratio < 0.25:
-                tau_str = f"tau={interval.tau_seconds:.0f}s(flat)"
-                ratio_str = f"ratio={interval.recovery_ratio:.0%}" if interval.recovery_ratio else "ratio=None"
-                interval._reject_reason = f"FLAT_DECAY: {tau_str}, {ratio_str} < 25%"
-                rejected.append(interval)
-                logger.debug(f"Rejected interval #{interval.interval_order}: {interval._reject_reason}")
-                continue
-        elif not has_valid_tau and not has_valid_ratio:
-            tau_str = f"tau={interval.tau_seconds:.0f}s,r2={interval.tau_fit_r2:.2f}" if interval.tau_seconds else "tau=None"
-            ratio_str = f"ratio={interval.recovery_ratio:.0%}" if interval.recovery_ratio else "ratio=None"
-            interval._reject_reason = f"NO_VALID_DECAY: {tau_str}, {ratio_str}"
-            rejected.append(interval)
-            logger.debug(f"Rejected interval #{interval.interval_order}: {interval._reject_reason}")
-            continue
-        
-        # Passed all gates
-        interval._reject_reason = None
-        valid.append(interval)
-    
-    return valid, noise, rejected
-
-
 # =============================================================================
 # Configuration
 # =============================================================================
@@ -261,7 +157,21 @@ class RecoveryInterval:
     # === NEW: Segment R² metrics (validated 2026-01-15) ===
     r2_0_30: Optional[float] = None
     r2_30_60: Optional[float] = None
+    r2_30_90: Optional[float] = None  # Transition zone (30-90s)
     r2_delta: Optional[float] = None  # r2_0_30 - r2_30_60
+    
+    # === Full-interval R² at each timepoint (validates HRR at that timepoint) ===
+    r2_0_60: Optional[float] = None   # Validates HRR60
+    r2_0_90: Optional[float] = None   # Validates HRR90
+    r2_0_120: Optional[float] = None  # Validates HRR120
+    r2_0_180: Optional[float] = None  # Validates HRR180
+    r2_0_240: Optional[float] = None  # Validates HRR240
+    r2_0_300: Optional[float] = None  # Validates HRR300
+    
+    # === Detected segment metrics (organic interval, not standard endpoint) ===
+    r2_detected: Optional[float] = None  # R² for 0 to detected_duration
+    hr_detected: Optional[int] = None    # HR at detected_duration
+    hrr_detected: Optional[int] = None   # HRR drop at detected_duration (if r2_detected passes)
     
     # === NEW: Late slope (for HRR120 intervals) ===
     slope_90_120: Optional[float] = None  # bpm/sec
@@ -293,6 +203,145 @@ class RecoveryInterval:
     
     # Raw samples (not stored, used for computation)
     samples: List[HRSample] = field(default_factory=list)
+    r2_samples: List[HRSample] = field(default_factory=list)  # Extended samples for R² computation
+
+
+# =============================================================================
+# Quality Filtering
+# =============================================================================
+
+def filter_quality_intervals(intervals: List[RecoveryInterval], 
+                             config: HRRConfig) -> Tuple[List[RecoveryInterval], List[RecoveryInterval], List[RecoveryInterval]]:
+    """
+    Filter intervals by quality using computed features.
+    Returns (valid_intervals, noise_intervals, rejected_intervals).
+    
+    Uses simple threshold gates on pre-computed features:
+    1. Sufficient samples
+    2. Sufficient signal (hr_reserve)
+    3. Must have hr_60s measurement
+    4. Onset quality
+    5. Minimum absolute drop (hrr60_abs)
+    6. Persistence check
+    7. Valid decay curve (tau or recovery_ratio)
+    8. Segment R² quality (30-60s and 30-90s must be >= 0.75)
+    """
+    valid = []
+    noise = []  # Floor effect - can't measure recovery meaningfully
+    rejected = []  # Had potential but didn't pass validation
+    
+    for interval in intervals:
+        # Gate 1: Sufficient samples
+        if not interval.samples or len(interval.samples) < 30:
+            interval._reject_reason = f"INSUFFICIENT_SAMPLES: {len(interval.samples) if interval.samples else 0}"
+            rejected.append(interval)
+            logger.debug(f"Rejected interval #{interval.interval_order}: {interval._reject_reason}")
+            continue
+        
+        # Gate 2: Low signal (floor effect)
+        if interval.hr_reserve is not None and interval.hr_reserve < config.low_signal_threshold_bpm:
+            interval._reject_reason = f"LOW_SIGNAL: hr_reserve={interval.hr_reserve} < {config.low_signal_threshold_bpm}"
+            noise.append(interval)
+            logger.debug(f"Noise interval #{interval.interval_order}: {interval._reject_reason}")
+            continue
+        
+        # Gate 3: Must have hr_60s measurement
+        if interval.hr_60s is None:
+            onset = interval.onset_delay_sec or 0
+            available = interval.duration_seconds - onset
+            interval._reject_reason = f"NO_HR60: need 60s from onset, have {available}s"
+            rejected.append(interval)
+            logger.debug(f"Rejected interval #{interval.interval_order}: {interval._reject_reason}")
+            continue
+        
+        # Gate 4: Onset quality - long onset with low confidence = unreliable
+        onset = interval.onset_delay_sec or 0
+        onset_conf = interval.onset_confidence
+        if onset > 60 and onset_conf == 'low':
+            interval._reject_reason = f"UNRELIABLE_ONSET: onset={onset}s with low confidence"
+            rejected.append(interval)
+            logger.debug(f"Rejected interval #{interval.interval_order}: {interval._reject_reason}")
+            continue
+        
+        # Gate 5: Minimum absolute drop (from onset-adjusted peak)
+        if interval.hrr60_abs is None or interval.hrr60_abs < config.min_hrr60_abs:
+            interval._reject_reason = f"LOW_DROP: hrr60_abs={interval.hrr60_abs} < {config.min_hrr60_abs}"
+            rejected.append(interval)
+            logger.debug(f"Rejected interval #{interval.interval_order}: {interval._reject_reason}")
+            continue
+        
+        # Gate 6: Persistence - hr_60s should be near nadir, not climbing back up
+        # If hr_60s is way above nadir, we caught the interval too late
+        # BUT: Only apply to short intervals (<=120s) where nadir should occur within 60s
+        # For longer intervals, nadir naturally occurs later - hr_60s above nadir is expected
+        if interval.hr_nadir is not None and interval.duration_seconds <= 120:
+            hr_above_nadir = interval.hr_60s - interval.hr_nadir
+            if hr_above_nadir > 15:  # hr_60s more than 15 bpm above nadir
+                interval._reject_reason = f"NOT_SUSTAINED: hr_60s={interval.hr_60s} is {hr_above_nadir}bpm above nadir={interval.hr_nadir}"
+                rejected.append(interval)
+                logger.debug(f"Rejected interval #{interval.interval_order}: {interval._reject_reason}")
+                continue
+        
+        # Gate 7: Valid decay curve - need BOTH reasonable tau AND ratio
+        # tau=300 (capped) means flat curve - not real exponential recovery
+        has_valid_tau = (interval.tau_seconds is not None and 
+                        interval.tau_seconds < 200 and 
+                        interval.tau_fit_r2 is not None and 
+                        interval.tau_fit_r2 >= 0.5)
+        has_valid_ratio = (interval.recovery_ratio is not None and 
+                          interval.recovery_ratio >= config.min_recovery_ratio)
+        
+        # If tau is capped (300s = flat), require much higher ratio to pass
+        tau_is_flat = (interval.tau_seconds is not None and interval.tau_seconds >= 200)
+        
+        if tau_is_flat:
+            # Flat curve - need strong ratio evidence (>= 25%)
+            if interval.recovery_ratio is None or interval.recovery_ratio < 0.25:
+                tau_str = f"tau={interval.tau_seconds:.0f}s(flat)"
+                ratio_str = f"ratio={interval.recovery_ratio:.0%}" if interval.recovery_ratio else "ratio=None"
+                interval._reject_reason = f"FLAT_DECAY: {tau_str}, {ratio_str} < 25%"
+                rejected.append(interval)
+                logger.debug(f"Rejected interval #{interval.interval_order}: {interval._reject_reason}")
+                continue
+        elif not has_valid_tau and not has_valid_ratio:
+            tau_str = f"tau={interval.tau_seconds:.0f}s,r2={interval.tau_fit_r2:.2f}" if interval.tau_seconds else "tau=None"
+            ratio_str = f"ratio={interval.recovery_ratio:.0%}" if interval.recovery_ratio else "ratio=None"
+            interval._reject_reason = f"NO_VALID_DECAY: {tau_str}, {ratio_str}"
+            rejected.append(interval)
+            logger.debug(f"Rejected interval #{interval.interval_order}: {interval._reject_reason}")
+            continue
+        
+        # Gate 8: Segment R² quality - catches disrupted recovery patterns
+        # The 30-60s segment must show good exponential fit (not plateau/rebound)
+        # The 30-90s "transition zone" catches issues the 30-60s might miss
+        segment_r2_threshold = 0.75
+        
+        # 8a: Check r2_30_60 (required for HRR60 validity)
+        if interval.r2_0_30 is not None:  # If we could fit 0-30, we should have 30-60
+            if interval.r2_30_60 is None:
+                interval._reject_reason = f"SEGMENT_FIT_FAILED: r2_0_30={interval.r2_0_30:.3f} but r2_30_60 fit failed"
+                rejected.append(interval)
+                logger.debug(f"Rejected interval #{interval.interval_order}: {interval._reject_reason}")
+                continue
+            elif interval.r2_30_60 < segment_r2_threshold:
+                interval._reject_reason = f"SEGMENT_QUALITY_FAILED: r2_30_60={interval.r2_30_60:.3f} < {segment_r2_threshold} (disrupted 30-60s)"
+                rejected.append(interval)
+                logger.debug(f"Rejected interval #{interval.interval_order}: {interval._reject_reason}")
+                continue
+        
+        # 8b: Check r2_30_90 for intervals >= 90s (transition zone quality)
+        if interval.duration_seconds >= 90 and interval.r2_30_90 is not None:
+            if interval.r2_30_90 < segment_r2_threshold:
+                interval._reject_reason = f"TRANSITION_QUALITY_FAILED: r2_30_90={interval.r2_30_90:.3f} < {segment_r2_threshold} (disrupted 30-90s)"
+                rejected.append(interval)
+                logger.debug(f"Rejected interval #{interval.interval_order}: {interval._reject_reason}")
+                continue
+        
+        # Passed all gates
+        interval._reject_reason = None
+        valid.append(interval)
+    
+    return valid, noise, rejected
 
 
 # =============================================================================
@@ -459,7 +508,9 @@ def save_intervals(conn, intervals: List[RecoveryInterval],
         'sample_count', 'expected_sample_count', 'sample_completeness',
         'is_clean', 'is_low_signal',
         # New columns (2026-01-15)
-        'r2_0_30', 'r2_30_60', 'r2_delta',
+        'r2_0_30', 'r2_30_60', 'r2_30_90', 'r2_delta',
+        # Full-interval R² at each timepoint (2026-01-16)
+        'r2_0_60', 'r2_0_90', 'r2_0_120', 'r2_0_180', 'r2_0_240', 'r2_0_300',
         'slope_90_120', 'slope_90_120_r2',
         'fit_amplitude', 'fit_asymptote',
         'quality_status', 'quality_flags', 'quality_score',
@@ -485,7 +536,10 @@ def save_intervals(conn, intervals: List[RecoveryInterval],
             interval.sample_count, interval.expected_sample_count, interval.sample_completeness,
             interval.is_clean, interval.is_low_signal,
             # New values
-            interval.r2_0_30, interval.r2_30_60, interval.r2_delta,
+            interval.r2_0_30, interval.r2_30_60, interval.r2_30_90, interval.r2_delta,
+            # Full-interval R² at each timepoint
+            interval.r2_0_60, interval.r2_0_90, interval.r2_0_120,
+            interval.r2_0_180, interval.r2_0_240, interval.r2_0_300,
             interval.slope_90_120, interval.slope_90_120_r2,
             interval.fit_amplitude, interval.fit_asymptote,
             interval.quality_status, interval.quality_flags, interval.quality_score,
@@ -848,7 +902,16 @@ def detect_recovery_intervals(samples: List[HRSample], rhr: int,
         last_end_idx = end_idx
         
         # Extract samples for this interval
+        # For HRR computation, use samples within the detected interval
         interval_samples = samples[peak_idx:end_idx + 1]
+        
+        # For R² validation, we need samples BEYOND the interval boundary
+        # so we can compute r2_0_120 even if interval ended at 114s
+        # Include up to 300s from peak (max possible window)
+        # For R² computation, extend BEYOND detected interval to account for onset_delay
+        # Max onset_delay ~60s, so collect up to 360s from peak to ensure 300s from onset
+        max_r2_idx = min(len(samples) - 1, peak_idx + 360)
+        r2_samples = samples[peak_idx:max_r2_idx + 1]
         
         # Create interval object
         interval = RecoveryInterval(
@@ -862,6 +925,7 @@ def detect_recovery_intervals(samples: List[HRSample], rhr: int,
             effort_avg_hr=effort_avg,
             session_elapsed_min=int((samples[peak_idx].timestamp - session_start).total_seconds() / 60),
             samples=interval_samples,
+            r2_samples=r2_samples,  # Extended samples for R² validation
             sample_count=len(interval_samples),
             expected_sample_count=duration,  # Assuming 1Hz
             sample_completeness=len(interval_samples) / duration if duration > 0 else 0
@@ -944,52 +1008,162 @@ def fit_exponential_decay(samples: List[HRSample], config: HRRConfig) -> ExpFitR
         return result
 
 
-def fit_segment_r2(samples: List[HRSample], start_sec: int, end_sec: int, 
-                   config: HRRConfig) -> Optional[float]:
+# =============================================================================
+# IMPUTATION AND R² COMPUTATION
+# =============================================================================
+
+R2_THRESHOLD = 0.75  # Minimum R² to trust HRR value
+
+
+def impute_hr_series(samples: List[HRSample], max_seconds: int = 300) -> Tuple[np.ndarray, int]:
     """
-    Fit exponential to a segment and return R².
-    Used for segment quality analysis (r2_0_30, r2_30_60).
+    Create a complete second-by-second HR array with gaps filled via linear interpolation.
+    
+    Args:
+        samples: List of HRSample objects with timestamp and hr_value
+        max_seconds: Maximum seconds to include (default 300 = 5 minutes)
+    
+    Returns:
+        (hr_array, actual_length) where:
+        - hr_array[i] = HR value at second i (0-indexed from first sample)
+        - actual_length = how many seconds of real data we have
     """
-    if len(samples) < 5:
-        return None
+    if not samples:
+        return np.array([]), 0
     
     t0 = samples[0].timestamp
     
-    # Filter samples to segment
-    segment_samples = []
-    for s in samples:
-        elapsed = (s.timestamp - t0).total_seconds()
-        if start_sec <= elapsed <= end_sec:
-            segment_samples.append(s)
+    # Build sparse dict of known values
+    hr_at_sec = {}
+    max_sec_seen = 0
     
-    if len(segment_samples) < 10:
+    for s in samples:
+        sec = int((s.timestamp - t0).total_seconds())
+        if sec <= max_seconds:
+            hr_at_sec[sec] = s.hr_value
+            max_sec_seen = max(max_sec_seen, sec)
+    
+    if not hr_at_sec:
+        return np.array([]), 0
+    
+    # Create output array
+    length = min(max_sec_seen + 1, max_seconds + 1)
+    hr_array = np.zeros(length, dtype=float)
+    
+    # Fill known values
+    for sec, hr in hr_at_sec.items():
+        if sec < length:
+            hr_array[sec] = hr
+    
+    # Impute gaps via linear interpolation
+    known_secs = sorted(hr_at_sec.keys())
+    
+    for i in range(len(known_secs) - 1):
+        start_sec = known_secs[i]
+        end_sec = known_secs[i + 1]
+        
+        if end_sec - start_sec > 1:  # There's a gap
+            start_hr = hr_at_sec[start_sec]
+            end_hr = hr_at_sec[end_sec]
+            
+            # Linear interpolation
+            for sec in range(start_sec + 1, end_sec):
+                if sec < length:
+                    frac = (sec - start_sec) / (end_sec - start_sec)
+                    hr_array[sec] = start_hr + frac * (end_hr - start_hr)
+    
+    return hr_array, max_sec_seen
+
+
+def fit_window_r2(hr_array: np.ndarray, start_sec: int, end_sec: int) -> Optional[float]:
+    """
+    Fit exponential to hr_array[start_sec:end_sec+1] and return R².
+    
+    Uses min(end_sec, len(hr_array)-1) as actual end.
+    Returns None only if insufficient data. Always returns R² if data exists.
+    """
+    # Adjust end to available data
+    actual_end = min(end_sec, len(hr_array) - 1)
+    
+    if start_sec >= actual_end or actual_end - start_sec < 10:
         return None
     
-    # Fit exponential
-    t = np.array([(s.timestamp - t0).total_seconds() - start_sec for s in segment_samples])
-    hr = np.array([s.hr_value for s in segment_samples])
+    # Extract segment
+    t = np.arange(0, actual_end - start_sec + 1, dtype=float)
+    hr = hr_array[start_sec:actual_end + 1].copy()
     
-    a0 = hr[0] - hr[-1]
-    tau0 = 30.0
-    c0 = hr[-1]
+    if len(hr) < 10:
+        return None
     
+    # Multiple attempts with different strategies
+    strategies = [
+        # Strategy 1: Standard initial guess
+        {'p0': [max(hr[0] - hr[-1], 1.0), 30.0, hr[-1]], 'maxfev': 2000},
+        # Strategy 2: Longer tau guess
+        {'p0': [max(hr[0] - hr[-1], 1.0), 60.0, hr[-1]], 'maxfev': 2000},
+        # Strategy 3: Use median for asymptote
+        {'p0': [max(hr[0] - np.median(hr), 1.0), 45.0, np.median(hr)], 'maxfev': 2000},
+        # Strategy 4: Very conservative
+        {'p0': [20.0, 40.0, hr[-1]], 'maxfev': 3000},
+    ]
+    
+    for strategy in strategies:
+        try:
+            popt, _ = curve_fit(
+                exponential_decay,
+                t, hr,
+                p0=strategy['p0'],
+                bounds=([0, 1, 30], [200, 300, 200]),
+                maxfev=strategy['maxfev'],
+                method='trf'  # Trust Region Reflective - more robust
+            )
+            
+            hr_pred = exponential_decay(t, *popt)
+            ss_res = np.sum((hr - hr_pred) ** 2)
+            ss_tot = np.sum((hr - np.mean(hr)) ** 2)
+            
+            if ss_tot == 0:
+                return 0.0  # Flat line
+            
+            return 1 - (ss_res / ss_tot)
+            
+        except (RuntimeError, ValueError):
+            continue  # Try next strategy
+    
+    # All strategies failed - compute R² using fixed parameters as last resort
+    # This ensures we ALWAYS return a value if data exists
     try:
-        popt, _ = curve_fit(
-            exponential_decay,
-            t, hr,
-            p0=[a0, tau0, c0],
-            bounds=([0, 1, 30], [200, 300, 200]),
-            maxfev=500
-        )
+        # Use simple heuristic: tau=30, asymptote=min(hr), amplitude=hr[0]-asymptote
+        c_guess = np.min(hr)
+        a_guess = hr[0] - c_guess
+        tau_guess = 30.0
         
-        hr_pred = exponential_decay(t, *popt)
+        hr_pred = exponential_decay(t, a_guess, tau_guess, c_guess)
         ss_res = np.sum((hr - hr_pred) ** 2)
         ss_tot = np.sum((hr - np.mean(hr)) ** 2)
         
-        return 1 - (ss_res / ss_tot) if ss_tot > 0 else 0
+        if ss_tot == 0:
+            return 0.0
+        
+        r2 = 1 - (ss_res / ss_tot)
+        # R² can be negative if model is worse than mean
+        return r2
         
     except Exception:
+        # Absolute last resort - data exists but nothing works
+        return 0.0
+
+
+def fit_segment_r2(samples: List[HRSample], start_sec: int, end_sec: int, 
+                   config: HRRConfig) -> Optional[float]:
+    """
+    LEGACY WRAPPER: Fit exponential to a segment and return R².
+    Now delegates to impute_hr_series + fit_window_r2 for consistency.
+    """
+    hr_array, actual_length = impute_hr_series(samples, max_seconds=end_sec + 10)
+    if actual_length < start_sec:
         return None
+    return fit_window_r2(hr_array, start_sec, end_sec)
 
 
 def compute_late_slope(samples: List[HRSample], start_sec: int = 90, 
@@ -997,22 +1171,36 @@ def compute_late_slope(samples: List[HRSample], start_sec: int = 90,
     """
     Compute linear slope for late recovery (90-120s).
     Returns (slope_bpm_per_sec, r2).
+    
+    Uses 70% threshold - computes if we have at least 70% of window.
     """
     if len(samples) < 5:
         return None, None
     
     t0 = samples[0].timestamp
+    max_sample_time = max((s.timestamp - t0).total_seconds() for s in samples)
+    
+    # Need 70% of window to compute
+    window_size = end_sec - start_sec
+    min_required = start_sec + window_size * 0.70
+    if max_sample_time < min_required:
+        return None, None
+    
+    # Actual end is min of requested and available
+    actual_end = min(end_sec, int(max_sample_time))
     
     # Filter samples to segment
     t_list = []
     hr_list = []
     for s in samples:
         elapsed = (s.timestamp - t0).total_seconds()
-        if start_sec <= elapsed <= end_sec:
+        if start_sec <= elapsed <= actual_end:
             t_list.append(elapsed)
             hr_list.append(s.hr_value)
     
-    if len(t_list) < 10:
+    # Need at least 70% coverage
+    expected_points = actual_end - start_sec + 1
+    if len(t_list) < expected_points * 0.70 or len(t_list) < 10:
         return None, None
     
     t = np.array(t_list)
@@ -1058,71 +1246,29 @@ def compute_features(interval: RecoveryInterval, config: HRRConfig,
     effective_peak = onset_hr if onset_delay > 0 else interval.hr_peak
     
     # Build time-indexed HR lookup (from original peak, not onset)
+    # NOTE: This is used for pre-R² calculations. The imputed array in R² section
+    # will override hr_Xs values with extended data.
     t0 = samples[0].timestamp
     hr_at_time = {}
     for s in samples:
         elapsed = int((s.timestamp - t0).total_seconds())
         hr_at_time[elapsed] = s.hr_value
     
-    # HR at specific timepoints (adjusted for onset delay)
-    # If onset_delay=15s, then "60s of recovery" means t=75s from peak
-    target_60s = 60 + onset_delay
-    interval.hr_30s = hr_at_time.get(30 + onset_delay)
-    interval.hr_60s = hr_at_time.get(target_60s)
-    interval.hr_90s = hr_at_time.get(90 + onset_delay)
-    interval.hr_120s = hr_at_time.get(120 + onset_delay)
-    interval.hr_180s = hr_at_time.get(180 + onset_delay)
-    interval.hr_240s = hr_at_time.get(240 + onset_delay)
-    interval.hr_300s = hr_at_time.get(300 + onset_delay)
-    interval.hr_nadir = min(s.hr_value for s in samples)
-    
     # Debug: log interval details
     max_time = max(hr_at_time.keys()) if hr_at_time else 0
     logger.debug(f"Interval #{interval.interval_order}: duration={interval.duration_seconds}s, "
-                f"onset={onset_delay}s, target_60s=t{target_60s}, max_t={max_time}, "
-                f"hr_60s={interval.hr_60s}, nadir={interval.hr_nadir}")
+                f"onset={onset_delay}s, max_t={max_time}")
     
-    # Absolute drops (from effective peak, accounting for onset)
-    if interval.hr_30s:
-        interval.hrr30_abs = effective_peak - interval.hr_30s
-    if interval.hr_60s:
-        interval.hrr60_abs = effective_peak - interval.hr_60s
-    if interval.hr_90s:
-        interval.hrr90_abs = effective_peak - interval.hr_90s
-    if interval.hr_120s:
-        interval.hrr120_abs = effective_peak - interval.hr_120s
-    if interval.hr_180s:
-        interval.hrr180_abs = effective_peak - interval.hr_180s
-    if interval.hr_240s:
-        interval.hrr240_abs = effective_peak - interval.hr_240s
-    if interval.hr_300s:
-        interval.hrr300_abs = effective_peak - interval.hr_300s
-    
-    interval.total_drop = effective_peak - interval.hr_nadir
-    
-    # Normalized metrics (use effective peak for reserve calculation)
+    # Normalized metrics and flags (computed here, HRR values computed in R² section)
     if interval.rhr_baseline:
         interval.hr_reserve = effective_peak - interval.rhr_baseline
-        
-        if interval.hr_reserve > 0:
-            if interval.hrr30_abs:
-                interval.hrr30_frac = interval.hrr30_abs / interval.hr_reserve
-            if interval.hrr60_abs:
-                interval.hrr60_frac = interval.hrr60_abs / interval.hr_reserve
-            if interval.hrr90_abs:
-                interval.hrr90_frac = interval.hrr90_abs / interval.hr_reserve
-            if interval.hrr120_abs:
-                interval.hrr120_frac = interval.hrr120_abs / interval.hr_reserve
-            
-            interval.recovery_ratio = interval.total_drop / interval.hr_reserve
-        
-        # Low signal flag
         interval.is_low_signal = interval.hr_reserve < config.low_signal_threshold_bpm
     
     # Peak as % of max
     interval.peak_pct_max = effective_peak / estimated_max_hr
     
     # Exponential decay fit (from onset point, not original peak)
+    # Use interval samples for tau/amplitude fit
     if onset_delay > 0 and onset_delay < len(samples):
         onset_samples = samples[onset_delay:]
     else:
@@ -1134,17 +1280,117 @@ def compute_features(interval: RecoveryInterval, config: HRRConfig,
     interval.fit_amplitude = fit_result.amplitude
     interval.fit_asymptote = fit_result.asymptote
     
-    # === Segment R² analysis (from onset-adjusted samples) ===
-    interval.r2_0_30 = fit_segment_r2(onset_samples, 0, 30, config)
-    interval.r2_30_60 = fit_segment_r2(onset_samples, 30, 60, config)
+    # === R² COMPUTATION (ALL WINDOWS, UNCONDITIONALLY) ===
+    # Compute R² for every window where data exists. No cascade, no gating.
+    # The threshold only determines which HRR DROPS to trust, not what to compute.
+    
+    # Get extended samples adjusted for onset
+    r2_samples = interval.r2_samples if interval.r2_samples else samples
+    if onset_delay > 0 and onset_delay < len(r2_samples):
+        onset_r2_samples = r2_samples[onset_delay:]
+    else:
+        onset_r2_samples = r2_samples
+    
+    # DEBUG: Log sample counts
+    logger.debug(f"Interval #{interval.interval_order}: samples={len(samples)}, "
+                f"r2_samples={len(r2_samples)}, onset_delay={onset_delay}, "
+                f"onset_r2_samples={len(onset_r2_samples)}")
+    
+    # Impute the full HR series ONCE (linear interpolation)
+    hr_array, actual_length = impute_hr_series(onset_r2_samples, max_seconds=300)
+    
+    logger.debug(f"Interval #{interval.interval_order}: hr_array length={len(hr_array)}, "
+                f"actual_length={actual_length}")
+    
+    if actual_length < 30:
+        logger.debug(f"Interval #{interval.interval_order}: insufficient data after onset ({actual_length}s)")
+        return interval
+    
+    # === HR VALUES FROM IMPUTED ARRAY ===
+    def get_hr_at(sec):
+        if sec < len(hr_array):
+            return int(round(hr_array[sec]))
+        return None
+    
+    interval.hr_30s = get_hr_at(30)
+    interval.hr_60s = get_hr_at(60)
+    interval.hr_90s = get_hr_at(90)
+    interval.hr_120s = get_hr_at(120)
+    interval.hr_180s = get_hr_at(180)
+    interval.hr_240s = get_hr_at(240)
+    interval.hr_300s = get_hr_at(300)
+    interval.hr_nadir = int(np.min(hr_array[:actual_length+1])) if actual_length > 0 else None
+    
+    # === R² FOR ALL WINDOWS (no cascade, compute everything) ===
+    interval.r2_0_30 = fit_window_r2(hr_array, 0, 30)
+    interval.r2_30_60 = fit_window_r2(hr_array, 30, 60)
+    interval.r2_30_90 = fit_window_r2(hr_array, 30, 90)
+    interval.r2_0_60 = fit_window_r2(hr_array, 0, 60)
+    interval.r2_0_120 = fit_window_r2(hr_array, 0, 120)
+    interval.r2_0_180 = fit_window_r2(hr_array, 0, 180)
+    interval.r2_0_240 = fit_window_r2(hr_array, 0, 240)
+    interval.r2_0_300 = fit_window_r2(hr_array, 0, 300)
+    
     if interval.r2_0_30 is not None and interval.r2_30_60 is not None:
         interval.r2_delta = interval.r2_0_30 - interval.r2_30_60
     
-    # === Late slope (90-120s) for HRR120 intervals ===
-    if interval.duration_seconds >= 120:
-        slope, slope_r2 = compute_late_slope(onset_samples, 90, 120)
-        interval.slope_90_120 = slope
-        interval.slope_90_120_r2 = slope_r2
+    # === DETECTED SEGMENT R² ===
+    detected_duration = interval.duration_seconds - onset_delay
+    if detected_duration > 30 and detected_duration <= actual_length:
+        interval.r2_detected = fit_window_r2(hr_array, 0, detected_duration)
+        if detected_duration < len(hr_array):
+            interval.hr_detected = int(round(hr_array[detected_duration]))
+            if interval.r2_detected is not None and interval.r2_detected >= R2_THRESHOLD:
+                interval.hrr_detected = effective_peak - interval.hr_detected
+    
+    # === 90-120 SLOPE ===
+    slope, slope_r2 = compute_late_slope(onset_r2_samples, 90, 120)
+    interval.slope_90_120 = slope
+    interval.slope_90_120_r2 = slope_r2
+    
+    # === HRR DROPS (R²-gated) ===
+    # Compute HRR only where corresponding R² >= 0.75
+    
+    if interval.hr_60s is not None and interval.r2_0_60 is not None and interval.r2_0_60 >= R2_THRESHOLD:
+        interval.hrr60_abs = effective_peak - interval.hr_60s
+    
+    if interval.hr_120s is not None and interval.r2_0_120 is not None and interval.r2_0_120 >= R2_THRESHOLD:
+        interval.hrr120_abs = effective_peak - interval.hr_120s
+    
+    if interval.hr_180s is not None and interval.r2_0_180 is not None and interval.r2_0_180 >= R2_THRESHOLD:
+        interval.hrr180_abs = effective_peak - interval.hr_180s
+    
+    if interval.hr_240s is not None and interval.r2_0_240 is not None and interval.r2_0_240 >= R2_THRESHOLD:
+        interval.hrr240_abs = effective_peak - interval.hr_240s
+    
+    if interval.hr_300s is not None and interval.r2_0_300 is not None and interval.r2_0_300 >= R2_THRESHOLD:
+        interval.hrr300_abs = effective_peak - interval.hr_300s
+    
+    # HRR30/HRR90 gated by r2_0_60 (no dedicated window)
+    if interval.r2_0_60 is not None and interval.r2_0_60 >= R2_THRESHOLD:
+        if interval.hr_30s is not None:
+            interval.hrr30_abs = effective_peak - interval.hr_30s
+        if interval.hr_90s is not None:
+            interval.hrr90_abs = effective_peak - interval.hr_90s
+    
+    # Total drop (not gated - always useful)
+    if interval.hr_nadir is not None:
+        interval.total_drop = effective_peak - interval.hr_nadir
+    
+    # === FRACTIONAL HRR (only compute if absolute was set) ===
+    if interval.hr_reserve and interval.hr_reserve > 0:
+        if interval.hrr30_abs is not None:
+            interval.hrr30_frac = interval.hrr30_abs / interval.hr_reserve
+        if interval.hrr60_abs is not None:
+            interval.hrr60_frac = interval.hrr60_abs / interval.hr_reserve
+        if interval.hrr90_abs is not None:
+            interval.hrr90_frac = interval.hrr90_abs / interval.hr_reserve
+        if interval.hrr120_abs is not None:
+            interval.hrr120_frac = interval.hrr120_abs / interval.hr_reserve
+        
+        # Recovery ratio (total_drop / reserve) - always compute
+        if interval.total_drop is not None:
+            interval.recovery_ratio = interval.total_drop / interval.hr_reserve
     
     # Linear slopes
     hr_values = np.array([s.hr_value for s in samples])
@@ -1236,6 +1482,79 @@ def compute_features(interval: RecoveryInterval, config: HRRConfig,
 
 
 # =============================================================================
+# Summary Output
+# =============================================================================
+
+def print_summary_tables(intervals: List[RecoveryInterval], session_id: int):
+    """
+    Print three summary tables for quick review after processing.
+    
+    TABLE 1: Peaks (Identity + Context)
+    TABLE 2: R² by Window (Cascade)
+    TABLE 3: HRR Drops (Absolute bpm)
+    """
+    if not intervals:
+        print("\nNo intervals to display.")
+        return
+    
+    # Helper to format float or None
+    def fmt(val, decimals=3):
+        if val is None:
+            return '-'
+        return f"{val:.{decimals}f}"
+    
+    def fmt_int(val):
+        if val is None:
+            return '-'
+        return str(int(val))
+    
+    # Separator
+    print(f"\n{'='*80}")
+    print(f"SESSION {session_id} - HRR SUMMARY ({len(intervals)} intervals)")
+    print(f"{'='*80}")
+    
+    # TABLE 1: Peaks
+    print(f"\n--- TABLE 1: Peaks ---")
+    print(f"{'Ord':>3} {'Label':>10} {'Peak':>4} {'Dur':>4} {'Onset':>5} {'Conf':>6} {'Status':>8}")
+    print(f"{'-'*3:>3} {'-'*10:>10} {'-'*4:>4} {'-'*4:>4} {'-'*5:>5} {'-'*6:>6} {'-'*8:>8}")
+    for i in intervals:
+        onset = fmt_int(i.onset_delay_sec) if i.onset_delay_sec else '-'
+        conf = i.onset_confidence[:3] if i.onset_confidence else '-'
+        print(f"{i.interval_order:>3} {i.peak_label:>10} {i.hr_peak:>4} {i.duration_seconds:>4} {onset:>5} {conf:>6} {i.quality_status:>8}")
+    
+    # TABLE 2: R² by Window
+    print(f"\n--- TABLE 2: R² by Window ---")
+    print(f"{'Ord':>3} {'0-30':>6} {'0-60':>6} {'30-90':>6} {'slp90':>7} {'0-120':>6} {'0-180':>6} {'0-240':>6} {'0-300':>6} {'Det':>6}")
+    print(f"{'-'*3:>3} {'-'*6:>6} {'-'*6:>6} {'-'*6:>6} {'-'*7:>7} {'-'*6:>6} {'-'*6:>6} {'-'*6:>6} {'-'*6:>6} {'-'*6:>6}")
+    for i in intervals:
+        # Mark failures with * if < 0.75
+        def mark(val):
+            if val is None:
+                return '-'
+            s = f"{val:.3f}"
+            if val < 0.75:
+                return s + '*'
+            return s
+        
+        def fmt_slope(val):
+            if val is None:
+                return '-'
+            return f"{val:+.3f}"  # Show sign
+        
+        print(f"{i.interval_order:>3} {mark(i.r2_0_30):>6} {mark(i.r2_0_60):>6} {mark(i.r2_30_90):>6} {fmt_slope(i.slope_90_120):>7} {mark(i.r2_0_120):>6} {mark(i.r2_0_180):>6} {mark(i.r2_0_240):>6} {mark(i.r2_0_300):>6} {mark(i.r2_detected):>6}")
+    print(f"  (* = below 0.75, slp90 = 90-120s slope bpm/sec, Det = detected segment R²)")
+    
+    # TABLE 3: HRR Drops
+    print(f"\n--- TABLE 3: HRR Drops (bpm) ---")
+    print(f"{'Ord':>3} {'Peak':>4} {'HRR60':>6} {'HRR120':>6} {'HRR180':>6} {'HRR240':>6} {'HRR300':>6} {'HRRdet':>6} {'Total':>6}")
+    print(f"{'-'*3:>3} {'-'*4:>4} {'-'*6:>6} {'-'*6:>6} {'-'*6:>6} {'-'*6:>6} {'-'*6:>6} {'-'*6:>6} {'-'*6:>6}")
+    for i in intervals:
+        print(f"{i.interval_order:>3} {i.hr_peak:>4} {fmt_int(i.hrr60_abs):>6} {fmt_int(i.hrr120_abs):>6} {fmt_int(i.hrr180_abs):>6} {fmt_int(i.hrr240_abs):>6} {fmt_int(i.hrr300_abs):>6} {fmt_int(i.hrr_detected):>6} {fmt_int(i.total_drop):>6}")
+    
+    print(f"{'='*80}\n")
+
+
+# =============================================================================
 # Main Pipeline
 # =============================================================================
 
@@ -1282,6 +1601,10 @@ def process_session(conn, session_id: int, source: str,
     
     # Save to database
     save_intervals(conn, intervals_to_save, session_id, source, dry_run)
+    
+    # Print summary tables (always, unless dry_run)
+    if not dry_run:
+        print_summary_tables(intervals_to_save, session_id)
     
     # Log summary
     if valid_intervals:

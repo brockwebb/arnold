@@ -74,35 +74,19 @@ def load_stored_intervals(conn, session_id: int) -> List[dict]:
     This is the authoritative data - what hrr_batch.py wrote after detection.
     Gracefully handles missing columns for backward compatibility.
     """
-    # Try query with new columns first
+    # Query ALL columns for full QC visibility
     query = """
         SELECT 
-            id,
-            start_time,
-            end_time,
-            duration_seconds,
-            hr_peak,
-            hr_60s,
-            hr_120s,
-            hr_180s,
-            hr_300s,
-            hr_nadir,
-            hrr60_abs,
-            hrr120_abs,
-            hrr180_abs,
-            hrr300_abs,
-            tau_fit_r2,
-            r2_300,
-            is_clean,
-            actionable,
-            confidence,
-            stratum,
-            is_deliberate,
-            protocol_type,
-            interval_order,
-            quality_status,
-            quality_flags,
-            review_priority
+            id, start_time, end_time, duration_seconds,
+            hr_peak, hr_30s, hr_60s, hr_90s, hr_120s, hr_180s, hr_240s, hr_300s, hr_nadir, rhr_baseline,
+            hrr30_abs, hrr60_abs, hrr90_abs, hrr120_abs, hrr180_abs, hrr240_abs, hrr300_abs, total_drop,
+            hr_reserve, recovery_ratio,
+            tau_seconds, tau_fit_r2,
+            r2_0_30, r2_30_60, r2_delta,
+            slope_90_120, slope_90_120_r2,
+            onset_delay_sec, onset_confidence,
+            is_clean, actionable, confidence, stratum, is_deliberate, protocol_type,
+            interval_order, quality_status, quality_flags, quality_score, review_priority
         FROM hr_recovery_intervals
         WHERE polar_session_id = %s
         ORDER BY start_time
@@ -153,43 +137,55 @@ def load_stored_intervals(conn, session_id: int) -> List[dict]:
     
     intervals = []
     for idx, row in enumerate(rows):
-        interval = {
-            'id': row[0],
-            'start_time': row[1],
-            'end_time': row[2],
-            'duration_seconds': row[3],
-            'hr_peak': row[4],
-            'hr_60s': row[5],
-            'hr_120s': row[6],
-            'hr_180s': row[7],
-            'hr_300s': row[8],
-            'hr_nadir': row[9],
-            'hrr60_abs': row[10],
-            'hrr120_abs': row[11],
-            'hrr180_abs': row[12],
-            'hrr300_abs': row[13],
-            'tau_fit_r2': row[14],
-            'r2_300': row[15],
-            'is_clean': row[16],  # high_quality flag
-            'actionable': row[17],  # R² >= 0.75
-            'confidence': row[18],
-            'stratum': row[19],
-            'is_deliberate': row[20],
-            'protocol_type': row[21],
-        }
-        
-        # Add new columns if available, otherwise use fallback values
+        # Parse based on new column order
+        # id, start_time, end_time, duration_seconds,
+        # hr_peak, hr_30s, hr_60s, hr_90s, hr_120s, hr_180s, hr_240s, hr_300s, hr_nadir, rhr_baseline,
+        # hrr30_abs, hrr60_abs, hrr90_abs, hrr120_abs, hrr180_abs, hrr240_abs, hrr300_abs, total_drop,
+        # hr_reserve, recovery_ratio,
+        # tau_seconds, tau_fit_r2,
+        # r2_0_30, r2_30_60, r2_delta,
+        # slope_90_120, slope_90_120_r2,
+        # onset_delay_sec, onset_confidence,
+        # is_clean, actionable, confidence, stratum, is_deliberate, protocol_type,
+        # interval_order, quality_status, quality_flags, quality_score, review_priority
         if use_new_columns:
-            interval['interval_order'] = row[22]
-            interval['quality_status'] = row[23]
-            interval['quality_flags'] = row[24]
-            interval['review_priority'] = row[25]
+            interval = {
+                'id': row[0], 'start_time': row[1], 'end_time': row[2], 'duration_seconds': row[3],
+                'hr_peak': row[4], 'hr_30s': row[5], 'hr_60s': row[6], 'hr_90s': row[7],
+                'hr_120s': row[8], 'hr_180s': row[9], 'hr_240s': row[10], 'hr_300s': row[11],
+                'hr_nadir': row[12], 'rhr_baseline': row[13],
+                'hrr30_abs': row[14], 'hrr60_abs': row[15], 'hrr90_abs': row[16], 'hrr120_abs': row[17],
+                'hrr180_abs': row[18], 'hrr240_abs': row[19], 'hrr300_abs': row[20], 'total_drop': row[21],
+                'hr_reserve': row[22], 'recovery_ratio': row[23],
+                'tau_seconds': row[24], 'tau_fit_r2': row[25],
+                'r2_0_30': row[26], 'r2_30_60': row[27], 'r2_delta': row[28],
+                'slope_90_120': row[29], 'slope_90_120_r2': row[30],
+                'onset_delay_sec': row[31], 'onset_confidence': row[32],
+                'is_clean': row[33], 'actionable': row[34], 'confidence': row[35],
+                'stratum': row[36], 'is_deliberate': row[37], 'protocol_type': row[38],
+                'interval_order': row[39], 'quality_status': row[40], 'quality_flags': row[41],
+                'quality_score': row[42], 'review_priority': row[43],
+                'r2_30_90': None,  # Not in DB yet
+            }
         else:
-            # Generate fallback values
-            interval['interval_order'] = idx + 1  # 1-based index
-            interval['quality_status'] = None
-            interval['quality_flags'] = None
-            interval['review_priority'] = None
+            # Fallback for old schema
+            interval = {
+                'id': row[0], 'start_time': row[1], 'end_time': row[2], 'duration_seconds': row[3],
+                'hr_peak': row[4], 'hr_60s': row[5], 'hr_120s': row[6], 'hr_180s': row[7],
+                'hr_300s': row[8], 'hr_nadir': row[9],
+                'hrr60_abs': row[10], 'hrr120_abs': row[11], 'hrr180_abs': row[12], 'hrr300_abs': row[13],
+                'tau_fit_r2': row[14], 'is_clean': row[16], 'actionable': row[17],
+                'confidence': row[18], 'stratum': row[19], 'is_deliberate': row[20], 'protocol_type': row[21],
+                'interval_order': idx + 1,
+                # Fill in missing fields
+                'hr_30s': None, 'hr_90s': None, 'hr_240s': None, 'rhr_baseline': None,
+                'hrr30_abs': None, 'hrr90_abs': None, 'hrr240_abs': None, 'total_drop': None,
+                'hr_reserve': None, 'recovery_ratio': None, 'tau_seconds': None,
+                'r2_0_30': None, 'r2_30_60': None, 'r2_30_90': None, 'r2_delta': None,
+                'slope_90_120': None, 'slope_90_120_r2': None,
+                'onset_delay_sec': None, 'onset_confidence': None,
+                'quality_status': None, 'quality_flags': None, 'quality_score': None, 'review_priority': None,
+            }
         
         intervals.append(interval)
     
@@ -537,39 +533,121 @@ def plot_session_qc(
 
 
 def print_interval_details(intervals: List[dict], session_id: int):
-    """Print detailed table of stored intervals."""
-    print(f"\n{'='*115}")
-    print(f"Stored intervals for session {session_id}")
-    print(f"{'='*115}")
+    """Print detailed table of stored intervals with ALL QC metrics."""
+    print(f"\n{'='*200}")
+    print(f"Session {session_id} - FULL QC METRICS")
+    print(f"{'='*200}")
     
+    # Summary counts
     hrr300_ct = sum(1 for i in intervals if (i['duration_seconds'] or 0) >= 240 and i['hrr300_abs'] is not None)
     hrr120_ct = sum(1 for i in intervals if i['hrr120_abs'] is not None and (i['duration_seconds'] or 0) < 240)
     hrr60_ct = sum(1 for i in intervals if i['hrr60_abs'] is not None and i['hrr120_abs'] is None)
     actionable_ct = sum(1 for i in intervals if i['actionable'])
-    deliberate_ct = sum(1 for i in intervals if i.get('is_deliberate'))
     flagged_ct = sum(1 for i in intervals if i.get('quality_status') == 'flagged' or i.get('review_priority') == 1)
     
     print(f"Total: {len(intervals)} | HRR300: {hrr300_ct} | HRR120: {hrr120_ct} | HRR60: {hrr60_ct} | Actionable: {actionable_ct} | Flagged: {flagged_ct}")
     print()
-    
-    print(f"{'Label':<10} | {'Time':^8} | {'Dur':>4} | {'Peak':>4} | {'HRR60':>5} | {'HRR120':>6} | {'R²':>5} | {'Status':<8} | {'Pri':>3} | {'Flags'}")
-    print(f"{'-'*115}")
+    print("Gate thresholds: G2:reserve>=25 | G5:hrr60>=5 | G6:hr60-nadir<=15 | G7:tau<200,r²>=0.5,ratio>=10% | G8:r²_30-60>=0.75")
+    print()
     
     for interval in intervals:
-        peak_label = get_peak_label(session_id, interval)
-        time_str = interval['start_time'].strftime('%H:%M:%S') if interval['start_time'] else '?'
-        dur = interval['duration_seconds'] or '?'
-        peak = interval['hr_peak'] or '?'
-        hrr60 = interval['hrr60_abs'] or '-'
-        hrr120 = interval['hrr120_abs'] or '-'
-        r2 = f"{interval['tau_fit_r2']:.2f}" if interval['tau_fit_r2'] else '?'
+        label = get_peak_label(session_id, interval)
+        dur = interval['duration_seconds'] or 0
+        
+        # Basic info
+        print(f"--- {label} (dur={dur}s) ---")
+        
+        # HR values
+        pk = interval['hr_peak'] or '-'
+        h30 = interval.get('hr_30s') or '-'
+        h60 = interval.get('hr_60s') or '-'
+        h90 = interval.get('hr_90s') or '-'
+        h120 = interval.get('hr_120s') or '-'
+        h180 = interval.get('hr_180s') or '-'
+        h240 = interval.get('hr_240s') or '-'
+        h300 = interval.get('hr_300s') or '-'
+        nad = interval.get('hr_nadir') or '-'
+        rhr = interval.get('rhr_baseline') or '-'
+        
+        print(f"  HR:  peak={pk} | 30s={h30} | 60s={h60} | 90s={h90} | 120s={h120} | 180s={h180} | 240s={h240} | 300s={h300} | nadir={nad} | rhr={rhr}")
+        
+        # HRR values (absolute drops)
+        hrr30 = interval.get('hrr30_abs')
+        hrr60 = interval.get('hrr60_abs')
+        hrr90 = interval.get('hrr90_abs')
+        hrr120 = interval.get('hrr120_abs')
+        hrr180 = interval.get('hrr180_abs')
+        hrr240 = interval.get('hrr240_abs')
+        hrr300 = interval.get('hrr300_abs')
+        total = interval.get('total_drop')
+        
+        def fmt_hrr(v): return f"{v}" if v is not None else '-'
+        print(f"  HRR: 30={fmt_hrr(hrr30)} | 60={fmt_hrr(hrr60)} | 90={fmt_hrr(hrr90)} | 120={fmt_hrr(hrr120)} | 180={fmt_hrr(hrr180)} | 240={fmt_hrr(hrr240)} | 300={fmt_hrr(hrr300)} | total={fmt_hrr(total)}")
+        
+        # Gate metrics
+        rsv = interval.get('hr_reserve') or 0
+        ratio = interval.get('recovery_ratio')
+        tau = interval.get('tau_seconds')
+        tau_r2 = interval.get('tau_fit_r2')
+        
+        rsv_flag = '*' if rsv < 25 else ''
+        hrr60_flag = '*' if hrr60 is not None and hrr60 < 5 else ''
+        tau_flag = '*' if tau is not None and tau >= 200 else ''
+        tau_r2_flag = '*' if tau_r2 is not None and tau_r2 < 0.5 else ''
+        ratio_flag = '*' if ratio is not None and ratio < 0.10 else ''
+        
+        tau_s = f"{tau:.1f}" if tau is not None else '-'
+        tau_r2_s = f"{tau_r2:.3f}" if tau_r2 is not None else '-'
+        ratio_s = f"{ratio:.1%}" if ratio is not None else '-'
+        
+        # hr_60s - nadir check (G6)
+        hr_60s_val = interval.get('hr_60s')
+        nad_val = interval.get('hr_nadir')
+        diff_60_nad = (hr_60s_val - nad_val) if hr_60s_val and nad_val else None
+        diff_flag = '*' if diff_60_nad is not None and diff_60_nad > 15 and dur <= 120 else ''
+        diff_s = f"{diff_60_nad}" if diff_60_nad is not None else '-'
+        
+        print(f"  G2-7: reserve={rsv}{rsv_flag} | hrr60={fmt_hrr(hrr60)}{hrr60_flag} | 60-nad={diff_s}{diff_flag} | tau={tau_s}{tau_flag} | tau_r²={tau_r2_s}{tau_r2_flag} | ratio={ratio_s}{ratio_flag}")
+        
+        # Segment R² (Gate 8)
+        r2_030 = interval.get('r2_0_30')
+        r2_3060 = interval.get('r2_30_60')
+        r2_3090 = interval.get('r2_30_90')
+        r2_delta = interval.get('r2_delta')
+        
+        r2_3060_flag = '*' if r2_3060 is not None and r2_3060 < 0.75 else ''
+        r2_3090_flag = '*' if r2_3090 is not None and r2_3090 < 0.75 else ''
+        
+        r2_030_s = f"{r2_030:.3f}" if r2_030 is not None else '-'
+        r2_3060_s = f"{r2_3060:.3f}" if r2_3060 is not None else '-'
+        r2_3090_s = f"{r2_3090:.3f}" if r2_3090 is not None else '-'
+        r2_delta_s = f"{r2_delta:+.3f}" if r2_delta is not None else '-'
+        
+        print(f"  G8:  r²_0-30={r2_030_s} | r²_30-60={r2_3060_s}{r2_3060_flag} | r²_30-90={r2_3090_s}{r2_3090_flag} | delta={r2_delta_s}")
+        
+        # Onset & other
+        ons = interval.get('onset_delay_sec') or 0
+        ons_conf = interval.get('onset_confidence') or '-'
+        slope = interval.get('slope_90_120')
+        slope_r2 = interval.get('slope_90_120_r2')
+        
+        slope_s = f"{slope:.4f}" if slope is not None else '-'
+        slope_r2_s = f"{slope_r2:.3f}" if slope_r2 is not None else '-'
+        
+        print(f"  Other: onset={ons}s({ons_conf}) | slope_90-120={slope_s} (r²={slope_r2_s})")
+        
+        # Quality
         status = interval.get('quality_status') or '?'
-        priority = interval.get('review_priority') or '?'
         flags = interval.get('quality_flags') or ''
         if isinstance(flags, list):
             flags = '|'.join(flags)
+        score = interval.get('quality_score')
+        score_s = f"{score:.2f}" if score is not None else '-'
         
-        print(f"{peak_label:<10} | {time_str:^8} | {dur:>4} | {peak:>4} | {hrr60:>5} | {hrr120:>6} | {r2:>5} | {status:<8} | {priority:>3} | {flags}")
+        print(f"  QC:  status={status} | score={score_s} | flags={flags if flags else 'none'}")
+        print()
+    
+    print(f"* = fails gate threshold")
 
 
 def main():

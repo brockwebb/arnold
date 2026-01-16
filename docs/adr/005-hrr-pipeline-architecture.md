@@ -283,6 +283,7 @@ Refer to medical review if:
 
 ## Changelog
 
+- 2026-01-16: **R² Computation Strategy** — Compute ALL R² windows unconditionally where data exists (≥10 samples). Rationale: (1) calculations are cheap, (2) prevents silent failures where curve_fit exceptions returned None, (3) longer windows can recover validity even when shorter windows fail (e.g., 0-60 R²=0.54 but 0-120 R²=0.84), (4) aligns with "no blank cells" philosophy where NULL means "insufficient data" not "fit failed." R² values below threshold are marked with * in reports, HRR drops only populated where R² ≥ 0.75. Added `r2_detected`, `hr_detected`, `hrr_detected` fields for organic interval duration.
 - 2026-01-12: Removed winsorization — high outliers confirmed real, use median-based stats
 - 2026-01-12: Added data quality filtering section (R² ≥ 0.75)
 - 2026-01-12: Initial ADR documenting completed pipeline
