@@ -1,0 +1,134 @@
+# HRR Feature Extraction Configuration
+# See: docs/hrr_quality_gates.md, docs/issues/015-hrr-double-peak-detection.md
+
+# =============================================================================
+# Peak Detection (scipy.signal.find_peaks)
+# =============================================================================
+peak_detection:
+  min_elevation_bpm: 25        # Peak must be this far above RHR to count
+  min_sustained_effort_sec: 20 # Must be elevated for this long before peak
+  peak_prominence: 10          # scipy.signal.find_peaks prominence
+  peak_distance_sec: 5         # Minimum seconds between peaks (permissive)
+
+# =============================================================================
+# Valley-Based Peak Discovery (Issue #020)
+# Complements scipy peak detection by finding plateau-to-decline patterns
+# =============================================================================
+valley_detection:
+  lookback_window_sec: 120     # How far back to search for peak before valley (2 min)
+  min_drop_bpm: 12             # Minimum HR drop from peak to valley
+  valley_prominence: 10        # scipy.signal.find_peaks prominence for valleys
+  valley_distance_sec: 60      # Minimum seconds between valleys
+  local_peak_prominence: 5     # Prominence for finding local peaks in lookback window
+  local_peak_distance_sec: 10  # Minimum distance between local peaks in window
+
+# =============================================================================
+# Recovery Interval
+# =============================================================================
+recovery_interval:
+  min_decline_duration_sec: 30   # Minimum recovery duration to record
+  max_interval_duration_sec: 300 # Cap at 5 minutes
+  decline_tolerance_bpm: 3       # Allow small rises within this range
+
+# =============================================================================
+# Quality Thresholds (Soft)
+# =============================================================================
+quality:
+  low_signal_threshold_bpm: 25   # hr_reserve below this = LOW_SIGNAL flag
+  min_sample_completeness: 0.8   # Require 80% of expected samples
+  min_hrr60_abs: 5               # Minimum absolute drop to count as real recovery
+  min_recovery_ratio: 0.10       # At least 10% of available drop
+
+# =============================================================================
+# Tau (Exponential Decay) Fitting
+# =============================================================================
+tau_fitting:
+  tau_min_points: 20          # Need at least this many points for fit
+  tau_max_seconds: 300.0      # Cap tau at 5 minutes
+  tau_min_r2: 0.5             # Minimum R² to trust the fit
+
+# =============================================================================
+# Onset Detection
+# =============================================================================
+onset_detection:
+  onset_min_slope: -0.15      # bpm/sec - sustained decline threshold
+  onset_min_consecutive: 5    # consecutive seconds meeting slope threshold
+  onset_max_delay: 45         # max seconds to search for true max HR
+
+# =============================================================================
+# Athlete Defaults
+# FALLBACK ONLY - prefer values from athlete profile (Neo4j)
+# These are used when profile lookup fails or data is missing
+# =============================================================================
+athlete_defaults:
+  default_max_hr: 180         # Conservative default max HR
+  default_resting_hr: 55      # Fallback if no biometric reading for date
+
+# =============================================================================
+# Quality Gates (Hard Reject Criteria)
+# Each gate can have: threshold, enabled, description
+# =============================================================================
+gates:
+  # Gate: Double-peak detection (Issue #015)
+  # First 30s doesn't fit exponential = false start (plateau/rise before real recovery)
+  double_peak:
+    threshold: 0.5
+    enabled: true
+    description: "r2_0_30 < 0.5 indicates false start before true recovery"
+  
+  # Gate: Segment quality for HRR60 measurement
+  r2_30_60:
+    threshold: 0.75
+    enabled: true
+    description: "Second 30s segment validates HRR60 quality"
+  
+  # Gate: Segment quality for HRR90/120 measurement  
+  r2_30_90:
+    threshold: 0.75
+    enabled: true
+    description: "Mid-interval segment validates longer window quality"
+  
+  # Gate: Best overall window quality
+  poor_fit:
+    threshold: 0.75
+    enabled: true
+    description: "Best R² across all windows must exceed this"
+  
+  # Gate: Activity resumption detection
+  activity_resumed:
+    threshold: 0.1
+    enabled: true
+    description: "Positive slope in 90-120s window = person started moving"
+
+# =============================================================================
+# Quality Flags
+# enabled: whether to compute/store the flag
+# triggers_review: whether flag sets needs_review=true (for human review queue)
+# =============================================================================
+flags:
+  # Onset was adjusted from scipy detection point to true max HR
+  # Any onset_delay_sec > 0 triggers this
+  ONSET_ADJUSTED:
+    enabled: true
+    triggers_review: true
+    description: "Recovery start was adjusted from scipy detection point"
+  
+  # Minor late rise (0 < slope_90_120 <= 0.1)
+  # Could be noise or minor fidgeting, not full activity resumption
+  LATE_RISE:
+    enabled: true
+    triggers_review: true
+    description: "Minor HR rise in late window, might be fidgeting"
+  
+  # Onset detection methods disagree significantly
+  ONSET_DISAGREEMENT:
+    enabled: true
+    triggers_review: true
+    description: "Max-HR and slope methods disagree on recovery start"
+  
+  # Low HR reserve (peak wasn't far above resting)
+  # Less reliable but still potentially useful data
+  LOW_SIGNAL:
+    enabled: true
+    triggers_review: false
+    description: "Low HR reserve, less reliable signal"

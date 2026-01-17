@@ -16,7 +16,7 @@ import argparse
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Dict, Any
 import numpy as np
 from scipy import signal
 from scipy.optimize import curve_fit
@@ -24,6 +24,7 @@ import psycopg2
 from psycopg2.extras import execute_values
 import os
 from pathlib import Path
+import yaml
 
 # Configure logging
 logging.basicConfig(
@@ -41,15 +42,27 @@ load_dotenv(Path(__file__).parent.parent / '.env')
 # Configuration
 # =============================================================================
 
+def load_config_yaml() -> Dict[str, Any]:
+    """Load configuration from YAML file, return empty dict if not found."""
+    config_path = Path(__file__).parent.parent / 'config' / 'hrr_extraction.yaml'
+    if config_path.exists():
+        with open(config_path) as f:
+            return yaml.safe_load(f)
+    return {}
+
+
 @dataclass
 class HRRConfig:
-    """Configuration for HRR detection and feature extraction."""
+    """Configuration for HRR detection and feature extraction.
+    
+    Loads from config/hrr_extraction.yaml if available, else uses defaults.
+    """
     
     # Peak detection
     min_elevation_bpm: int = 25  # Peak must be this far above RHR to count
     min_sustained_effort_sec: int = 20  # Must be elevated for this long before peak
     peak_prominence: int = 10  # scipy.signal.find_peaks prominence
-    peak_distance_sec: int = 5  # Minimum seconds between peaks (permissive - let quality gates filter)
+    peak_distance_sec: int = 5  # Minimum seconds between peaks (permissive)
     
     # Recovery interval
     min_decline_duration_sec: int = 30  # Minimum recovery duration to record
@@ -70,10 +83,118 @@ class HRRConfig:
     # Delayed onset detection (catch-breath phase)
     onset_min_slope: float = -0.15  # bpm/sec - sustained decline threshold
     onset_min_consecutive: int = 5  # consecutive seconds meeting slope threshold
-    onset_max_delay: int = 45  # max seconds for max-HR method (sliding window searches full interval)
+    onset_max_delay: int = 45  # max seconds for max-HR method
     
     # Estimated max HR (can be overridden per-athlete)
     default_max_hr: int = 180  # Conservative default
+    
+    # Valley detection (Issue #020)
+    valley_lookback_sec: int = 120  # How far back to search for peak before valley
+    valley_min_drop_bpm: int = 12   # Minimum HR drop from peak to valley
+    valley_prominence: int = 10     # Prominence for finding valleys
+    valley_distance_sec: int = 60   # Minimum seconds between valleys
+    valley_local_peak_prominence: int = 5   # Prominence for local peaks in lookback
+    valley_local_peak_distance: int = 10    # Distance between local peaks
+    
+    # Gate thresholds (from YAML)
+    gate_r2_0_30_threshold: float = 0.5   # double_peak detection
+    gate_r2_30_60_threshold: float = 0.75
+    gate_r2_30_90_threshold: float = 0.75
+    gate_best_r2_threshold: float = 0.75
+    gate_slope_90_120_threshold: float = 0.1
+    
+    # Flag configuration (from YAML)
+    flags_config: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    
+    @classmethod
+    def from_yaml(cls) -> 'HRRConfig':
+        """Load config from YAML file."""
+        yaml_config = load_config_yaml()
+        
+        kwargs = {}
+        
+        # Peak detection
+        if 'peak_detection' in yaml_config:
+            pd = yaml_config['peak_detection']
+            kwargs['min_elevation_bpm'] = pd.get('min_elevation_bpm', 25)
+            kwargs['min_sustained_effort_sec'] = pd.get('min_sustained_effort_sec', 20)
+            kwargs['peak_prominence'] = pd.get('peak_prominence', 10)
+            kwargs['peak_distance_sec'] = pd.get('peak_distance_sec', 5)
+        
+        # Recovery interval
+        if 'recovery_interval' in yaml_config:
+            ri = yaml_config['recovery_interval']
+            kwargs['min_decline_duration_sec'] = ri.get('min_decline_duration_sec', 30)
+            kwargs['max_interval_duration_sec'] = ri.get('max_interval_duration_sec', 300)
+            kwargs['decline_tolerance_bpm'] = ri.get('decline_tolerance_bpm', 3)
+        
+        # Quality thresholds
+        if 'quality' in yaml_config:
+            q = yaml_config['quality']
+            kwargs['low_signal_threshold_bpm'] = q.get('low_signal_threshold_bpm', 25)
+            kwargs['min_sample_completeness'] = q.get('min_sample_completeness', 0.8)
+            kwargs['min_hrr60_abs'] = q.get('min_hrr60_abs', 5)
+            kwargs['min_recovery_ratio'] = q.get('min_recovery_ratio', 0.10)
+        
+        # Tau fitting
+        if 'tau_fitting' in yaml_config:
+            tf = yaml_config['tau_fitting']
+            kwargs['tau_min_points'] = tf.get('tau_min_points', 20)
+            kwargs['tau_max_seconds'] = tf.get('tau_max_seconds', 300.0)
+            kwargs['tau_min_r2'] = tf.get('tau_min_r2', 0.5)
+        
+        # Onset detection
+        if 'onset_detection' in yaml_config:
+            od = yaml_config['onset_detection']
+            kwargs['onset_min_slope'] = od.get('onset_min_slope', -0.15)
+            kwargs['onset_min_consecutive'] = od.get('onset_min_consecutive', 5)
+            kwargs['onset_max_delay'] = od.get('onset_max_delay', 45)
+        
+        # Athlete defaults
+        if 'athlete_defaults' in yaml_config:
+            ad = yaml_config['athlete_defaults']
+            kwargs['default_max_hr'] = ad.get('default_max_hr', 180)
+        
+        # Valley detection (Issue #020)
+        if 'valley_detection' in yaml_config:
+            vd = yaml_config['valley_detection']
+            kwargs['valley_lookback_sec'] = vd.get('lookback_window_sec', 120)
+            kwargs['valley_min_drop_bpm'] = vd.get('min_drop_bpm', 12)
+            kwargs['valley_prominence'] = vd.get('valley_prominence', 10)
+            kwargs['valley_distance_sec'] = vd.get('valley_distance_sec', 60)
+            kwargs['valley_local_peak_prominence'] = vd.get('local_peak_prominence', 5)
+            kwargs['valley_local_peak_distance'] = vd.get('local_peak_distance_sec', 10)
+        
+        # Gate thresholds
+        if 'gates' in yaml_config:
+            gates = yaml_config['gates']
+            if 'double_peak' in gates:
+                kwargs['gate_r2_0_30_threshold'] = gates['double_peak'].get('threshold', 0.5)
+            if 'r2_30_60' in gates:
+                kwargs['gate_r2_30_60_threshold'] = gates['r2_30_60'].get('threshold', 0.75)
+            if 'r2_30_90' in gates:
+                kwargs['gate_r2_30_90_threshold'] = gates['r2_30_90'].get('threshold', 0.75)
+            if 'poor_fit' in gates:
+                kwargs['gate_best_r2_threshold'] = gates['poor_fit'].get('threshold', 0.75)
+            if 'activity_resumed' in gates:
+                kwargs['gate_slope_90_120_threshold'] = gates['activity_resumed'].get('threshold', 0.1)
+        
+        # Flag configuration
+        kwargs['flags_config'] = yaml_config.get('flags', {})
+        
+        return cls(**kwargs)
+    
+    def is_flag_enabled(self, flag_name: str) -> bool:
+        """Check if a flag is enabled in config."""
+        if flag_name in self.flags_config:
+            return self.flags_config[flag_name].get('enabled', True)
+        return True  # Default to enabled
+    
+    def flag_triggers_review(self, flag_name: str) -> bool:
+        """Check if a flag should trigger human review."""
+        if flag_name in self.flags_config:
+            return self.flags_config[flag_name].get('triggers_review', True)
+        return True  # Default to triggering review
     
 
 # =============================================================================
@@ -438,6 +559,112 @@ def validate_peak(samples: List[HRSample], peak_idx: int, resting_hr: int, confi
 
 
 # =============================================================================
+# Valley-Based Peak Discovery (Issue #020)
+# =============================================================================
+
+def detect_valley_peaks(samples: List[HRSample], resting_hr: int, config: HRRConfig) -> List[int]:
+    """
+    Discover recovery intervals by finding valleys (local minima) in HR,
+    then looking back to find the corresponding peak.
+    
+    This complements scipy peak detection by catching plateau-to-decline
+    patterns that lack prominence but represent real recoveries.
+    
+    Returns list of peak indices (to feed into same pipeline as detect_peaks).
+    """
+    if len(samples) < 120:  # Need enough data for meaningful valleys
+        return []
+    
+    hr_values = np.array([s.hr_value for s in samples])
+    
+    # Smooth to reduce noise
+    kernel = np.ones(5) / 5
+    hr_smooth = np.convolve(hr_values, kernel, mode='same')
+    
+    # Find valleys (invert signal, find peaks)
+    valleys, _ = signal.find_peaks(
+        -hr_smooth, 
+        prominence=config.valley_prominence, 
+        distance=config.valley_distance_sec
+    )
+    
+    peak_indices = []
+    
+    for valley_idx in valleys:
+        valley_hr = hr_values[valley_idx]
+        
+        # Look back to find the MOST RECENT peak before this valley
+        # (Not absolute max - that finds older, irrelevant peaks)
+        lookback = min(valley_idx, config.valley_lookback_sec)
+        search_start = valley_idx - lookback
+        search_window = hr_smooth[search_start:valley_idx]
+        
+        if len(search_window) < 30:
+            continue
+        
+        # Find local peaks in the search window
+        local_peaks, _ = signal.find_peaks(
+            search_window, 
+            prominence=config.valley_local_peak_prominence, 
+            distance=config.valley_local_peak_distance
+        )
+        
+        if len(local_peaks) == 0:
+            # No prominent peaks - fall back to simple max
+            local_max_idx = np.argmax(search_window)
+            max_idx = search_start + local_max_idx
+        else:
+            # Use the LAST (most recent) local peak before the valley
+            last_peak = local_peaks[-1]
+            max_idx = search_start + last_peak
+        
+        max_hr = hr_values[max_idx]
+        drop = max_hr - valley_hr
+        
+        # Validate: must be elevated and have real drop
+        if max_hr < resting_hr + config.min_elevation_bpm:
+            continue
+        if drop < config.valley_min_drop_bpm:
+            continue
+        
+        peak_indices.append(max_idx)
+    
+    return peak_indices
+
+
+def merge_peak_candidates(
+    peak_detected: List[int],
+    valley_detected: List[int],
+    samples: List[HRSample],
+    config: HRRConfig
+) -> List[int]:
+    """
+    Merge peak-detected and valley-detected candidates.
+    
+    Rules:
+    1. Peak detection takes priority (proven method)
+    2. Valley candidates are added only if not near existing peak
+    3. Final list is sorted by time
+    4. Measurement window constraint enforced in extract_features loop
+    """
+    # Start with peak-detected (priority)
+    all_candidates = set(peak_detected)
+    
+    # Add valley-detected if not within 30s of any peak-detected
+    for valley_peak in valley_detected:
+        is_duplicate = False
+        for peak in peak_detected:
+            if abs(valley_peak - peak) <= 30:
+                is_duplicate = True
+                break
+        if not is_duplicate:
+            all_candidates.add(valley_peak)
+    
+    # Sort by time
+    return sorted(all_candidates)
+
+
+# =============================================================================
 # Recovery Interval Detection
 # =============================================================================
 
@@ -488,7 +715,11 @@ def detect_onset_maxhr(samples: List[HRSample], start_idx: int, end_idx: int, co
     hr_values = [s.hr_value for s in interval_samples]
     
     # Find max HR within the interval (may not be at start due to catch-breath)
-    max_hr_idx = np.argmax(hr_values)
+    # Use LAST occurrence of max to find end of plateau (Issue #015)
+    # np.argmax returns first occurrence, but we want end of flat/rising section
+    max_hr = max(hr_values)
+    max_indices = [i for i, hr in enumerate(hr_values) if hr == max_hr]
+    max_hr_idx = max_indices[-1] if max_indices else 0
     onset_delay = max_hr_idx  # seconds from interval start
     
     # Cap the delay
@@ -890,21 +1121,34 @@ def extract_features(
         logger.warning(f"Insufficient samples: {len(samples)}")
         return []
     
-    # Detect peaks
+    # Detect peaks (primary method)
     peak_indices = detect_peaks(samples, config)
-    logger.info(f"Found {len(peak_indices)} candidate peaks")
+    logger.info(f"Found {len(peak_indices)} candidate peaks (scipy)")
+    
+    # Detect valley-based peaks (Issue #020 - catches plateau-to-decline)
+    valley_peaks = detect_valley_peaks(samples, resting_hr, config)
+    logger.info(f"Found {len(valley_peaks)} candidate peaks (valley)")
+    
+    # Merge candidates (peak detection takes priority)
+    all_candidates = merge_peak_candidates(peak_indices, valley_peaks, samples, config)
+    logger.info(f"Merged to {len(all_candidates)} unique candidates")
     
     # Filter valid peaks
     valid_peaks = [
-        idx for idx in peak_indices
+        idx for idx in all_candidates
         if validate_peak(samples, idx, resting_hr, config)
     ]
     logger.info(f"Validated {len(valid_peaks)} peaks")
     
     intervals = []
     interval_order = 1
+    last_interval_end = -1  # Track end of previous interval for measurement window constraint
     
     for peak_idx in valid_peaks:
+        # Measurement window constraint: new peak can't start within previous interval
+        if peak_idx <= last_interval_end:
+            continue
+        
         # Find recovery end
         end_idx = find_recovery_end(samples, peak_idx, config)
         if end_idx is None:
@@ -918,8 +1162,12 @@ def extract_features(
         if interval is None:
             continue
         
-        # Get samples for this interval
-        interval_samples = samples[peak_idx:end_idx + 1]
+        # Get samples for this interval - use onset-adjusted start (Issue #015)
+        # The interval already has onset_delay_sec computed by create_recovery_interval()
+        # This ensures R² is computed from the true max HR, not scipy's detection point
+        onset_offset = interval.onset_delay_sec or 0
+        adjusted_start_idx = peak_idx + onset_offset
+        interval_samples = samples[adjusted_start_idx:end_idx + 1]
         
         # Fit exponential decay
         interval = fit_exponential_decay(interval_samples, interval, config)
@@ -935,6 +1183,27 @@ def extract_features(
         
         intervals.append(interval)
         interval_order += 1
+        
+        # Update measurement window constraint tracker
+        last_interval_end = end_idx
+    
+    # Overlap detection (Issue #015)
+    # If interval N's window overlaps interval N+1's, reject N as duplicate
+    # This catches cases where onset adjustment collapses one peak onto the next
+    for i in range(len(intervals) - 1):
+        curr = intervals[i]
+        next_int = intervals[i + 1]
+        
+        # Check if current interval's end overlaps next interval's start
+        # Or if current's adjusted start >= next's adjusted start (collapsed past it)
+        if curr.start_time >= next_int.start_time:
+            # Current interval collapsed onto next one - reject as duplicate
+            curr.quality_status = 'rejected'
+            curr.auto_reject_reason = 'overlap_duplicate'
+            curr.needs_review = False
+            curr.review_priority = 0
+            if 'OVERLAP' not in curr.quality_flags:
+                curr.quality_flags.append('OVERLAP')
     
     logger.info(f"Extracted {len(intervals)} valid recovery intervals")
     return intervals
@@ -967,8 +1236,9 @@ def assess_quality(interval: RecoveryInterval, config: HRRConfig) -> RecoveryInt
         reject_reason = 'activity_resumed'
     
     # 2. Best segment R² < 0.75 = statistically validated junk threshold
-    # Find best R² across all windows
+    # Find best R² across all windows (include r2_0_30 for short intervals)
     r2_values = {
+        'r2_0_30': interval.r2_0_30,
         'r2_0_60': interval.r2_0_60,
         'r2_0_120': interval.r2_0_120,
         'r2_0_180': interval.r2_0_180,
@@ -998,6 +1268,13 @@ def assess_quality(interval: RecoveryInterval, config: HRRConfig) -> RecoveryInt
         hard_reject = True
         reject_reason = 'r2_30_90_below_0.75'
     
+    # 5. Gate 10: r2_0_30 < 0.5 = double-peak detection (Issue #015)
+    # If first 30s doesn't fit exponential decay, we caught a false start
+    # (plateau or rise before the real recovery began)
+    if interval.r2_0_30 is not None and interval.r2_0_30 < 0.5:
+        hard_reject = True
+        reject_reason = 'double_peak'
+    
     # === FLAG CRITERIA (for human review, not auto-reject) ===
     
     # Minor late rise (0 < slope <= 0.1) - could be noise or minor fidgeting
@@ -1013,6 +1290,12 @@ def assess_quality(interval: RecoveryInterval, config: HRRConfig) -> RecoveryInt
     # Low signal - peak wasn't very high above resting
     if interval.is_low_signal:
         interval.quality_flags.append('LOW_SIGNAL')
+    
+    # ONSET_ADJUSTED flag - onset was adjusted from scipy detection point (Issue #015)
+    # Only flag if adjustment > 15 seconds (small adjustments are normal)
+    if config.is_flag_enabled('ONSET_ADJUSTED'):
+        if interval.onset_delay_sec and interval.onset_delay_sec > 15:
+            interval.quality_flags.append('ONSET_ADJUSTED')
     
     # Store reject reason
     if hard_reject:
@@ -1053,7 +1336,7 @@ def assess_quality(interval: RecoveryInterval, config: HRRConfig) -> RecoveryInt
 # Summary Output
 # =============================================================================
 
-def print_summary_tables(intervals: List[RecoveryInterval], session_id: int):
+def print_summary_tables(intervals: List[RecoveryInterval], session_id: int, session_start: datetime = None):
     """Print formatted summary tables for detected intervals."""
     
     if not intervals:
@@ -1064,26 +1347,36 @@ def print_summary_tables(intervals: List[RecoveryInterval], session_id: int):
     print(f"HRR Feature Extraction Summary - Session {session_id}")
     print(f"{'='*80}")
     
+    # Use first interval's start as session start if not provided
+    if session_start is None and intervals:
+        session_start = intervals[0].start_time
+    
     # Table 1: Basic metrics
     print(f"\n{'Interval Summary':^80}")
     print("-" * 80)
-    print(f"{'#':>3} {'Label':>10} {'Peak':>4} {'Dur':>4} {'Onset':>5} {'Conf':>6} {'Status':>8}")
+    print(f"{'#':>3} {'Elapsed':>8} {'Peak':>4} {'Dur':>4} {'Onset':>5} {'Conf':>6} {'Status':>8}")
     print("-" * 80)
     
     for i in intervals:
         onset = i.onset_delay_sec if i.onset_delay_sec else 0
         conf = i.onset_confidence[:3] if i.onset_confidence else '?'
-        print(f"{i.interval_order:>3} {i.peak_label:>10} {i.hr_peak:>4} {i.duration_seconds:>4} {onset:>5} {conf:>6} {i.quality_status:>8}")
+        # Format elapsed time as MM:SS from session start
+        if session_start and i.start_time:
+            elapsed_sec = int((i.start_time - session_start).total_seconds())
+            elapsed_min = elapsed_sec // 60
+            elapsed_s = elapsed_sec % 60
+            elapsed_str = f"{elapsed_min:02d}:{elapsed_s:02d}"
+        else:
+            elapsed_str = '?'
+        print(f"{i.interval_order:>3} {elapsed_str:>8} {i.hr_peak:>4} {i.duration_seconds:>4} {onset:>5} {conf:>6} {i.quality_status:>8}")
     
-    # Table 2: HRR values
+    # Table 2: HRR values (all intervals)
     print(f"\n{'HRR Values (absolute drop in bpm)':^80}")
     print("-" * 80)
     print(f"{'#':>3} {'HRR30':>6} {'HRR60':>6} {'HRR120':>7} {'HRR180':>7} {'HRR240':>7} {'HRR300':>7} {'Tau':>6} {'R²':>5}")
     print("-" * 80)
     
     for i in intervals:
-        if i.quality_status == 'rejected':
-            continue
         hrr30 = f"{i.hrr30_abs}" if i.hrr30_abs else "-"
         hrr60 = f"{i.hrr60_abs}" if i.hrr60_abs else "-"
         hrr120 = f"{i.hrr120_abs}" if i.hrr120_abs else "-"
@@ -1094,10 +1387,10 @@ def print_summary_tables(intervals: List[RecoveryInterval], session_id: int):
         r2 = f"{i.tau_fit_r2:.2f}" if i.tau_fit_r2 else "-"
         print(f"{i.interval_order:>3} {hrr30:>6} {hrr60:>6} {hrr120:>7} {hrr180:>7} {hrr240:>7} {hrr300:>7} {tau:>6} {r2:>5}")
     
-    # Table 3: Segment R² values
+    # Table 3: Segment R² values (all intervals)
     print(f"\n{'Segment R² Values':^95}")
     print("-" * 95)
-    print(f"{'#':>3} {'30-60':>6} {'0-60':>6} {'30-90':>6} {'Slope':>7} {'0-120':>7} {'0-180':>7} {'0-240':>7} {'0-300':>7}")
+    print(f"{'#':>3} {'0-30':>6} {'30-60':>6} {'0-60':>6} {'30-90':>6} {'Slope':>7} {'0-120':>7} {'0-180':>7} {'0-240':>7} {'0-300':>7}")
     print("-" * 95)
     
     def mark(v):
@@ -1107,8 +1400,6 @@ def print_summary_tables(intervals: List[RecoveryInterval], session_id: int):
             return f"{v:.2f}"
         else:
             return f"{v:.2f}*"
-    
-
     
     def fmt_slope(v):
         if v is None:
@@ -1121,9 +1412,7 @@ def print_summary_tables(intervals: List[RecoveryInterval], session_id: int):
             return f"{v:.3f}"
     
     for i in intervals:
-        if i.quality_status == 'rejected':
-            continue
-        print(f"{i.interval_order:>3} {mark(i.r2_30_60):>6} {mark(i.r2_0_60):>6} {mark(i.r2_30_90):>6} {fmt_slope(i.slope_90_120):>7} {mark(i.r2_0_120):>7} {mark(i.r2_0_180):>7} {mark(i.r2_0_240):>7} {mark(i.r2_0_300):>7}")
+        print(f"{i.interval_order:>3} {mark(i.r2_0_30):>6} {mark(i.r2_30_60):>6} {mark(i.r2_0_60):>6} {mark(i.r2_30_90):>6} {fmt_slope(i.slope_90_120):>7} {mark(i.r2_0_120):>7} {mark(i.r2_0_180):>7} {mark(i.r2_0_240):>7} {mark(i.r2_0_300):>7}")
     
     # Table 4: Quality flags
     print(f"\n{'Quality Assessment':^80}")
@@ -1179,13 +1468,14 @@ def process_session(session_id: int, source: str = 'polar', dry_run: bool = Fals
         else:
             logger.info(f"Using recorded resting HR: {resting_hr}")
         
-        # Extract features
-        config = HRRConfig()
+        # Extract features - load config from YAML
+        config = HRRConfig.from_yaml()
         intervals = extract_features(samples, resting_hr, config)
         
         # Print summary
         if not quiet:
-            print_summary_tables(intervals, session_id)
+            session_start = samples[0].timestamp if samples else None
+            print_summary_tables(intervals, session_id, session_start)
         
         # Save to database
         if not dry_run and intervals:
@@ -1266,7 +1556,7 @@ def recompute_quality_only(source: str = 'polar'):
     Useful when flagging logic changes.
     """
     conn = get_db_connection()
-    config = HRRConfig()
+    config = HRRConfig.from_yaml()
     
     try:
         # Load all intervals

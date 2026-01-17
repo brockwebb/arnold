@@ -86,7 +86,8 @@ def load_stored_intervals(conn, session_id: int) -> List[dict]:
             slope_90_120, slope_90_120_r2,
             onset_delay_sec, onset_confidence,
             is_clean, actionable, confidence, stratum, is_deliberate, protocol_type,
-            interval_order, quality_status, quality_flags, quality_score, review_priority
+            interval_order, quality_status, quality_flags, quality_score, review_priority,
+            auto_reject_reason
         FROM hr_recovery_intervals
         WHERE polar_session_id = %s
         ORDER BY start_time
@@ -117,6 +118,7 @@ def load_stored_intervals(conn, session_id: int) -> List[dict]:
             'stratum': row[44], 'is_deliberate': row[45], 'protocol_type': row[46],
             'interval_order': row[47], 'quality_status': row[48], 'quality_flags': row[49],
             'quality_score': row[50], 'review_priority': row[51],
+            'auto_reject_reason': row[52],
         }
         intervals.append(interval)
     
@@ -521,11 +523,11 @@ def plot_session_qc(
     plt.close()
 
 
-def print_summary_tables(intervals: List[dict], session_id: int):
+def print_summary_tables(intervals: List[dict], session_id: int, session_start: datetime = None):
     """
     Print three compact summary tables for quick QC review.
     
-    TABLE 1: Peaks (Identity + Context)
+    TABLE 1: Peaks (Identity + Context + Elapsed Time + Rejection Reason)
     TABLE 2: R² Segments (available from DB)
     TABLE 3: HRR Drops (Absolute bpm)
     
@@ -553,8 +555,8 @@ def print_summary_tables(intervals: List[dict], session_id: int):
     
     # TABLE 1: Peaks
     print(f"\n--- TABLE 1: Peaks ---")
-    print(f"{'Ord':>3} {'Label':>10} {'Peak':>4} {'Dur':>4} {'Onset':>5} {'Conf':>6} {'Status':>8}")
-    print(f"{'-'*3:>3} {'-'*10:>10} {'-'*4:>4} {'-'*4:>4} {'-'*5:>5} {'-'*6:>6} {'-'*8:>8}")
+    print(f"{'Ord':>3} {'Elapsed':>8} {'Label':>10} {'Peak':>4} {'Dur':>4} {'Onset':>5} {'Conf':>6} {'Status':>8} {'Reject Reason':<20}")
+    print(f"{'-'*3:>3} {'-'*8:>8} {'-'*10:>10} {'-'*4:>4} {'-'*4:>4} {'-'*5:>5} {'-'*6:>6} {'-'*8:>8} {'-'*20:<20}")
     for i in intervals:
         order = i.get('interval_order') or 0
         label = get_peak_label(session_id, i)
@@ -563,7 +565,18 @@ def print_summary_tables(intervals: List[dict], session_id: int):
         onset = fmt_int(i.get('onset_delay_sec')) if i.get('onset_delay_sec') else '-'
         conf = (i.get('onset_confidence') or '-')[:3] if i.get('onset_confidence') else '-'
         status = i.get('quality_status') or '?'
-        print(f"{order:>3} {label:>10} {peak:>4} {dur:>4} {onset:>5} {conf:>6} {status:>8}")
+        reject_reason = i.get('auto_reject_reason') or '-'
+        
+        # Calculate elapsed time from session start
+        if session_start and i.get('start_time'):
+            elapsed_sec = (i['start_time'] - session_start).total_seconds()
+            elapsed_min = int(elapsed_sec // 60)
+            elapsed_s = int(elapsed_sec % 60)
+            elapsed_str = f"{elapsed_min:02d}:{elapsed_s:02d}"
+        else:
+            elapsed_str = '-'
+        
+        print(f"{order:>3} {elapsed_str:>8} {label:>10} {peak:>4} {dur:>4} {onset:>5} {conf:>6} {status:>8} {reject_reason:<20}")
     
     # TABLE 2: R² by Window (matches hrr_feature_extraction.py format)
     print(f"\n--- TABLE 2: R² by Window ---")
@@ -771,7 +784,7 @@ def main():
     print(f"Loaded {len(hr)} HR samples, {len(intervals)} stored intervals")
     
     # Print summary tables (always)
-    print_summary_tables(intervals, args.session_id)
+    print_summary_tables(intervals, args.session_id, session_start)
     
     # Print verbose details if requested
     if args.details:
