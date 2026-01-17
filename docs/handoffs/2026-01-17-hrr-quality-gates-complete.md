@@ -54,7 +54,7 @@ Used `verify_hrr_interval()` function successfully:
 
 ## Known Issue
 
-**Double-Peak Detection** - see `issues/hrr_double_peak_detection.md`
+**Double-Peak Detection** - see `docs/issues/015-hrr-double-peak-detection.md` (Issue #015)
 
 Peaks can be detected within another interval's window. Example: session 5 peaks 7 & 8 are 19 seconds apart with same HR. Need to add overlap check during validation.
 
@@ -118,11 +118,11 @@ Priority order:
 ## Key Files
 
 | File | Purpose |
-|------|---------|
+|------|--------|
 | `scripts/hrr_feature_extraction.py` | Main extraction pipeline |
 | `scripts/hrr_qc_viz.py` | Visual QC tool |
 | `docs/hrr_quality_gates.md` | Gate documentation |
-| `issues/hrr_double_peak_detection.md` | Bug tracking |
+| `docs/issues/015-hrr-double-peak-detection.md` | Issue #015: Double-peak bug |
 | `scripts/migrations/013_hr_recovery_intervals.sql` | Base schema |
 | `scripts/migrations/017_hrr_quality_verification.sql` | QC fields |
 
