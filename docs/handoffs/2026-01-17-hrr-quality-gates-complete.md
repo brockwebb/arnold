@@ -118,7 +118,7 @@ Priority order:
 ## Key Files
 
 | File | Purpose |
-|------|---------|
+|------|--------|
 | `scripts/hrr_feature_extraction.py` | Main extraction pipeline |
 | `scripts/hrr_qc_viz.py` | Visual QC tool |
 | `docs/hrr_quality_gates.md` | Gate documentation |
