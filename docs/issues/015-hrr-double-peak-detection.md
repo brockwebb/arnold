@@ -1,7 +1,8 @@
-# Issue: Double-Peak Detection in HRR Extraction
+# Issue #015: Double-Peak Detection in HRR Extraction
 
 **Created:** 2026-01-17  
 **Priority:** High  
+**Status:** Open  
 **Component:** `scripts/hrr_feature_extraction.py`
 
 ## Problem
