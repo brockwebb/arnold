@@ -49,6 +49,7 @@ class HRRConfig:
     min_elevation_bpm: int = 25  # Peak must be this far above RHR to count
     min_sustained_effort_sec: int = 20  # Must be elevated for this long before peak
     peak_prominence: int = 10  # scipy.signal.find_peaks prominence
+    peak_distance_sec: int = 5  # Minimum seconds between peaks (permissive - let quality gates filter)
     
     # Recovery interval
     min_decline_duration_sec: int = 30  # Minimum recovery duration to record
@@ -88,7 +89,12 @@ class HRSample:
 
 @dataclass
 class RecoveryInterval:
-    """Detected recovery interval with computed features."""
+    """Detected recovery interval with computed features.
+    
+    Field names match database schema (migration 013 + 017).
+    Canonical naming: hr_Xs for HR at time X, hrrX_abs for absolute drop,
+    hrrX_frac for fraction of available drop (0-1 scale).
+    """
     
     # Timing
     start_time: datetime
@@ -96,66 +102,93 @@ class RecoveryInterval:
     duration_seconds: int
     interval_order: int
     
-    # Raw HR values
+    # Raw HR values (DB: hr_30s, hr_60s, etc.)
     hr_peak: int
     hr_nadir: int
-    hr_at_60: Optional[int] = None
-    hr_at_120: Optional[int] = None
-    hr_reserve: Optional[int] = None  # peak - resting HR
+    hr_30s: Optional[int] = None
+    hr_60s: Optional[int] = None
+    hr_90s: Optional[int] = None
+    hr_120s: Optional[int] = None
+    hr_180s: Optional[int] = None
+    hr_240s: Optional[int] = None
+    hr_300s: Optional[int] = None
+    rhr_baseline: Optional[int] = None  # Morning RHR for that day
+    hr_reserve: Optional[int] = None  # peak - rhr_baseline
     
-    # HRR metrics (absolute drops)
-    hrr_60: Optional[int] = None
-    hrr_120: Optional[int] = None
-    hrr_180: Optional[int] = None
-    hrr_240: Optional[int] = None
-    hrr_300: Optional[int] = None
+    # HRR metrics - absolute drops (DB: hrr30_abs, hrr60_abs, etc.)
+    hrr30_abs: Optional[int] = None
+    hrr60_abs: Optional[int] = None
+    hrr90_abs: Optional[int] = None
+    hrr120_abs: Optional[int] = None
+    hrr180_abs: Optional[int] = None
+    hrr240_abs: Optional[int] = None
+    hrr300_abs: Optional[int] = None
+    total_drop: Optional[int] = None  # peak - nadir
     
-    # Normalized HRR (% of available drop)
-    hrr_60_pct: Optional[float] = None
-    hrr_120_pct: Optional[float] = None
+    # Normalized HRR - fraction of available drop (DB: hrr30_frac, etc.)
+    # Scale: 0.0 to 1.0 (NOT percentage)
+    hrr30_frac: Optional[float] = None
+    hrr60_frac: Optional[float] = None
+    hrr90_frac: Optional[float] = None
+    hrr120_frac: Optional[float] = None
+    recovery_ratio: Optional[float] = None  # total_drop / hr_reserve
+    peak_pct_max: Optional[float] = None  # peak / estimated_max_hr
     
-    # Exponential decay model: HR(t) = baseline + amplitude * exp(-t/tau)
+    # Exponential decay model: HR(t) = asymptote + amplitude * exp(-t/tau)
     tau_seconds: Optional[float] = None
     tau_fit_r2: Optional[float] = None
-    tau_amplitude: Optional[float] = None
-    tau_baseline: Optional[float] = None
+    fit_amplitude: Optional[float] = None  # DB: fit_amplitude (was tau_amplitude)
+    fit_asymptote: Optional[float] = None  # DB: fit_asymptote (was tau_baseline)
     
     # Segment R² values (for window-specific quality)
-    r2_0_30: Optional[float] = None
-    r2_0_60: Optional[float] = None
-    r2_30_90: Optional[float] = None
-    r2_0_120: Optional[float] = None
-    r2_0_180: Optional[float] = None
-    r2_0_240: Optional[float] = None
-    r2_0_300: Optional[float] = None
+    r2_0_30: Optional[float] = None   # First 30s segment
+    r2_30_60: Optional[float] = None  # Second 30s segment - CRITICAL for HRR60 quality
+    r2_0_60: Optional[float] = None   # Validates HRR60
+    r2_30_90: Optional[float] = None  # Transition zone
+    r2_0_90: Optional[float] = None   # Validates HRR90
+    r2_0_120: Optional[float] = None  # Validates HRR120
+    r2_0_180: Optional[float] = None  # Validates HRR180
+    r2_0_240: Optional[float] = None  # Validates HRR240
+    r2_0_300: Optional[float] = None  # Validates HRR300
     r2_detected: Optional[float] = None  # R² for actual detected window
-    r2_delta: Optional[float] = None  # max segment R² - min segment R²
+    r2_delta: Optional[float] = None  # r2_0_30 - r2_30_60 (disruption indicator)
     
     # Nadir analysis
     nadir_time_sec: Optional[int] = None  # Time from peak to nadir
     
     # Late slope (activity resumption detection)
-    slope_90_120: Optional[float] = None  # bpm/sec
+    slope_90_120: Optional[float] = None  # bpm/sec - positive = rising
     slope_90_120_r2: Optional[float] = None
+    
+    # Decay dynamics (from migration 013)
+    decline_slope_30s: Optional[float] = None  # bpm/sec (negative)
+    decline_slope_60s: Optional[float] = None
+    time_to_50pct_sec: Optional[int] = None
+    auc_60s: Optional[float] = None  # Area under curve, first 60s
+    
+    # Pre-peak context
+    sustained_effort_sec: Optional[int] = None
+    effort_avg_hr: Optional[int] = None
+    session_elapsed_min: Optional[int] = None
     
     # Quality indicators
     quality_status: str = 'pending'  # pending, pass, flagged, rejected
     quality_flags: List[str] = field(default_factory=list)
-    quality_score: Optional[float] = None  # 0-1 composite score
+    auto_reject_reason: Optional[str] = None  # Why it was rejected (if rejected)
     review_priority: int = 3  # 1=high, 2=medium, 3=low
     needs_review: bool = False
     is_clean: bool = True
     is_low_signal: bool = False
     sample_completeness: float = 1.0
+    sample_count: Optional[int] = None
+    expected_sample_count: Optional[int] = None
     
     # Onset detection
-    onset_delay_maxhr: Optional[int] = None  # seconds from interval start to max HR
-    onset_delay_slope: Optional[int] = None  # seconds from interval start to sustained decline
+    onset_delay_sec: Optional[int] = None  # seconds from interval start to max HR
     onset_confidence: str = 'unknown'  # high, medium, low
     
     # Context
-    peak_label: str = ''  # e.g., "Peak 1", "Interval Rep 3"
-    session_context: str = ''  # workout type context
+    peak_label: str = ''  # e.g., "S71:p1", "Peak 1"
     
 
 # =============================================================================
@@ -174,21 +207,22 @@ def get_db_connection():
 
 
 def get_hr_samples(conn, session_id: int, source: str = 'polar') -> List[HRSample]:
-    """Fetch HR samples for a session."""
+    """Fetch HR samples for a session from unified hr_samples table."""
     
+    # hr_samples schema: id, session_id, sample_time, hr_value, source, endurance_session_id
     if source == 'polar':
         query = """
-            SELECT recorded_at, heart_rate
-            FROM polar_hr_samples
-            WHERE polar_session_id = %s
-            ORDER BY recorded_at
+            SELECT sample_time, hr_value
+            FROM hr_samples
+            WHERE session_id = %s
+            ORDER BY sample_time
         """
     elif source == 'endurance':
         query = """
-            SELECT recorded_at, heart_rate
-            FROM endurance_hr_samples
-            WHERE workout_id = %s
-            ORDER BY recorded_at
+            SELECT sample_time, hr_value
+            FROM hr_samples
+            WHERE endurance_session_id = %s
+            ORDER BY sample_time
         """
     else:
         raise ValueError(f"Unknown source: {source}")
@@ -201,21 +235,26 @@ def get_hr_samples(conn, session_id: int, source: str = 'polar') -> List[HRSampl
 
 
 def get_resting_hr(conn, session_date: datetime) -> Optional[int]:
-    """Get resting HR for the session date from biometrics."""
+    """Get resting HR for the session date from biometric_readings (EAV table)."""
     query = """
-        SELECT resting_hr
-        FROM daily_biometrics
-        WHERE recorded_date = %s::date
-        AND resting_hr IS NOT NULL
+        SELECT value
+        FROM biometric_readings
+        WHERE reading_date = %s::date
+          AND metric_type = 'resting_hr'
+        ORDER BY imported_at DESC
+        LIMIT 1
     """
     with conn.cursor() as cur:
         cur.execute(query, (session_date,))
         row = cur.fetchone()
-    return row[0] if row else None
+    return int(row[0]) if row else None
 
 
 def save_intervals(conn, intervals: List[RecoveryInterval], session_id: int, source: str = 'polar'):
-    """Save detected intervals to database."""
+    """Save detected intervals to database.
+    
+    Column names match migration 013 + 017 schema exactly.
+    """
     
     if not intervals:
         logger.info("No intervals to save")
@@ -227,7 +266,7 @@ def save_intervals(conn, intervals: List[RecoveryInterval], session_id: int, sou
         WHERE polar_session_id = %s
     """ if source == 'polar' else """
         DELETE FROM hr_recovery_intervals
-        WHERE endurance_workout_id = %s
+        WHERE endurance_session_id = %s
     """
     
     with conn.cursor() as cur:
@@ -236,22 +275,37 @@ def save_intervals(conn, intervals: List[RecoveryInterval], session_id: int, sou
         if deleted:
             logger.info(f"Deleted {deleted} existing intervals")
     
-    # Insert new intervals
+    # Insert new intervals - column names match DB schema exactly
     columns = [
-        'polar_session_id' if source == 'polar' else 'endurance_workout_id',
+        'polar_session_id' if source == 'polar' else 'endurance_session_id',
         'interval_order', 'start_time', 'end_time', 'duration_seconds',
-        'hr_peak', 'hr_nadir', 'hr_at_60', 'hr_at_120', 'hr_reserve',
-        'hrr_60', 'hrr_120', 'hrr_180', 'hrr_240', 'hrr_300',
-        'hrr_60_pct', 'hrr_120_pct',
-        'tau_seconds', 'tau_fit_r2', 'tau_amplitude', 'tau_baseline',
-        'r2_0_30', 'r2_0_60', 'r2_30_90', 'r2_0_120', 'r2_0_180', 'r2_0_240', 'r2_0_300',
-        'r2_detected', 'r2_delta', 'nadir_time_sec',
-        'slope_90_120', 'slope_90_120_r2',
-        'quality_status', 'quality_flags', 'quality_score',
+        # HR values
+        'hr_peak', 'hr_30s', 'hr_60s', 'hr_90s', 'hr_120s',
+        'hr_180s', 'hr_240s', 'hr_300s', 'hr_nadir', 'rhr_baseline',
+        # Absolute HRR
+        'hrr30_abs', 'hrr60_abs', 'hrr90_abs', 'hrr120_abs',
+        'hrr180_abs', 'hrr240_abs', 'hrr300_abs', 'total_drop',
+        # Normalized HRR (fractions 0-1)
+        'hr_reserve', 'hrr30_frac', 'hrr60_frac', 'hrr90_frac', 'hrr120_frac',
+        'recovery_ratio', 'peak_pct_max',
+        # Decay model
+        'tau_seconds', 'tau_fit_r2', 'fit_amplitude', 'fit_asymptote',
+        # Segment R² values
+        'r2_0_30', 'r2_30_60', 'r2_0_60', 'r2_30_90', 'r2_0_90',
+        'r2_0_120', 'r2_0_180', 'r2_0_240', 'r2_0_300', 'r2_delta',
+        # Nadir and slopes
+        'nadir_time_sec', 'slope_90_120', 'slope_90_120_r2',
+        'decline_slope_30s', 'decline_slope_60s', 'time_to_50pct_sec', 'auc_60s',
+        # Pre-peak context
+        'sustained_effort_sec', 'effort_avg_hr', 'session_elapsed_min',
+        # Quality
+        'quality_status', 'quality_flags', 'auto_reject_reason',
         'review_priority', 'needs_review', 'is_clean', 'is_low_signal',
-        'sample_completeness',
-        'onset_delay_maxhr', 'onset_delay_slope', 'onset_confidence',
-        'peak_label', 'session_context'
+        'sample_count', 'expected_sample_count', 'sample_completeness',
+        # Onset
+        'onset_delay_sec', 'onset_confidence',
+        # Context
+        'peak_label'
     ]
     
     values = []
@@ -259,19 +313,33 @@ def save_intervals(conn, intervals: List[RecoveryInterval], session_id: int, sou
         values.append((
             session_id,
             interval.interval_order, interval.start_time, interval.end_time, interval.duration_seconds,
-            interval.hr_peak, interval.hr_nadir, interval.hr_at_60, interval.hr_at_120, interval.hr_reserve,
-            interval.hrr_60, interval.hrr_120, interval.hrr_180, interval.hrr_240, interval.hrr_300,
-            interval.hrr_60_pct, interval.hrr_120_pct,
-            interval.tau_seconds, interval.tau_fit_r2, interval.tau_amplitude, interval.tau_baseline,
-            interval.r2_0_30, interval.r2_0_60, interval.r2_30_90, interval.r2_0_120, 
-            interval.r2_0_180, interval.r2_0_240, interval.r2_0_300,
-            interval.r2_detected, interval.r2_delta, interval.nadir_time_sec,
-            interval.slope_90_120, interval.slope_90_120_r2,
-            interval.quality_status, interval.quality_flags, interval.quality_score,
+            # HR values
+            interval.hr_peak, interval.hr_30s, interval.hr_60s, interval.hr_90s, interval.hr_120s,
+            interval.hr_180s, interval.hr_240s, interval.hr_300s, interval.hr_nadir, interval.rhr_baseline,
+            # Absolute HRR
+            interval.hrr30_abs, interval.hrr60_abs, interval.hrr90_abs, interval.hrr120_abs,
+            interval.hrr180_abs, interval.hrr240_abs, interval.hrr300_abs, interval.total_drop,
+            # Normalized HRR
+            interval.hr_reserve, interval.hrr30_frac, interval.hrr60_frac, interval.hrr90_frac, interval.hrr120_frac,
+            interval.recovery_ratio, interval.peak_pct_max,
+            # Decay model
+            interval.tau_seconds, interval.tau_fit_r2, interval.fit_amplitude, interval.fit_asymptote,
+            # Segment R²
+            interval.r2_0_30, interval.r2_30_60, interval.r2_0_60, interval.r2_30_90, interval.r2_0_90,
+            interval.r2_0_120, interval.r2_0_180, interval.r2_0_240, interval.r2_0_300, interval.r2_delta,
+            # Nadir and slopes
+            interval.nadir_time_sec, interval.slope_90_120, interval.slope_90_120_r2,
+            interval.decline_slope_30s, interval.decline_slope_60s, interval.time_to_50pct_sec, interval.auc_60s,
+            # Pre-peak context
+            interval.sustained_effort_sec, interval.effort_avg_hr, interval.session_elapsed_min,
+            # Quality
+            interval.quality_status, interval.quality_flags, interval.auto_reject_reason,
             interval.review_priority, interval.needs_review, interval.is_clean, interval.is_low_signal,
-            interval.sample_completeness,
-            interval.onset_delay_maxhr, interval.onset_delay_slope, interval.onset_confidence,
-            interval.peak_label, interval.session_context
+            interval.sample_count, interval.expected_sample_count, interval.sample_completeness,
+            # Onset
+            interval.onset_delay_sec, interval.onset_confidence,
+            # Context
+            interval.peak_label
         ))
     
     insert_query = f"""
@@ -280,12 +348,26 @@ def save_intervals(conn, intervals: List[RecoveryInterval], session_id: int, sou
     """
     
     # Convert quality_flags list to pipe-delimited string for storage
+    # Find the index of quality_flags in columns
+    quality_flags_idx = columns.index('quality_flags')
+    
+    # Convert numpy types to Python native types
+    def convert_numpy(val):
+        if val is None:
+            return None
+        if hasattr(val, 'item'):  # numpy scalar
+            return val.item()
+        return val
+    
     converted_values = []
     for v in values:
-        v_list = list(v)
-        # quality_flags is at index 33 (0-indexed)
-        if v_list[33] and isinstance(v_list[33], list):
-            v_list[33] = '|'.join(v_list[33]) if v_list[33] else None
+        v_list = [convert_numpy(x) for x in v]
+        if v_list[quality_flags_idx] and isinstance(v_list[quality_flags_idx], list):
+            # Convert to postgres array format: {val1,val2}
+            v_list[quality_flags_idx] = '{' + ','.join(v_list[quality_flags_idx]) + '}' if v_list[quality_flags_idx] else None
+        elif v_list[quality_flags_idx] and isinstance(v_list[quality_flags_idx], str):
+            # Already a string but not array format
+            v_list[quality_flags_idx] = '{' + v_list[quality_flags_idx] + '}'
         converted_values.append(tuple(v_list))
     
     with conn.cursor() as cur:
@@ -321,7 +403,7 @@ def detect_peaks(samples: List[HRSample], config: HRRConfig) -> List[int]:
     peaks, properties = signal.find_peaks(
         hr_smoothed,
         prominence=config.peak_prominence,
-        distance=config.min_sustained_effort_sec  # Minimum distance between peaks
+        distance=config.peak_distance_sec  # Permissive - let quality gates filter
     )
     
     return peaks.tolist()
@@ -502,24 +584,35 @@ def create_recovery_interval(
     nadir_idx = hr_values.index(hr_nadir)
     nadir_time_sec = nadir_idx
     
-    # Calculate HR at specific times (from effective start)
-    hr_at_60 = hr_values[60] if len(hr_values) > 60 else None
-    hr_at_120 = hr_values[120] if len(hr_values) > 120 else None
+    # Calculate HR at specific times (from effective start) - canonical naming hr_Xs
+    hr_30s = hr_values[30] if len(hr_values) > 30 else None
+    hr_60s = hr_values[60] if len(hr_values) > 60 else None
+    hr_90s = hr_values[90] if len(hr_values) > 90 else None
+    hr_120s = hr_values[120] if len(hr_values) > 120 else None
+    hr_180s = hr_values[180] if len(hr_values) > 180 else None
+    hr_240s = hr_values[240] if len(hr_values) > 240 else None
+    hr_300s = hr_values[300] if len(hr_values) > 300 else None
     
-    # Calculate HRR values
-    hrr_60 = hr_peak - hr_at_60 if hr_at_60 else None
-    hrr_120 = hr_peak - hr_at_120 if hr_at_120 else None
-    hrr_180 = hr_peak - hr_values[180] if len(hr_values) > 180 else None
-    hrr_240 = hr_peak - hr_values[240] if len(hr_values) > 240 else None
-    hrr_300 = hr_peak - hr_values[300] if len(hr_values) > 300 else None
+    # Calculate HRR values - absolute drops (canonical: hrrX_abs)
+    hrr30_abs = hr_peak - hr_30s if hr_30s else None
+    hrr60_abs = hr_peak - hr_60s if hr_60s else None
+    hrr90_abs = hr_peak - hr_90s if hr_90s else None
+    hrr120_abs = hr_peak - hr_120s if hr_120s else None
+    hrr180_abs = hr_peak - hr_180s if hr_180s else None
+    hrr240_abs = hr_peak - hr_240s if hr_240s else None
+    hrr300_abs = hr_peak - hr_300s if hr_300s else None
+    total_drop = hr_peak - hr_nadir
     
-    # Calculate normalized HRR
-    available_drop = hr_peak - resting_hr
-    hrr_60_pct = (hrr_60 / available_drop * 100) if hrr_60 and available_drop > 0 else None
-    hrr_120_pct = (hrr_120 / available_drop * 100) if hrr_120 and available_drop > 0 else None
-    
-    # HR reserve
+    # HR reserve (peak - resting)
     hr_reserve = hr_peak - resting_hr
+    
+    # Calculate normalized HRR - fractions 0-1 (canonical: hrrX_frac)
+    hrr30_frac = (hrr30_abs / hr_reserve) if hrr30_abs and hr_reserve > 0 else None
+    hrr60_frac = (hrr60_abs / hr_reserve) if hrr60_abs and hr_reserve > 0 else None
+    hrr90_frac = (hrr90_abs / hr_reserve) if hrr90_abs and hr_reserve > 0 else None
+    hrr120_frac = (hrr120_abs / hr_reserve) if hrr120_abs and hr_reserve > 0 else None
+    recovery_ratio = (total_drop / hr_reserve) if total_drop and hr_reserve > 0 else None
+    peak_pct_max = hr_peak / config.default_max_hr if hr_peak else None
     
     # Determine onset confidence
     if abs(onset_maxhr - onset_slope) <= 5:
@@ -532,6 +625,10 @@ def create_recovery_interval(
     # Check for low signal
     is_low_signal = hr_reserve < config.low_signal_threshold_bpm
     
+    # Sample counts
+    sample_count = len(effective_samples)
+    expected_sample_count = len(effective_samples)  # 1Hz = 1 sample per second expected
+    
     interval = RecoveryInterval(
         start_time=effective_samples[0].timestamp,
         end_time=effective_samples[-1].timestamp,
@@ -539,21 +636,35 @@ def create_recovery_interval(
         interval_order=interval_order,
         hr_peak=hr_peak,
         hr_nadir=hr_nadir,
-        hr_at_60=hr_at_60,
-        hr_at_120=hr_at_120,
+        hr_30s=hr_30s,
+        hr_60s=hr_60s,
+        hr_90s=hr_90s,
+        hr_120s=hr_120s,
+        hr_180s=hr_180s,
+        hr_240s=hr_240s,
+        hr_300s=hr_300s,
+        rhr_baseline=resting_hr,
         hr_reserve=hr_reserve,
-        hrr_60=hrr_60,
-        hrr_120=hrr_120,
-        hrr_180=hrr_180,
-        hrr_240=hrr_240,
-        hrr_300=hrr_300,
-        hrr_60_pct=hrr_60_pct,
-        hrr_120_pct=hrr_120_pct,
+        hrr30_abs=hrr30_abs,
+        hrr60_abs=hrr60_abs,
+        hrr90_abs=hrr90_abs,
+        hrr120_abs=hrr120_abs,
+        hrr180_abs=hrr180_abs,
+        hrr240_abs=hrr240_abs,
+        hrr300_abs=hrr300_abs,
+        total_drop=total_drop,
+        hrr30_frac=hrr30_frac,
+        hrr60_frac=hrr60_frac,
+        hrr90_frac=hrr90_frac,
+        hrr120_frac=hrr120_frac,
+        recovery_ratio=recovery_ratio,
+        peak_pct_max=peak_pct_max,
         nadir_time_sec=nadir_time_sec,
-        onset_delay_maxhr=onset_maxhr,
-        onset_delay_slope=onset_slope,
+        onset_delay_sec=onset_maxhr,
         onset_confidence=onset_confidence,
         is_low_signal=is_low_signal,
+        sample_count=sample_count,
+        expected_sample_count=expected_sample_count,
         peak_label=f"Peak {interval_order}"
     )
     
@@ -615,11 +726,11 @@ def fit_exponential_decay(
         ss_tot = np.sum((hr_values - np.mean(hr_values)) ** 2)
         r2 = 1 - (ss_res / ss_tot) if ss_tot > 0 else 0
         
-        # Update interval
+        # Update interval - canonical field names
         interval.tau_seconds = round(tau, 2)
         interval.tau_fit_r2 = round(r2, 4)
-        interval.tau_amplitude = round(amplitude, 2)
-        interval.tau_baseline = round(baseline, 2)
+        interval.fit_amplitude = round(amplitude, 2)
+        interval.fit_asymptote = round(baseline, 2)
         
     except (RuntimeError, ValueError) as e:
         logger.debug(f"Exponential fit failed: {e}")
@@ -635,7 +746,11 @@ def fit_exponential_decay(
 def compute_segment_r2(hr_values: np.ndarray, start_sec: int, end_sec: int) -> Optional[float]:
     """
     Compute R² for exponential fit on a specific time segment.
-    Returns None if insufficient data or fit fails.
+    
+    Returns:
+        R² value (0-1) if fit succeeds
+        -1.0 if fit fails (triggers rejection via <0.75 check)
+        None if insufficient data (no samples in window)
     """
     if end_sec > len(hr_values) or end_sec - start_sec < 10:
         return None
@@ -669,7 +784,8 @@ def compute_segment_r2(hr_values: np.ndarray, start_sec: int, end_sec: int) -> O
         return round(r2, 4)
         
     except (RuntimeError, ValueError):
-        return None
+        # Fit failed - return -1 to trigger rejection
+        return -1.0
 
 
 def compute_all_segment_r2(
@@ -678,15 +794,28 @@ def compute_all_segment_r2(
 ) -> RecoveryInterval:
     """
     Compute R² for all standard segments.
-    Philosophy: compute all windows where data exists (≥10 samples), never return None.
+    
+    Philosophy: compute all windows where data exists (≥10 samples).
     NULL = "no data", value = "computed (good or bad)".
+    
+    Key segments for quality validation:
+    - r2_0_30 + r2_30_60 validate HRR60 measurement quality
+    - r2_0_60 + r2_30_90 validate HRR90 quality  
+    - r2_delta = r2_0_30 - r2_30_60 catches disrupted recovery (double-bounce)
     """
     hr_values = np.array([s.hr_value for s in samples[:interval.duration_seconds + 1]])
     
     # Compute R² for each segment unconditionally where data exists
-    interval.r2_0_30 = compute_segment_r2(hr_values, 0, 30)
-    interval.r2_0_60 = compute_segment_r2(hr_values, 0, 60)
-    interval.r2_30_90 = compute_segment_r2(hr_values, 30, 90)
+    # First half segments (critical for HRR60 quality)
+    interval.r2_0_30 = compute_segment_r2(hr_values, 0, 30)    # First 30s
+    interval.r2_30_60 = compute_segment_r2(hr_values, 30, 60)  # Second 30s - CRITICAL!
+    interval.r2_0_60 = compute_segment_r2(hr_values, 0, 60)    # Full first minute
+    
+    # Transition zone
+    interval.r2_30_90 = compute_segment_r2(hr_values, 30, 90)  # Mid segment
+    interval.r2_0_90 = compute_segment_r2(hr_values, 0, 90)    # First 90s
+    
+    # Longer windows
     interval.r2_0_120 = compute_segment_r2(hr_values, 0, 120)
     interval.r2_0_180 = compute_segment_r2(hr_values, 0, 180)
     interval.r2_0_240 = compute_segment_r2(hr_values, 0, 240)
@@ -694,13 +823,6 @@ def compute_all_segment_r2(
     
     # R² for detected window
     interval.r2_detected = compute_segment_r2(hr_values, 0, min(interval.duration_seconds, len(hr_values)))
-    
-    # Compute R² delta (spread between segments)
-    r2_values = [v for v in [interval.r2_0_30, interval.r2_0_60, interval.r2_30_90, 
-                             interval.r2_0_120, interval.r2_0_180, interval.r2_0_240,
-                             interval.r2_0_300] if v is not None]
-    if len(r2_values) >= 2:
-        interval.r2_delta = round(max(r2_values) - min(r2_values), 4)
     
     return interval
 
@@ -841,7 +963,6 @@ def assess_quality(interval: RecoveryInterval, config: HRRConfig) -> RecoveryInt
     
     # 1. Late slope > 0.1 bpm/sec = definite activity resumption
     if interval.slope_90_120 is not None and interval.slope_90_120 > 0.1:
-        interval.quality_flags.append('LATE_RISE_SEVERE')
         hard_reject = True
         reject_reason = 'activity_resumed'
     
@@ -857,10 +978,25 @@ def assess_quality(interval: RecoveryInterval, config: HRRConfig) -> RecoveryInt
     valid_r2 = {k: v for k, v in r2_values.items() if v is not None}
     best_r2 = max(valid_r2.values()) if valid_r2 else None
     
-    if best_r2 is not None and best_r2 < 0.75:
-        interval.quality_flags.append('LOW_R2_ALL_WINDOWS')
+    if best_r2 is None:
+        # No valid windows to evaluate - too short or all fits failed
+        hard_reject = True
+        reject_reason = 'no_valid_r2_windows'
+    elif best_r2 < 0.75:
         hard_reject = True
         reject_reason = 'poor_fit_quality'
+    
+    # 3. Gate 8: Segment quality check (r2_30_60 validates HRR60 measurement)
+    # Threshold is 0.75 - same as other R² gates
+    if interval.r2_30_60 is not None and interval.r2_30_60 < 0.75:
+        hard_reject = True
+        reject_reason = 'r2_30_60_below_0.75'
+    
+    # 4. Gate 9: r2_30_90 validates HRR120 measurement
+    # Mid-interval bounce destroys the 120s window even if 0-120 R² looks OK
+    if interval.r2_30_90 is not None and interval.r2_30_90 < 0.75:
+        hard_reject = True
+        reject_reason = 'r2_30_90_below_0.75'
     
     # === FLAG CRITERIA (for human review, not auto-reject) ===
     
@@ -868,9 +1004,7 @@ def assess_quality(interval: RecoveryInterval, config: HRRConfig) -> RecoveryInt
     if interval.slope_90_120 is not None and 0 < interval.slope_90_120 <= 0.1:
         interval.quality_flags.append('LATE_RISE')
     
-    # High R² delta suggests disrupted recovery pattern
-    if interval.r2_delta is not None and interval.r2_delta > 0.3:
-        interval.quality_flags.append('HIGH_R2_DELTA')
+
     
     # Onset disagreement - methods disagree on when recovery started
     if interval.onset_confidence == 'low':
@@ -880,15 +1014,9 @@ def assess_quality(interval: RecoveryInterval, config: HRRConfig) -> RecoveryInt
     if interval.is_low_signal:
         interval.quality_flags.append('LOW_SIGNAL')
     
-    # === COMPUTE QUALITY SCORE ===
-    score = 1.0
-    if best_r2:
-        score *= best_r2  # Weight by best fit quality
-    if interval.quality_flags:
-        score -= 0.1 * len(interval.quality_flags)
+    # Store reject reason
     if hard_reject:
-        score = 0.0
-    interval.quality_score = max(0.0, min(1.0, score))
+        interval.auto_reject_reason = reject_reason
     
     # === SET REVIEW PRIORITY ===
     if hard_reject:
@@ -943,31 +1071,34 @@ def print_summary_tables(intervals: List[RecoveryInterval], session_id: int):
     print("-" * 80)
     
     for i in intervals:
-        onset = i.onset_delay_maxhr if i.onset_delay_maxhr else 0
+        onset = i.onset_delay_sec if i.onset_delay_sec else 0
         conf = i.onset_confidence[:3] if i.onset_confidence else '?'
         print(f"{i.interval_order:>3} {i.peak_label:>10} {i.hr_peak:>4} {i.duration_seconds:>4} {onset:>5} {conf:>6} {i.quality_status:>8}")
     
     # Table 2: HRR values
     print(f"\n{'HRR Values (absolute drop in bpm)':^80}")
     print("-" * 80)
-    print(f"{'#':>3} {'HRR60':>6} {'HRR120':>7} {'HRR180':>7} {'HRR240':>7} {'HRR300':>7} {'Tau':>6} {'R²':>5}")
+    print(f"{'#':>3} {'HRR30':>6} {'HRR60':>6} {'HRR120':>7} {'HRR180':>7} {'HRR240':>7} {'HRR300':>7} {'Tau':>6} {'R²':>5}")
     print("-" * 80)
     
     for i in intervals:
-        hrr60 = f"{i.hrr_60}" if i.hrr_60 else "-"
-        hrr120 = f"{i.hrr_120}" if i.hrr_120 else "-"
-        hrr180 = f"{i.hrr_180}" if i.hrr_180 else "-"
-        hrr240 = f"{i.hrr_240}" if i.hrr_240 else "-"
-        hrr300 = f"{i.hrr_300}" if i.hrr_300 else "-"
+        if i.quality_status == 'rejected':
+            continue
+        hrr30 = f"{i.hrr30_abs}" if i.hrr30_abs else "-"
+        hrr60 = f"{i.hrr60_abs}" if i.hrr60_abs else "-"
+        hrr120 = f"{i.hrr120_abs}" if i.hrr120_abs else "-"
+        hrr180 = f"{i.hrr180_abs}" if i.hrr180_abs else "-"
+        hrr240 = f"{i.hrr240_abs}" if i.hrr240_abs else "-"
+        hrr300 = f"{i.hrr300_abs}" if i.hrr300_abs else "-"
         tau = f"{i.tau_seconds:.0f}" if i.tau_seconds else "-"
         r2 = f"{i.tau_fit_r2:.2f}" if i.tau_fit_r2 else "-"
-        print(f"{i.interval_order:>3} {hrr60:>6} {hrr120:>7} {hrr180:>7} {hrr240:>7} {hrr300:>7} {tau:>6} {r2:>5}")
+        print(f"{i.interval_order:>3} {hrr30:>6} {hrr60:>6} {hrr120:>7} {hrr180:>7} {hrr240:>7} {hrr300:>7} {tau:>6} {r2:>5}")
     
     # Table 3: Segment R² values
-    print(f"\n{'Segment R² Values':^80}")
-    print("-" * 80)
-    print(f"{'#':>3} {'0-30':>6} {'0-60':>6} {'30-90':>6} {'Slope':>7} {'0-120':>6} {'0-180':>6} {'0-240':>6} {'0-300':>6} {'Det':>6}")
-    print("-" * 80)
+    print(f"\n{'Segment R² Values':^95}")
+    print("-" * 95)
+    print(f"{'#':>3} {'30-60':>6} {'0-60':>6} {'30-90':>6} {'Slope':>7} {'0-120':>7} {'0-180':>7} {'0-240':>7} {'0-300':>7}")
+    print("-" * 95)
     
     def mark(v):
         if v is None:
@@ -976,6 +1107,8 @@ def print_summary_tables(intervals: List[RecoveryInterval], session_id: int):
             return f"{v:.2f}"
         else:
             return f"{v:.2f}*"
+    
+
     
     def fmt_slope(v):
         if v is None:
@@ -988,18 +1121,23 @@ def print_summary_tables(intervals: List[RecoveryInterval], session_id: int):
             return f"{v:.3f}"
     
     for i in intervals:
-        print(f"{i.interval_order:>3} {mark(i.r2_0_30):>6} {mark(i.r2_0_60):>6} {mark(i.r2_30_90):>6} {fmt_slope(i.slope_90_120):>7} {mark(i.r2_0_120):>6} {mark(i.r2_0_180):>6} {mark(i.r2_0_240):>6} {mark(i.r2_0_300):>6} {mark(i.r2_detected):>6}")
+        if i.quality_status == 'rejected':
+            continue
+        print(f"{i.interval_order:>3} {mark(i.r2_30_60):>6} {mark(i.r2_0_60):>6} {mark(i.r2_30_90):>6} {fmt_slope(i.slope_90_120):>7} {mark(i.r2_0_120):>7} {mark(i.r2_0_180):>7} {mark(i.r2_0_240):>7} {mark(i.r2_0_300):>7}")
     
     # Table 4: Quality flags
     print(f"\n{'Quality Assessment':^80}")
     print("-" * 80)
-    print(f"{'#':>3} {'Status':>8} {'Priority':>8} {'Score':>6} {'Flags':<40}")
+    print(f"{'#':>3} {'Status':>8} {'Reason/Flags':<50}")
     print("-" * 80)
     
     for i in intervals:
-        flags = ', '.join(i.quality_flags) if i.quality_flags else 'clean'
-        score = f"{i.quality_score:.2f}" if i.quality_score else "-"
-        print(f"{i.interval_order:>3} {i.quality_status:>8} {i.review_priority:>8} {score:>6} {flags:<40}")
+        if i.quality_status == 'rejected':
+            reason = i.auto_reject_reason or 'unknown'
+            print(f"{i.interval_order:>3} {'REJECTED':>8} {reason:<50}")
+        else:
+            flags = ', '.join(i.quality_flags) if i.quality_flags else 'clean'
+            print(f"{i.interval_order:>3} {i.quality_status:>8} {flags:<50}")
     
     print("=" * 80)
     
@@ -1014,7 +1152,7 @@ def print_summary_tables(intervals: List[RecoveryInterval], session_id: int):
 # Main Entry Point
 # =============================================================================
 
-def process_session(session_id: int, source: str = 'polar', dry_run: bool = False):
+def process_session(session_id: int, source: str = 'polar', dry_run: bool = False, quiet: bool = False):
     """Process a single session."""
     
     logger.info(f"Processing session {session_id} (source: {source})")
@@ -1046,7 +1184,8 @@ def process_session(session_id: int, source: str = 'polar', dry_run: bool = Fals
         intervals = extract_features(samples, resting_hr, config)
         
         # Print summary
-        print_summary_tables(intervals, session_id)
+        if not quiet:
+            print_summary_tables(intervals, session_id)
         
         # Save to database
         if not dry_run and intervals:
@@ -1059,43 +1198,49 @@ def process_session(session_id: int, source: str = 'polar', dry_run: bool = Fals
         conn.close()
 
 
-def process_all_sessions(source: str = 'polar', dry_run: bool = False, reprocess: bool = False):
+def process_all_sessions(source: str = 'polar', dry_run: bool = False, reprocess: bool = False, quiet: bool = False):
     """Process all sessions that need HRR extraction."""
     
     conn = get_db_connection()
     
     try:
+        # hr_samples uses session_id for polar, endurance_session_id for endurance
+        # hr_recovery_intervals uses polar_session_id and endurance_session_id
         if source == 'polar':
             if reprocess:
                 # Reprocess all sessions with HR data
                 query = """
-                    SELECT DISTINCT polar_session_id 
-                    FROM polar_hr_samples
-                    ORDER BY polar_session_id
+                    SELECT DISTINCT session_id 
+                    FROM hr_samples
+                    WHERE session_id IS NOT NULL
+                    ORDER BY session_id
                 """
             else:
                 # Only sessions without existing intervals
                 query = """
-                    SELECT DISTINCT s.polar_session_id 
-                    FROM polar_hr_samples s
-                    LEFT JOIN hr_recovery_intervals i ON s.polar_session_id = i.polar_session_id
-                    WHERE i.polar_session_id IS NULL
-                    ORDER BY s.polar_session_id
+                    SELECT DISTINCT s.session_id 
+                    FROM hr_samples s
+                    LEFT JOIN hr_recovery_intervals i ON s.session_id = i.polar_session_id
+                    WHERE s.session_id IS NOT NULL
+                      AND i.polar_session_id IS NULL
+                    ORDER BY s.session_id
                 """
         else:
             if reprocess:
                 query = """
-                    SELECT DISTINCT workout_id 
-                    FROM endurance_hr_samples
-                    ORDER BY workout_id
+                    SELECT DISTINCT endurance_session_id 
+                    FROM hr_samples
+                    WHERE endurance_session_id IS NOT NULL
+                    ORDER BY endurance_session_id
                 """
             else:
                 query = """
-                    SELECT DISTINCT s.workout_id 
-                    FROM endurance_hr_samples s
-                    LEFT JOIN hr_recovery_intervals i ON s.workout_id = i.endurance_workout_id
-                    WHERE i.endurance_workout_id IS NULL
-                    ORDER BY s.workout_id
+                    SELECT DISTINCT s.endurance_session_id 
+                    FROM hr_samples s
+                    LEFT JOIN hr_recovery_intervals i ON s.endurance_session_id = i.endurance_session_id
+                    WHERE s.endurance_session_id IS NOT NULL
+                      AND i.endurance_session_id IS NULL
+                    ORDER BY s.endurance_session_id
                 """
         
         with conn.cursor() as cur:
@@ -1106,7 +1251,7 @@ def process_all_sessions(source: str = 'polar', dry_run: bool = False, reprocess
         
         for session_id in session_ids:
             try:
-                process_session(session_id, source, dry_run)
+                process_session(session_id, source, dry_run, quiet)
             except Exception as e:
                 logger.error(f"Error processing session {session_id}: {e}")
                 continue
@@ -1180,7 +1325,7 @@ def recompute_quality_only(source: str = 'polar'):
             updates.append((
                 interval.quality_status,
                 flags_str,
-                interval.quality_score,
+                interval.auto_reject_reason,
                 interval.review_priority,
                 interval.needs_review,
                 session_id,
@@ -1192,7 +1337,7 @@ def recompute_quality_only(source: str = 'polar'):
             UPDATE hr_recovery_intervals
             SET quality_status = %s,
                 quality_flags = %s,
-                quality_score = %s,
+                auto_reject_reason = %s,
                 review_priority = %s,
                 needs_review = %s
             WHERE polar_session_id = %s AND interval_order = %s
@@ -1222,6 +1367,7 @@ if __name__ == '__main__':
                         help='Data source (default: polar)')
     parser.add_argument('--all', action='store_true', help='Process all sessions')
     parser.add_argument('--dry-run', action='store_true', help='Do not save to database')
+    parser.add_argument('--quiet', '-q', action='store_true', help='Suppress table output')
     parser.add_argument('--reprocess', action='store_true', help='Reprocess existing intervals')
     parser.add_argument('--recompute-quality', action='store_true', 
                         help='Recompute quality flags only (no re-extraction)')
@@ -1231,8 +1377,8 @@ if __name__ == '__main__':
     if args.recompute_quality:
         recompute_quality_only(args.source)
     elif args.session_id:
-        process_session(args.session_id, args.source, args.dry_run)
+        process_session(args.session_id, args.source, args.dry_run, args.quiet)
     elif args.all:
-        process_all_sessions(args.source, args.dry_run, args.reprocess)
+        process_all_sessions(args.source, args.dry_run, args.reprocess, args.quiet)
     else:
         parser.print_help()
