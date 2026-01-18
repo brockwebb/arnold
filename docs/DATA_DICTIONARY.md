@@ -180,6 +180,8 @@ SELECT * FROM weekly_strength_volume;
 | feeling | DECIMAL | Post-workout RPE (0-1) |
 | timezone_offset | INT | UTC offset in seconds |
 | note | TEXT | Session notes |
+| hrr_qc_status | VARCHAR(20) | QC status: pending, reviewed, needs_reprocess |
+| hrr_qc_reviewed_at | TIMESTAMPTZ | When QC review was completed |
 
 - **Rows**: 61
 - **Date Range**: May 21, 2025 → Jan 3, 2026
@@ -533,6 +535,101 @@ SELECT * FROM active_data_issues;
 | Dec 7, 2025 → | sleep | device_issue | **ongoing** (ring app closed) |
 | Nov 8-21, 2025 | all | surgery | bounded (knee surgery) |
 | May 14 - Dec 6, 2025 | hrv | data_quality | bounded (source cleanup) |
+
+---
+
+## peak_adjustments
+**Manual overrides for HRR peak detection when auto-detection fails**
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | SERIAL PK | Auto-increment |
+| polar_session_id | INT FK | Reference to polar_sessions |
+| interval_order | SMALLINT | Which detected peak (1-indexed) |
+| shift_seconds | SMALLINT | Seconds to shift peak (positive = later) |
+| reason | TEXT | Documentation of why adjustment needed |
+| created_at | TIMESTAMPTZ | When adjustment was created |
+| applied_at | TIMESTAMPTZ | When extraction used this adjustment |
+
+- **Unique Constraint**: (polar_session_id, interval_order)
+- **Use Case**: False peak detection where scipy anchors on plateau instead of true max HR
+- **Workflow**: See [hrr_quality_gates.md](./hrr_quality_gates.md#manual-peak-adjustments)
+
+**Example:**
+```sql
+-- Add adjustment for session 51, peak 3: shift 54 seconds later
+INSERT INTO peak_adjustments (polar_session_id, interval_order, shift_seconds, reason)
+VALUES (51, 3, 54, 'False peak - real recovery starts ~54s later');
+
+-- Reprocess: python scripts/hrr_feature_extraction.py --session-id 51
+```
+
+**Quality Flag**: Intervals with manual adjustments get `MANUAL_ADJUSTED` in `quality_flags`.
+
+---
+
+## hrr_quality_overrides
+**Human overrides for automated quality decisions - survives re-extraction**
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | SERIAL PK | Auto-increment |
+| polar_session_id | INT FK | Reference to polar_sessions (PK with interval_order) |
+| endurance_session_id | INT FK | Reference to endurance_sessions (alternative PK) |
+| interval_order | SMALLINT | Which interval (1-indexed, PK) |
+| override_action | VARCHAR(20) | `force_pass` or `force_reject` |
+| original_status | VARCHAR(20) | Status before override (for audit) |
+| original_reason | TEXT | Rejection reason before override |
+| reason | TEXT | Human explanation for override |
+| created_at | TIMESTAMPTZ | When override was created |
+| applied_at | TIMESTAMPTZ | When extraction used this override |
+
+- **Unique Constraint**: (polar_session_id, interval_order) OR (endurance_session_id, interval_order)
+- **Stable Keys**: Uses session_id + interval_order, not interval PK (survives re-extraction)
+- **Workflow**: See [hrr_quality_gates.md](./hrr_quality_gates.md#quality-overrides)
+
+**Override Actions:**
+- `force_pass`: Override rejection → pass (clears auto_reject_reason, sets review_priority=3)
+- `force_reject`: Override pass/flagged → rejected (sets auto_reject_reason='human_override: {reason}')
+
+**Example:**
+```sql
+-- Force-pass an interval with valid recovery despite segment R² flag
+INSERT INTO hrr_quality_overrides 
+    (polar_session_id, interval_order, override_action, original_status, original_reason, reason)
+VALUES 
+    (70, 1, 'force_pass', 'rejected', 'r2_30_60_below_0.75', 
+     'Human reviewed: mid-peak plateau in middle of steady drop. Valid recovery curve.');
+
+-- Reprocess: python scripts/hrr_feature_extraction.py --session-id 70
+```
+
+**Quality Flag**: Intervals with overrides get `HUMAN_OVERRIDE` in `quality_flags`.
+
+**Architecture Note**: Unlike `hrr_interval_reviews` (which records reviews but doesn't change data), quality overrides actively modify extraction results. The stable key design ensures overrides persist across re-extraction runs.
+
+---
+
+## hrr_interval_reviews
+**Human review decisions at interval level**
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | SERIAL PK | Auto-increment |
+| interval_id | INT FK | Reference to hr_recovery_intervals.id |
+| review_action | VARCHAR(30) | Action type (see below) |
+| original_flags | TEXT[] | Snapshot of quality_flags at review time |
+| notes | TEXT | Reviewer notes |
+| reviewed_at | TIMESTAMPTZ | When reviewed |
+
+- **Unique Constraint**: (interval_id, review_action)
+- **Review Actions**:
+  - `flags_cleared` - Informational flags acknowledged as OK
+  - `peak_shift_verified` - Manual peak adjustment confirmed correct
+  - `accepted` - Interval marked as good data
+  - `rejected_override` - Force reject otherwise passing interval
+
+**Helper View**: `hrr_review_status` joins intervals with reviews.
 
 ---
 

@@ -498,6 +498,153 @@ def save_intervals(conn, intervals: List[RecoveryInterval], session_id: int, sou
     conn.commit()
 
 
+def get_peak_adjustments(conn, session_id: int, source: str = 'polar') -> Dict[int, int]:
+    """
+    Load manual peak adjustments from database.
+    
+    Returns dict mapping interval_order -> shift_seconds.
+    Positive shift = move peak later (right) in time.
+    """
+    if source == 'polar':
+        query = """
+            SELECT interval_order, shift_seconds
+            FROM peak_adjustments
+            WHERE polar_session_id = %s
+        """
+    else:
+        query = """
+            SELECT interval_order, shift_seconds
+            FROM peak_adjustments
+            WHERE endurance_session_id = %s
+        """
+    
+    with conn.cursor() as cur:
+        cur.execute(query, (session_id,))
+        rows = cur.fetchall()
+    
+    return {row[0]: row[1] for row in rows}
+
+
+def mark_adjustments_applied(conn, session_id: int, source: str = 'polar'):
+    """Mark peak adjustments as applied."""
+    if source == 'polar':
+        query = """
+            UPDATE peak_adjustments
+            SET applied_at = NOW()
+            WHERE polar_session_id = %s
+        """
+    else:
+        query = """
+            UPDATE peak_adjustments
+            SET applied_at = NOW()
+            WHERE endurance_session_id = %s
+        """
+    
+    with conn.cursor() as cur:
+        cur.execute(query, (session_id,))
+
+
+def get_quality_overrides(conn, session_id: int, source: str = 'polar') -> Dict[int, Dict[str, Any]]:
+    """
+    Load human quality overrides from database.
+    
+    Returns dict mapping interval_order -> {override_action, reason}.
+    These override the automated quality assessment.
+    
+    override_action values:
+    - 'force_pass': Accept interval despite auto-reject
+    - 'force_reject': Reject interval despite auto-pass
+    """
+    if source == 'polar':
+        query = """
+            SELECT interval_order, override_action, reason
+            FROM hrr_quality_overrides
+            WHERE polar_session_id = %s
+        """
+    else:
+        query = """
+            SELECT interval_order, override_action, reason
+            FROM hrr_quality_overrides
+            WHERE endurance_session_id = %s
+        """
+    
+    with conn.cursor() as cur:
+        cur.execute(query, (session_id,))
+        rows = cur.fetchall()
+    
+    return {
+        row[0]: {'override_action': row[1], 'reason': row[2]}
+        for row in rows
+    }
+
+
+def mark_overrides_applied(conn, session_id: int, source: str = 'polar'):
+    """Mark quality overrides as applied."""
+    if source == 'polar':
+        query = """
+            UPDATE hrr_quality_overrides
+            SET applied_at = NOW()
+            WHERE polar_session_id = %s
+        """
+    else:
+        query = """
+            UPDATE hrr_quality_overrides
+            SET applied_at = NOW()
+            WHERE endurance_session_id = %s
+        """
+    
+    with conn.cursor() as cur:
+        cur.execute(query, (session_id,))
+
+
+def apply_quality_overrides(
+    intervals: List[RecoveryInterval],
+    overrides: Dict[int, Dict[str, Any]]
+) -> List[RecoveryInterval]:
+    """
+    Apply human quality overrides to intervals.
+    
+    This runs AFTER assess_quality() and overrides the automated decisions.
+    Adds HUMAN_OVERRIDE flag to indicate the interval was manually reviewed.
+    """
+    if not overrides:
+        return intervals
+    
+    for interval in intervals:
+        if interval.interval_order in overrides:
+            override = overrides[interval.interval_order]
+            action = override['override_action']
+            reason = override.get('reason', 'Human reviewed')
+            
+            if action == 'force_pass':
+                # Override rejection -> pass
+                logger.info(
+                    f"Applying override: interval {interval.interval_order} "
+                    f"force_pass (was: {interval.quality_status}, reason: {interval.auto_reject_reason})"
+                )
+                interval.quality_status = 'pass'
+                interval.auto_reject_reason = None
+                interval.needs_review = False
+                interval.review_priority = 3
+                if 'HUMAN_OVERRIDE' not in interval.quality_flags:
+                    interval.quality_flags.append('HUMAN_OVERRIDE')
+                    
+            elif action == 'force_reject':
+                # Override pass -> rejected
+                logger.info(
+                    f"Applying override: interval {interval.interval_order} "
+                    f"force_reject (was: {interval.quality_status})"
+                )
+                interval.quality_status = 'rejected'
+                interval.auto_reject_reason = f'human_override: {reason}'
+                interval.needs_review = False
+                interval.review_priority = 0
+                if 'HUMAN_OVERRIDE' not in interval.quality_flags:
+                    interval.quality_flags.append('HUMAN_OVERRIDE')
+    
+    return intervals
+
+
 # =============================================================================
 # Peak Detection
 # =============================================================================
@@ -1015,8 +1162,8 @@ def compute_segment_r2(hr_values: np.ndarray, start_sec: int, end_sec: int) -> O
         return round(r2, 4)
         
     except (RuntimeError, ValueError):
-        # Fit failed - return -1 to trigger rejection
-        return -1.0
+        # Fit failed - no data
+        return None
 
 
 def compute_all_segment_r2(
@@ -1027,7 +1174,10 @@ def compute_all_segment_r2(
     Compute R² for all standard segments.
     
     Philosophy: compute all windows where data exists (≥10 samples).
-    NULL = "no data", value = "computed (good or bad)".
+    NULL = "no data", -1.0 = "skipped/failed", value = "computed".
+    
+    Early-exit: if a critical segment fails (r2 < 0.75), downstream
+    segments are marked -1.0 (skipped) rather than computed.
     
     Key segments for quality validation:
     - r2_0_30 + r2_30_60 validate HRR60 measurement quality
@@ -1036,17 +1186,41 @@ def compute_all_segment_r2(
     """
     hr_values = np.array([s.hr_value for s in samples[:interval.duration_seconds + 1]])
     
-    # Compute R² for each segment unconditionally where data exists
-    # First half segments (critical for HRR60 quality)
-    interval.r2_0_30 = compute_segment_r2(hr_values, 0, 30)    # First 30s
-    interval.r2_30_60 = compute_segment_r2(hr_values, 30, 60)  # Second 30s - CRITICAL!
-    interval.r2_0_60 = compute_segment_r2(hr_values, 0, 60)    # Full first minute
+    # === First 30s - critical for detecting plateau/double-peak ===
+    interval.r2_0_30 = compute_segment_r2(hr_values, 0, 30)
     
-    # Transition zone
-    interval.r2_30_90 = compute_segment_r2(hr_values, 30, 90)  # Mid segment
-    interval.r2_0_90 = compute_segment_r2(hr_values, 0, 90)    # First 90s
+    # === 30-60s - CRITICAL for HRR60 quality ===
+    interval.r2_30_60 = compute_segment_r2(hr_values, 30, 60)
     
-    # Longer windows
+    # === 0-60s - validates HRR60 ===
+    interval.r2_0_60 = compute_segment_r2(hr_values, 0, 60)
+    
+    # Early exit check: if 30-60 is garbage, skip longer windows
+    if interval.r2_30_60 is not None and interval.r2_30_60 < 0.75:
+        # Mid-interval failed - longer windows are meaningless
+        interval.r2_30_90 = None
+        interval.r2_0_90 = None
+        interval.r2_0_120 = None
+        interval.r2_0_180 = None
+        interval.r2_0_240 = None
+        interval.r2_0_300 = None
+        interval.r2_detected = compute_segment_r2(hr_values, 0, min(interval.duration_seconds, len(hr_values)))
+        return interval
+    
+    # === 30-90s - transition zone, validates HRR90/120 ===
+    interval.r2_30_90 = compute_segment_r2(hr_values, 30, 90)
+    interval.r2_0_90 = compute_segment_r2(hr_values, 0, 90)
+    
+    # Early exit check: if 30-90 is garbage, skip even longer windows
+    if interval.r2_30_90 is not None and interval.r2_30_90 < 0.75:
+        interval.r2_0_120 = None
+        interval.r2_0_180 = None
+        interval.r2_0_240 = None
+        interval.r2_0_300 = None
+        interval.r2_detected = compute_segment_r2(hr_values, 0, min(interval.duration_seconds, len(hr_values)))
+        return interval
+    
+    # === Longer windows ===
     interval.r2_0_120 = compute_segment_r2(hr_values, 0, 120)
     interval.r2_0_180 = compute_segment_r2(hr_values, 0, 180)
     interval.r2_0_240 = compute_segment_r2(hr_values, 0, 240)
@@ -1102,17 +1276,209 @@ def compute_late_slope(
 
 
 # =============================================================================
+# Plateau Detection (Issue #020 - double_peak re-anchoring)
+# =============================================================================
+
+def find_peak_by_slope(
+    hr_values: np.ndarray,
+    window: int = 5,
+    threshold: float = -0.3,
+    consecutive: int = 5
+) -> Tuple[int, str]:
+    """
+    Method 1: Find where sustained negative slope begins.
+    
+    Slides through the HR values looking for the point where slope
+    becomes consistently negative (true decline starts).
+    
+    Args:
+        hr_values: Array of HR values from interval start
+        window: Size of slope calculation window (seconds)
+        threshold: Slope threshold in bpm/sec (negative = declining)
+        consecutive: Number of consecutive windows that must meet threshold
+    
+    Returns:
+        (offset, confidence): Offset in seconds to true peak, confidence level
+    """
+    if len(hr_values) < window + consecutive + 10:
+        return 0, 'insufficient_data'
+    
+    # Scan through looking for sustained decline
+    for i in range(len(hr_values) - window - consecutive):
+        all_negative = True
+        
+        # Check if slope is negative for N consecutive windows
+        for j in range(consecutive):
+            if i + j + window >= len(hr_values):
+                all_negative = False
+                break
+            slope = (hr_values[i + j + window] - hr_values[i + j]) / window
+            if slope > threshold:  # Not steep enough or positive
+                all_negative = False
+                break
+        
+        if all_negative:
+            # Found sustained decline - this is the true peak
+            return i, 'slope_found'
+    
+    return 0, 'no_sustained_decline'
+
+
+def find_peak_by_geometry(
+    hr_values: np.ndarray,
+    nadir_idx: int
+) -> Tuple[int, str]:
+    """
+    Method 2: Binary search for inflection point using projected line.
+    
+    Uses the initial slope to project a line, then binary searches
+    to find where the actual HR curve crosses this projection.
+    That crossing point is the inflection (true peak).
+    
+    Args:
+        hr_values: Array of HR values from interval start
+        nadir_idx: Index of the lowest point (nadir) in the interval
+    
+    Returns:
+        (offset, confidence): Offset in seconds to true peak, confidence level
+    """
+    if len(hr_values) < 10 or nadir_idx < 10:
+        return 0, 'insufficient_data'
+    
+    # Compute median slope from first 5-6 points
+    initial_diffs = np.diff(hr_values[:6])
+    if len(initial_diffs) == 0:
+        return 0, 'insufficient_data'
+    
+    initial_slope = np.median(initial_diffs)
+    
+    # If initial slope is already strongly negative, no plateau
+    if initial_slope < -0.5:
+        return 0, 'already_declining'
+    
+    # Project line: hr_projected[i] = hr_values[0] + initial_slope * i
+    def projected(i):
+        return hr_values[0] + initial_slope * i
+    
+    def delta(i):
+        if i >= len(hr_values):
+            return None
+        return hr_values[i] - projected(i)
+    
+    # Binary search for where actual crosses projection
+    left, right = 0, min(nadir_idx, len(hr_values) - 1)
+    
+    # Need at least some range to search
+    if right - left < 5:
+        return 0, 'range_too_small'
+    
+    iterations = 0
+    max_iterations = 20  # Prevent infinite loops
+    
+    while right - left > 1 and iterations < max_iterations:
+        iterations += 1
+        mid = (left + right) // 2
+        d = delta(mid)
+        
+        if d is None:
+            right = mid
+            continue
+        
+        if d > 0:  # Actual HR above projection, go right
+            left = mid
+        else:  # Actual HR below projection, go left
+            right = mid
+    
+    if iterations >= max_iterations:
+        return left, 'max_iterations'
+    
+    return left, 'geometry_found'
+
+
+def find_true_peak_plateau(
+    hr_values: np.ndarray,
+    nadir_idx: int,
+    config: 'HRRConfig'
+) -> Tuple[int, str, Dict[str, Any]]:
+    """
+    Find true peak when plateau is detected (r2_0_30 < threshold).
+    
+    Runs both methods (slope and geometry) and compares results.
+    If they agree (within 3 seconds), high confidence.
+    If they disagree, take average and flag for review.
+    
+    Args:
+        hr_values: Array of HR values from interval start
+        nadir_idx: Index of the nadir (lowest point)
+        config: HRR configuration
+    
+    Returns:
+        (offset, confidence, debug_info): 
+            - offset: Seconds to shift from detected peak to true peak
+            - confidence: 'high', 'medium', 'low'
+            - debug_info: Dict with method results for logging
+    """
+    # Run both methods
+    offset_slope, slope_status = find_peak_by_slope(hr_values)
+    offset_geom, geom_status = find_peak_by_geometry(hr_values, nadir_idx)
+    
+    debug_info = {
+        'slope_offset': offset_slope,
+        'slope_status': slope_status,
+        'geom_offset': offset_geom,
+        'geom_status': geom_status,
+    }
+    
+    # Handle edge cases where one method failed
+    if slope_status in ('insufficient_data', 'no_sustained_decline') and \
+       geom_status in ('insufficient_data', 'range_too_small', 'already_declining'):
+        # Both failed - can't resolve
+        return 0, 'failed', debug_info
+    
+    if slope_status in ('insufficient_data', 'no_sustained_decline'):
+        # Only geometry worked
+        return offset_geom, 'low', debug_info
+    
+    if geom_status in ('insufficient_data', 'range_too_small', 'already_declining'):
+        # Only slope worked
+        return offset_slope, 'low', debug_info
+    
+    # Both methods produced results - compare
+    diff = abs(offset_slope - offset_geom)
+    debug_info['method_diff'] = diff
+    
+    if diff <= 3:
+        # Agreement within 3 seconds - high confidence, use slope (more direct)
+        return offset_slope, 'high', debug_info
+    elif diff <= 10:
+        # Moderate disagreement - take average, medium confidence
+        avg_offset = (offset_slope + offset_geom) // 2
+        return avg_offset, 'medium', debug_info
+    else:
+        # Large disagreement - take average, low confidence
+        avg_offset = (offset_slope + offset_geom) // 2
+        return avg_offset, 'low', debug_info
+
+
+# =============================================================================
 # Feature Extraction Pipeline
 # =============================================================================
 
 def extract_features(
     samples: List[HRSample],
     resting_hr: int,
-    config: HRRConfig = None
+    config: HRRConfig = None,
+    peak_adjustments: Dict[int, int] = None
 ) -> List[RecoveryInterval]:
     """
     Main feature extraction pipeline.
     Detects recovery intervals and computes all features.
+    
+    Args:
+        samples: List of HR samples
+        resting_hr: Resting heart rate for this session
+        config: HRR configuration
+        peak_adjustments: Dict mapping interval_order -> shift_seconds for manual overrides
     """
     if config is None:
         config = HRRConfig()
@@ -1145,6 +1511,24 @@ def extract_features(
     last_interval_end = -1  # Track end of previous interval for measurement window constraint
     
     for peak_idx in valid_peaks:
+        # Apply manual peak adjustment if one exists for this interval_order
+        if peak_adjustments and interval_order in peak_adjustments:
+            shift = peak_adjustments[interval_order]
+            original_peak_idx = peak_idx
+            peak_idx = peak_idx + shift
+            logger.info(f"Applied manual adjustment: peak {interval_order} shifted by {shift}s (index {original_peak_idx} -> {peak_idx})")
+            
+            # Validate new peak is within bounds
+            if peak_idx < 0 or peak_idx >= len(samples):
+                logger.warning(f"Adjusted peak {interval_order} out of bounds, skipping")
+                interval_order += 1
+                continue
+            
+            # Flag to add later to indicate manual adjustment
+            manual_adjustment_applied = True
+        else:
+            manual_adjustment_applied = False
+        
         # Measurement window constraint: new peak can't start within previous interval
         if peak_idx <= last_interval_end:
             continue
@@ -1175,11 +1559,83 @@ def extract_features(
         # Compute segment R² values
         interval = compute_all_segment_r2(interval_samples, interval)
         
+        # Plateau detection: if r2_0_30 < threshold, try to find true peak
+        # This catches double-peak patterns where scipy detected the wrong peak
+        if interval.r2_0_30 is not None and interval.r2_0_30 < config.gate_r2_0_30_threshold:
+            hr_values = np.array([s.hr_value for s in interval_samples])
+            nadir_idx = interval.nadir_time_sec or len(hr_values) - 1
+            
+            # Try to find true peak using both methods
+            plateau_offset, plateau_confidence, debug_info = find_true_peak_plateau(
+                hr_values, nadir_idx, config
+            )
+            
+            logger.info(
+                f"Plateau detected at interval {interval_order}: r2_0_30={interval.r2_0_30:.3f}, "
+                f"offset={plateau_offset}s, confidence={plateau_confidence}, "
+                f"slope={debug_info['slope_offset']}s/{debug_info['slope_status']}, "
+                f"geom={debug_info['geom_offset']}s/{debug_info['geom_status']}"
+            )
+            
+            # Only re-anchor if we found a meaningful offset (>5 seconds)
+            if plateau_offset > 5 and plateau_confidence != 'failed':
+                # Calculate new start index
+                new_start_idx = adjusted_start_idx + plateau_offset
+                
+                # Make sure we still have enough data after the new start
+                if new_start_idx < end_idx - config.min_decline_duration_sec:
+                    # Find new recovery end from new peak
+                    new_end_idx = find_recovery_end(samples, new_start_idx, config)
+                    
+                    if new_end_idx is not None and new_end_idx > new_start_idx + config.min_decline_duration_sec:
+                        # Recreate interval from new anchor point
+                        new_interval = create_recovery_interval(
+                            samples, new_start_idx, new_end_idx, interval_order, resting_hr, config
+                        )
+                        
+                        if new_interval is not None:
+                            # Get new interval samples
+                            new_onset_offset = new_interval.onset_delay_sec or 0
+                            new_adjusted_start = new_start_idx + new_onset_offset
+                            new_interval_samples = samples[new_adjusted_start:new_end_idx + 1]
+                            
+                            if len(new_interval_samples) >= config.min_decline_duration_sec:
+                                # Recompute exponential fit
+                                new_interval = fit_exponential_decay(new_interval_samples, new_interval, config)
+                                
+                                # Recompute segment R²
+                                new_interval = compute_all_segment_r2(new_interval_samples, new_interval)
+                                
+                                # Check if re-anchor improved r2_0_30
+                                if new_interval.r2_0_30 is not None and new_interval.r2_0_30 >= config.gate_r2_0_30_threshold:
+                                    logger.info(
+                                        f"Plateau resolved: r2_0_30 {interval.r2_0_30:.3f} -> {new_interval.r2_0_30:.3f}, "
+                                        f"shifted +{plateau_offset}s"
+                                    )
+                                    # Use the re-anchored interval
+                                    interval = new_interval
+                                    interval_samples = new_interval_samples
+                                    end_idx = new_end_idx
+                                    
+                                    # Add flag to indicate plateau was resolved
+                                    if 'PLATEAU_RESOLVED' not in interval.quality_flags:
+                                        interval.quality_flags.append('PLATEAU_RESOLVED')
+                                else:
+                                    logger.info(
+                                        f"Plateau re-anchor did not improve r2_0_30: "
+                                        f"{interval.r2_0_30:.3f} -> {new_interval.r2_0_30 if new_interval.r2_0_30 else 'None'}"
+                                    )
+        
         # Compute late slope
         interval = compute_late_slope(interval_samples, interval)
         
         # Quality assessment
         interval = assess_quality(interval, config)
+        
+        # Add manual adjustment flag if applicable
+        if manual_adjustment_applied:
+            if 'MANUAL_ADJUSTED' not in interval.quality_flags:
+                interval.quality_flags.append('MANUAL_ADJUSTED')
         
         intervals.append(interval)
         interval_order += 1
@@ -1230,15 +1686,19 @@ def assess_quality(interval: RecoveryInterval, config: HRRConfig) -> RecoveryInt
     
     # === HARD REJECT CRITERIA ===
     
+    # 0. Insufficient duration - can't compute HRR60
+    if interval.r2_0_60 is None:
+        hard_reject = True
+        reject_reason = 'insufficient_duration'
+    
     # 1. Late slope > 0.1 bpm/sec = definite activity resumption
     if interval.slope_90_120 is not None and interval.slope_90_120 > 0.1:
         hard_reject = True
         reject_reason = 'activity_resumed'
     
     # 2. Best segment R² < 0.75 = statistically validated junk threshold
-    # Find best R² across all windows (include r2_0_30 for short intervals)
+    # Find best R² across valid windows (exclude r2_0_30 - too short for HRR60)
     r2_values = {
-        'r2_0_30': interval.r2_0_30,
         'r2_0_60': interval.r2_0_60,
         'r2_0_120': interval.r2_0_120,
         'r2_0_180': interval.r2_0_180,
@@ -1258,6 +1718,7 @@ def assess_quality(interval: RecoveryInterval, config: HRRConfig) -> RecoveryInt
     
     # 3. Gate 8: Segment quality check (r2_30_60 validates HRR60 measurement)
     # Threshold is 0.75 - same as other R² gates
+    # None means no data (too short, fit failed, or skipped)
     if interval.r2_30_60 is not None and interval.r2_30_60 < 0.75:
         hard_reject = True
         reject_reason = 'r2_30_60_below_0.75'
@@ -1377,6 +1838,10 @@ def print_summary_tables(intervals: List[RecoveryInterval], session_id: int, ses
     print("-" * 80)
     
     for i in intervals:
+        # Don't display values for rejected intervals - they're garbage
+        if i.quality_status == 'rejected':
+            print(f"{i.interval_order:>3} {'-':>6} {'-':>6} {'-':>7} {'-':>7} {'-':>7} {'-':>7} {'-':>6} {'-':>5}")
+            continue
         hrr30 = f"{i.hrr30_abs}" if i.hrr30_abs else "-"
         hrr60 = f"{i.hrr60_abs}" if i.hrr60_abs else "-"
         hrr120 = f"{i.hrr120_abs}" if i.hrr120_abs else "-"
@@ -1468,9 +1933,20 @@ def process_session(session_id: int, source: str = 'polar', dry_run: bool = Fals
         else:
             logger.info(f"Using recorded resting HR: {resting_hr}")
         
+        # Load manual peak adjustments
+        peak_adjustments = get_peak_adjustments(conn, session_id, source)
+        if peak_adjustments:
+            logger.info(f"Loaded {len(peak_adjustments)} peak adjustments: {peak_adjustments}")
+        
         # Extract features - load config from YAML
         config = HRRConfig.from_yaml()
-        intervals = extract_features(samples, resting_hr, config)
+        intervals = extract_features(samples, resting_hr, config, peak_adjustments)
+        
+        # Load and apply human quality overrides
+        quality_overrides = get_quality_overrides(conn, session_id, source)
+        if quality_overrides:
+            logger.info(f"Loaded {len(quality_overrides)} quality overrides")
+            intervals = apply_quality_overrides(intervals, quality_overrides)
         
         # Print summary
         if not quiet:
@@ -1481,6 +1957,18 @@ def process_session(session_id: int, source: str = 'polar', dry_run: bool = Fals
         if not dry_run and intervals:
             save_intervals(conn, intervals, session_id, source)
             logger.info(f"Saved {len(intervals)} intervals to database")
+            
+            # Mark peak adjustments as applied
+            if peak_adjustments:
+                mark_adjustments_applied(conn, session_id, source)
+                conn.commit()
+                logger.info(f"Marked {len(peak_adjustments)} peak adjustments as applied")
+            
+            # Mark quality overrides as applied
+            if quality_overrides:
+                mark_overrides_applied(conn, session_id, source)
+                conn.commit()
+                logger.info(f"Marked {len(quality_overrides)} quality overrides as applied")
         elif dry_run:
             logger.info("Dry run - not saving to database")
         
