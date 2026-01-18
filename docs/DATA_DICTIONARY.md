@@ -1,7 +1,7 @@
 # Arnold Data Dictionary
 
 > **Purpose**: Comprehensive reference for the Arnold analytics data lake. Describes all data sources, schemas, relationships, and fitness for use.
-> **Last Updated**: January 5, 2026 (ADR-002: Strength Migration Complete)
+> **Last Updated**: January 17, 2026 (Migration 021: HRR extended columns)
 > **Location**: `/arnold/data/`
 
 ---
@@ -607,6 +607,207 @@ VALUES
 **Quality Flag**: Intervals with overrides get `HUMAN_OVERRIDE` in `quality_flags`.
 
 **Architecture Note**: Unlike `hrr_interval_reviews` (which records reviews but doesn't change data), quality overrides actively modify extraction results. The stable key design ensures overrides persist across re-extraction runs.
+
+---
+
+## hr_recovery_intervals
+**Heart rate recovery intervals extracted from HR time-series - PRIMARY HRR SOURCE**
+
+Heart rate recovery (HRR) intervals are extracted from Polar/endurance sessions and contain both raw measurements and computed quality metrics. Each interval represents a recovery period following a peak heart rate event.
+
+### Core Identification
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | SERIAL PK | Auto-increment |
+| polar_session_id | INT FK | Reference to polar_sessions (NULL for endurance) |
+| endurance_session_id | INT FK | Reference to endurance_sessions (NULL for Polar) |
+| interval_order | SMALLINT | Interval sequence within session (1-indexed) |
+| peak_label | TEXT | Human-readable label (e.g., "S71:p13") |
+| start_time | TIMESTAMPTZ NOT NULL | Interval start timestamp |
+| end_time | TIMESTAMPTZ NOT NULL | Interval end timestamp |
+| duration_seconds | INT NOT NULL | Recovery window length |
+
+### Heart Rate Measurements
+
+| Column | Type | Description |
+|--------|------|-------------|
+| hr_peak | SMALLINT NOT NULL | Peak heart rate at interval start (bpm) |
+| hr_30s | SMALLINT | Heart rate at 30 seconds post-peak |
+| hr_60s | SMALLINT | Heart rate at 60 seconds post-peak |
+| hr_90s | SMALLINT | Heart rate at 90 seconds post-peak |
+| hr_120s | SMALLINT | Heart rate at 120 seconds post-peak |
+| hr_180s | SMALLINT | Heart rate at 180 seconds post-peak |
+| hr_240s | SMALLINT | Heart rate at 240 seconds post-peak |
+| hr_300s | SMALLINT | Heart rate at 300 seconds post-peak |
+| hr_nadir | SMALLINT | Lowest HR reached during recovery |
+| rhr_baseline | SMALLINT | Resting HR used as baseline |
+| local_baseline_hr | SMALLINT | Local baseline HR (session context) |
+
+### HRR Absolute Drops (bpm)
+
+| Column | Type | Description |
+|--------|------|-------------|
+| hrr30_abs | SMALLINT | HRR at 30s: peak - hr_30s |
+| hrr60_abs | SMALLINT | HRR at 60s: peak - hr_60s |
+| hrr90_abs | SMALLINT | HRR at 90s: peak - hr_90s |
+| hrr120_abs | SMALLINT | HRR at 120s: peak - hr_120s |
+| hrr180_abs | SMALLINT | HRR at 180s: peak - hr_180s |
+| hrr240_abs | SMALLINT | HRR at 240s: peak - hr_240s |
+| hrr300_abs | SMALLINT | HRR at 300s: peak - hr_300s |
+| total_drop | SMALLINT | Peak - nadir (max observed drop) |
+| peak_minus_local | SMALLINT | Peak - local_baseline_hr |
+| hr_reserve | SMALLINT | Peak - RHR baseline |
+| recovery_ratio | NUMERIC(5,4) | Total drop / HR reserve |
+
+### Exponential Fit Parameters
+
+| Column | Type | Description |
+|--------|------|-------------|
+| tau_seconds | NUMERIC(6,2) | Time constant (seconds to 63% recovery) |
+| tau_fit_r2 | NUMERIC(5,4) | R² of exponential fit |
+| tau_censored | BOOLEAN | True if tau was capped at max (300s) |
+| fit_amplitude | DOUBLE | Fitted amplitude parameter |
+| fit_asymptote | DOUBLE | Fitted asymptote (recovery target) |
+| decline_slope_30s | NUMERIC(6,4) | Slope of 0-30s decline (bpm/sec) |
+| decline_slope_60s | NUMERIC(6,4) | Slope of 0-60s decline (bpm/sec) |
+| early_slope | NUMERIC | Early phase slope |
+
+### Segment R² Values (Quality Metrics)
+
+| Column | Type | Description |
+|--------|------|-------------|
+| r2_0_30 | DOUBLE | R² for 0-30s window |
+| r2_30_60 | DOUBLE | R² for 30-60s window |
+| r2_0_60 | REAL | R² for 0-60s window |
+| r2_0_90 | REAL | R² for 0-90s window |
+| r2_30_90 | REAL | R² for 30-90s window |
+| r2_0_120 | REAL | R² for 0-120s window |
+| r2_0_180 | REAL | R² for 0-180s window |
+| r2_0_240 | REAL | R² for 0-240s window |
+| r2_0_300 | REAL | R² for 0-300s window |
+| r2_180 | NUMERIC | Legacy R² at 180s |
+| r2_240 | NUMERIC | Legacy R² at 240s |
+| r2_300 | NUMERIC | Legacy R² at 300s |
+| r2_delta | DOUBLE | R² 30-60 - R² 0-30 (plateau indicator) |
+| slope_90_120 | DOUBLE | Slope in 90-120s window (bpm/sec) |
+| slope_90_120_r2 | DOUBLE | R² of 90-120s slope fit |
+
+### Extrapolation Quality
+
+| Column | Type | Description |
+|--------|------|-------------|
+| extrap_residual_60 | DOUBLE | Extrapolation residual at 60s |
+| extrap_accumulated_error | DOUBLE | Cumulative extrapolation error |
+| extrap_late_trend | DOUBLE | Late-phase trend indicator |
+
+### Detection Metadata
+
+| Column | Type | Description |
+|--------|------|-------------|
+| peak_detected | BOOLEAN | True if peak found by scipy |
+| valley_detected | BOOLEAN | True if valley-based detection |
+| peak_count | INT | Number of candidate peaks |
+| valley_count | INT | Number of candidate valleys |
+| peak_sample_idx | INT | Sample index of peak |
+| onset_delay_sec | SMALLINT | Delay before recovery starts |
+| onset_confidence | VARCHAR | 'high', 'medium', 'low' |
+| nadir_time_sec | INT | Time to reach nadir (seconds) |
+| time_to_50pct_sec | SMALLINT | Time to 50% recovery |
+
+### Session Context
+
+| Column | Type | Description |
+|--------|------|-------------|
+| session_type | VARCHAR(20) | Workout type |
+| session_elapsed_min | SMALLINT | Minutes into session |
+| sustained_effort_sec | SMALLINT | Duration of preceding effort |
+| effort_avg_hr | SMALLINT | Average HR during effort |
+| peak_pct_max | NUMERIC(5,4) | Peak as % of max HR |
+| stratum | VARCHAR | Intensity stratum |
+| preceding_activity | VARCHAR | Activity before peak |
+| protocol_type | VARCHAR | Recovery protocol |
+| recovery_posture | VARCHAR | Posture during recovery |
+
+### Sample Quality
+
+| Column | Type | Description |
+|--------|------|-------------|
+| sample_count | INT | Actual HR samples in interval |
+| expected_sample_count | INT | Expected samples (1/sec) |
+| sample_completeness | NUMERIC | sample_count / expected |
+| is_clean | BOOLEAN | No quality issues (default: true) |
+| is_low_signal | BOOLEAN | Low signal quality (default: false) |
+| is_deliberate | BOOLEAN | Deliberate recovery protocol |
+
+### Quality Assessment
+
+| Column | Type | Description |
+|--------|------|-------------|
+| quality_status | TEXT | 'pass', 'flagged', 'rejected', 'pending' |
+| quality_flags | TEXT[] | Array of flag codes (e.g., 'MANUAL_ADJUSTED', 'HUMAN_OVERRIDE') |
+| quality_score | DOUBLE | Composite quality score |
+| auto_reject_reason | TEXT | Reason for auto-rejection |
+| confidence | NUMERIC | Overall confidence score |
+| weighted_hrr60 | NUMERIC | Confidence-weighted HRR60 |
+| actionable | BOOLEAN | Usable for trend analysis (default: true) |
+| needs_review | BOOLEAN | Flagged for human review (default: true) |
+| review_priority | INT | 1=urgent, 2=normal, 3=low (default: 3) |
+
+### Human Review
+
+| Column | Type | Description |
+|--------|------|-------------|
+| human_verified | BOOLEAN | Has been manually reviewed (default: false) |
+| verified_at | TIMESTAMPTZ | When verified |
+| verified_status | TEXT | Human's status decision |
+| verification_notes | TEXT | Reviewer notes |
+| excluded | BOOLEAN | Excluded from analysis (default: false) |
+| exclusion_reason | TEXT | Why excluded |
+| notes | TEXT | General notes |
+
+### Derived Metrics
+
+| Column | Type | Description |
+|--------|------|-------------|
+| auc_60s | NUMERIC(10,2) | Area under curve (first 60s) |
+| predicted_rpe | NUMERIC | ML-predicted RPE |
+| anomaly_score | NUMERIC | Anomaly detection score |
+| recovery_cluster | VARCHAR | Cluster assignment |
+| created_at | TIMESTAMPTZ | Record creation (default: now()) |
+
+**Table Statistics:**
+- **Rows**: ~1,500+ (grows with each session)
+- **Sessions**: 61+ Polar sessions, endurance sessions
+- **Quality Distribution**: ~60% pass, ~40% rejected
+- **Migration**: 021_hrr_extended_columns_fix.sql added hr_180s, hr_240s, hr_300s, hrr180-300 columns
+
+**Key Queries:**
+```sql
+-- Get HRR60 trends for passed intervals
+SELECT start_time::date, AVG(hrr60_abs) as avg_hrr60
+FROM hr_recovery_intervals
+WHERE quality_status = 'pass' AND hrr60_abs IS NOT NULL
+GROUP BY 1 ORDER BY 1;
+
+-- Find long recovery intervals (5+ min)
+SELECT polar_session_id, interval_order, duration_seconds,
+       hrr60_abs, hrr120_abs, hrr180_abs, hrr240_abs, hrr300_abs
+FROM hr_recovery_intervals
+WHERE duration_seconds >= 300 AND quality_status = 'pass';
+
+-- Session summary
+SELECT polar_session_id,
+       COUNT(*) as intervals,
+       COUNT(*) FILTER (WHERE quality_status = 'pass') as passed,
+       AVG(hrr60_abs) FILTER (WHERE quality_status = 'pass') as avg_hrr60
+FROM hr_recovery_intervals
+GROUP BY 1;
+```
+
+**Extraction Script**: `python scripts/hrr_feature_extraction.py --session-id <ID>`
+
+**Quality Documentation**: See [hrr_quality_gates.md](./hrr_quality_gates.md)
 
 ---
 

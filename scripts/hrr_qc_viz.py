@@ -309,7 +309,7 @@ def plot_session_qc(
     used_peak_times = set()
     
     # Categorize intervals by BEST valid window (longest with R² >= threshold)
-    # Uses segment-specific R² values, not overall tau_fit_r2
+    # IMPORTANT: Respect quality_status from database FIRST
     # Priority: HRR300 > HRR240 > HRR180 > HRR120 > HRR60 > rejected
     hrr300_intervals = []  # 5-minute (purple)
     hrr240_intervals = []  # 4-minute (orange)
@@ -319,6 +319,12 @@ def plot_session_qc(
     rejected_intervals = [] # No valid window (gray)
     
     for interval in intervals:
+        # RESPECT STORED QUALITY STATUS FIRST
+        # The extraction script already made the pass/fail decision
+        if interval.get('quality_status') == 'rejected':
+            rejected_intervals.append(interval)
+            continue
+        
         duration = interval['duration_seconds'] or 0
         
         # Check windows from longest to shortest, use SEGMENT R² values
@@ -340,16 +346,19 @@ def plot_session_qc(
         elif duration >= 60 and r2_60 is not None and r2_60 >= min_r2:
             hrr60_intervals.append(interval)
         else:
+            # Passed quality gates but no good R² window - treat as rejected for viz
             rejected_intervals.append(interval)
     
     # Set title
     fig.suptitle(title, fontsize=11, fontweight='bold')
     
-    # Plot rejected (gray window, red triangle) - 60s fixed window
+    # Plot rejected (gray window, red triangle) - use actual duration
     for interval in rejected_intervals:
         start_offset = (interval['start_time'] - session_start).total_seconds()
         start_min = start_offset / 60
-        end_min = start_min + 1.0  # Fixed 60s window
+        duration_sec = interval['duration_seconds'] or 60
+        duration_min = duration_sec / 60.0
+        end_min = start_min + duration_min
         
         ax.axvspan(start_min, end_min, alpha=0.20, color='gray')
         
@@ -357,20 +366,12 @@ def plot_session_qc(
             ax.plot(start_min, interval['hr_peak'], 'v', color='red', markersize=5, alpha=0.8)
             used_peak_times.add(round(start_min, 2))
         
-        # Annotation with peak label and best R² (to show why rejected)
-        mid_min = start_min + 0.5
+        # Annotation with peak label, reject reason, and duration
+        mid_min = start_min + (duration_min / 2)
         peak_label = get_peak_label(session_id, interval)
+        reject_reason = interval.get('auto_reject_reason') or '?'
         
-        # Find best R² across all windows
-        r2_values = [
-            ('60', interval.get('r2_0_60')),
-            ('120', interval.get('r2_0_120')),
-            ('180', interval.get('r2_0_180')),
-        ]
-        best_r2 = max((v for _, v in r2_values if v is not None), default=None)
-        r2_str = f"{best_r2:.2f}" if best_r2 else '?'
-        
-        ax.annotate(f"✗ {peak_label}\nbest r²={r2_str}",
+        ax.annotate(f"✗ {peak_label}\n{duration_sec}s: {reject_reason}",
                    xy=(mid_min, (interval['hr_peak'] or 120) + 3), 
                    fontsize=6, ha='center', color='gray', alpha=0.8)
     
@@ -580,8 +581,8 @@ def print_summary_tables(intervals: List[dict], session_id: int, session_start: 
     
     # TABLE 2: R² by Window (matches hrr_feature_extraction.py format)
     print(f"\n--- TABLE 2: R² by Window ---")
-    print(f"{'Ord':>3} {'0-30':>6} {'0-60':>6} {'30-90':>6} {'slp90':>7} {'0-120':>6} {'0-180':>6} {'0-240':>6} {'0-300':>6}")
-    print(f"{'-'*3:>3} {'-'*6:>6} {'-'*6:>6} {'-'*6:>6} {'-'*7:>7} {'-'*6:>6} {'-'*6:>6} {'-'*6:>6} {'-'*6:>6}")
+    print(f"{'Ord':>3} {'0-30':>6} {'30-60':>6} {'0-60':>6} {'30-90':>6} {'slp90':>7} {'0-120':>6} {'0-180':>6} {'0-240':>6} {'0-300':>6}")
+    print(f"{'-'*3:>3} {'-'*6:>6} {'-'*6:>6} {'-'*6:>6} {'-'*6:>6} {'-'*7:>7} {'-'*6:>6} {'-'*6:>6} {'-'*6:>6} {'-'*6:>6}")
     for i in intervals:
         order = i.get('interval_order') or 0
         
@@ -599,7 +600,7 @@ def print_summary_tables(intervals: List[dict], session_id: int, session_start: 
                 return '-'
             return f"{val:+.3f}"  # Show sign
         
-        print(f"{order:>3} {mark(i.get('r2_0_30')):>6} {mark(i.get('r2_0_60')):>6} {mark(i.get('r2_30_90')):>6} {fmt_slope(i.get('slope_90_120')):>7} {mark(i.get('r2_0_120')):>6} {mark(i.get('r2_0_180')):>6} {mark(i.get('r2_0_240')):>6} {mark(i.get('r2_0_300')):>6}")
+        print(f"{order:>3} {mark(i.get('r2_0_30')):>6} {mark(i.get('r2_30_60')):>6} {mark(i.get('r2_0_60')):>6} {mark(i.get('r2_30_90')):>6} {fmt_slope(i.get('slope_90_120')):>7} {mark(i.get('r2_0_120')):>6} {mark(i.get('r2_0_180')):>6} {mark(i.get('r2_0_240')):>6} {mark(i.get('r2_0_300')):>6}")
     print(f"  (* = below 0.75, slp90 = 90-120s slope bpm/sec)")
     
     # TABLE 3: HRR Drops (standard metrics only - no HRR90)
