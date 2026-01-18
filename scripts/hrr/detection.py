@@ -333,10 +333,19 @@ def create_recovery_interval(
 
     # Use max HR onset as primary (more reliable for catch-breath detection)
     effective_start_idx = max_hr_idx
-    effective_samples = samples[effective_start_idx:end_idx + 1]
+    
+    # HRR300 FIX: Extend end_idx to compensate for onset shift
+    # This ensures full 300s measurement window after the true peak
+    # Without this, onset_delay eats into the measurement window
+    extended_end_idx = end_idx + onset_maxhr
+    if extended_end_idx >= len(samples):
+        extended_end_idx = len(samples) - 1
+    
+    effective_samples = samples[effective_start_idx:extended_end_idx + 1]
 
     if len(effective_samples) < config.min_decline_duration_sec:
         effective_start_idx = start_idx
+        extended_end_idx = end_idx
         effective_samples = interval_samples
 
     hr_values = [s.hr_value for s in effective_samples]

@@ -129,8 +129,8 @@ def compute_segment_r2(hr_values: np.ndarray, start_sec: int, end_sec: int) -> O
         return round(r2, 4)
 
     except (RuntimeError, ValueError):
-        # Fit failed - no data
-        return None
+        # Fit failed - return impossible R² value to trigger quality gates
+        return -1.0
 
 
 def compute_all_segment_r2(

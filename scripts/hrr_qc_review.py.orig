@@ -463,10 +463,6 @@ def sessions(unverified: bool, needs_review: bool):
     """List all sessions with interval counts."""
     with get_db() as db:
         all_sessions = get_sessions_summary(db)
-        if needs_review:
-            all_sessions = [s for s in all_sessions if s["needs_review"] > 0]
-        if unverified:
-            all_sessions = [s for s in all_sessions if s["verified"] < s["total"]]
         show_session_list(all_sessions)
 
 
@@ -478,10 +474,6 @@ def review(session: Optional[int], unverified: bool, needs_review: bool):
     """Interactive review of HRR intervals."""
     with get_db() as db:
         all_sessions = get_sessions_summary(db)
-        if needs_review:
-            all_sessions = [s for s in all_sessions if s["needs_review"] > 0]
-        if unverified:
-            all_sessions = [s for s in all_sessions if s["verified"] < s["total"]]
         
         # Filter sessions
         if needs_review:
