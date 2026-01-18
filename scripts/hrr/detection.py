@@ -192,6 +192,10 @@ def find_recovery_end(samples: List[HRSample], start_idx: int, config: HRRConfig
     """
     Find the end of a recovery interval starting from a peak.
     Returns the index where recovery ends (either plateau, rise, or max duration).
+    
+    Late-stage flutter tolerance: After 240s, HR naturally oscillates more as it
+    approaches resting baseline. We use a looser tolerance to avoid premature
+    termination on deliberate extended recovery protocols.
     """
     if start_idx >= len(samples) - 1:
         return None
@@ -199,14 +203,22 @@ def find_recovery_end(samples: List[HRSample], start_idx: int, config: HRRConfig
     peak_hr = samples[start_idx].hr_value
     current_min = peak_hr
     consecutive_rises = 0
+    
+    # Late-stage config (defaults if not in config)
+    late_stage_sec = getattr(config, 'late_stage_sec', 240)
+    late_stage_tolerance = getattr(config, 'late_stage_tolerance_bpm', 6)
 
     for i in range(start_idx + 1, min(start_idx + config.max_interval_duration_sec + 1, len(samples))):
         hr = samples[i].hr_value
+        elapsed = i - start_idx
+        
+        # Use looser tolerance for late-stage recovery (Issue: HRR300 early termination)
+        tolerance = late_stage_tolerance if elapsed > late_stage_sec else config.decline_tolerance_bpm
 
         if hr < current_min:
             current_min = hr
             consecutive_rises = 0
-        elif hr > current_min + config.decline_tolerance_bpm:
+        elif hr > current_min + tolerance:
             consecutive_rises += 1
             if consecutive_rises >= 5:  # 5 consecutive seconds of rising
                 return i - 5  # Return point before rise started
@@ -505,7 +517,14 @@ def extract_features(
         # This ensures R² is computed from the true max HR, not scipy's detection point
         onset_offset = interval.onset_delay_sec or 0
         adjusted_start_idx = peak_idx + onset_offset
-        interval_samples = samples[adjusted_start_idx:end_idx + 1]
+        
+        # Extend end_idx to compensate for onset adjustment (HRR300 fix)
+        # This ensures full 300s measurement window after onset shift
+        extended_end_idx = end_idx + onset_offset
+        if extended_end_idx >= len(samples):
+            extended_end_idx = len(samples) - 1
+        
+        interval_samples = samples[adjusted_start_idx:extended_end_idx + 1]
 
         # Fit exponential decay
         interval = fit_exponential_decay(interval_samples, interval, config)
@@ -546,7 +565,7 @@ def extract_features(
         interval_order += 1
 
         # Update measurement window constraint tracker
-        last_interval_end = end_idx
+        last_interval_end = extended_end_idx
 
     # Overlap detection (Issue #015)
     # If interval N's window overlaps interval N+1's, reject N as duplicate

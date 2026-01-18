@@ -29,6 +29,10 @@ recovery_interval:
   min_decline_duration_sec: 30   # Minimum recovery duration to record
   max_interval_duration_sec: 300 # Cap at 5 minutes
   decline_tolerance_bpm: 3       # Allow small rises within this range
+  # Late-stage flutter tolerance (Issue: HRR300 early termination)
+  # After 240s, HR oscillates more near baseline - use looser threshold
+  late_stage_sec: 240            # Switch to late-stage tolerance after this
+  late_stage_tolerance_bpm: 6    # Looser tolerance for near-baseline oscillation
 
 # =============================================================================
 # Quality Thresholds (Soft)

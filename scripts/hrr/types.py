@@ -43,6 +43,8 @@ class HRRConfig:
     min_decline_duration_sec: int = 30  # Minimum recovery duration to record
     max_interval_duration_sec: int = 300  # Cap at 5 minutes
     decline_tolerance_bpm: int = 3  # Allow small rises within this range
+    late_stage_sec: int = 240  # After this, use looser flutter tolerance
+    late_stage_tolerance_bpm: int = 6  # Looser tolerance for near-baseline oscillation
 
     # Quality thresholds
     low_signal_threshold_bpm: int = 25  # hr_reserve below this = low_signal
@@ -102,6 +104,8 @@ class HRRConfig:
             kwargs['min_decline_duration_sec'] = ri.get('min_decline_duration_sec', 30)
             kwargs['max_interval_duration_sec'] = ri.get('max_interval_duration_sec', 300)
             kwargs['decline_tolerance_bpm'] = ri.get('decline_tolerance_bpm', 3)
+            kwargs['late_stage_sec'] = ri.get('late_stage_sec', 240)
+            kwargs['late_stage_tolerance_bpm'] = ri.get('late_stage_tolerance_bpm', 6)
 
         # Quality thresholds
         if 'quality' in yaml_config:
