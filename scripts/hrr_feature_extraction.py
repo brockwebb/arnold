@@ -1460,6 +1460,111 @@ def find_true_peak_plateau(
         return avg_offset, 'low', debug_info
 
 
+def attempt_plateau_reanchor(
+    samples: List[HRSample],
+    interval: RecoveryInterval,
+    interval_samples: List[HRSample],
+    adjusted_start_idx: int,
+    end_idx: int,
+    interval_order: int,
+    resting_hr: int,
+    config: HRRConfig
+) -> Tuple[bool, Optional[RecoveryInterval], Optional[List[HRSample]], int, str]:
+    """
+    Attempt to re-anchor interval when plateau/double-peak detected (r2_0_30 < threshold).
+    
+    Uses guard clauses pattern - each check returns early with failure reason if not met.
+    This replaces the previous deeply-nested if statements that silently fell through.
+    
+    Args:
+        samples: Full session HR samples
+        interval: Original interval with bad r2_0_30
+        interval_samples: Samples for the original interval
+        adjusted_start_idx: Current onset-adjusted start index
+        end_idx: Current end index
+        interval_order: Interval number for logging
+        resting_hr: Resting heart rate
+        config: HRR configuration
+    
+    Returns:
+        (success, new_interval, new_samples, new_end_idx, reason)
+        - success: True if re-anchor improved r2_0_30 above threshold
+        - new_interval: Re-anchored interval (or None if failed)
+        - new_samples: Samples for re-anchored interval (or None if failed)
+        - new_end_idx: New end index (or original if failed)
+        - reason: Description of outcome for logging
+    """
+    hr_values = np.array([s.hr_value for s in interval_samples])
+    nadir_idx = interval.nadir_time_sec or len(hr_values) - 1
+    
+    # Run plateau detection algorithms
+    plateau_offset, plateau_confidence, debug_info = find_true_peak_plateau(
+        hr_values, nadir_idx, config
+    )
+    
+    logger.info(
+        f"Interval {interval_order}: plateau detection - "
+        f"r2_0_30={interval.r2_0_30:.3f}, offset={plateau_offset}s, confidence={plateau_confidence}, "
+        f"slope={debug_info['slope_offset']}s/{debug_info['slope_status']}, "
+        f"geom={debug_info['geom_offset']}s/{debug_info['geom_status']}"
+    )
+    
+    # Guard 1: Did plateau detection fail entirely?
+    if plateau_confidence == 'failed':
+        return False, None, None, end_idx, f"plateau detection failed: {debug_info['slope_status']}, {debug_info['geom_status']}"
+    
+    # Guard 2: Is offset meaningful? (>5 seconds)
+    if plateau_offset <= 5:
+        return False, None, None, end_idx, f"offset too small: {plateau_offset}s <= 5s threshold"
+    
+    # Guard 3: Will we have enough data after shifting?
+    new_start_idx = adjusted_start_idx + plateau_offset
+    if new_start_idx >= end_idx - config.min_decline_duration_sec:
+        return False, None, None, end_idx, f"insufficient data after shift: new_start={new_start_idx}, end={end_idx}, min_duration={config.min_decline_duration_sec}"
+    
+    # Guard 4: Can we find a valid recovery end from new start?
+    new_end_idx = find_recovery_end(samples, new_start_idx, config)
+    if new_end_idx is None:
+        return False, None, None, end_idx, "find_recovery_end returned None for new start"
+    
+    # Guard 5: Is new interval long enough?
+    if new_end_idx <= new_start_idx + config.min_decline_duration_sec:
+        return False, None, None, end_idx, f"new interval too short: {new_end_idx - new_start_idx}s < {config.min_decline_duration_sec}s"
+    
+    # Guard 6: Can we create the interval?
+    new_interval = create_recovery_interval(
+        samples, new_start_idx, new_end_idx, interval_order, resting_hr, config
+    )
+    if new_interval is None:
+        return False, None, None, end_idx, "create_recovery_interval returned None"
+    
+    # Guard 7: Do we have enough samples after onset adjustment?
+    new_onset_offset = new_interval.onset_delay_sec or 0
+    new_adjusted_start = new_start_idx + new_onset_offset
+    new_interval_samples = samples[new_adjusted_start:new_end_idx + 1]
+    
+    if len(new_interval_samples) < config.min_decline_duration_sec:
+        return False, None, None, end_idx, f"new samples too few after onset: {len(new_interval_samples)} < {config.min_decline_duration_sec}"
+    
+    # Recompute features on re-anchored interval
+    new_interval = fit_exponential_decay(new_interval_samples, new_interval, config)
+    new_interval = compute_all_segment_r2(new_interval_samples, new_interval)
+    
+    # Guard 8: Did we get a valid r2_0_30?
+    if new_interval.r2_0_30 is None:
+        return False, None, None, end_idx, "r2_0_30 is None after recompute"
+    
+    # Guard 9: Did r2_0_30 actually improve above threshold?
+    if new_interval.r2_0_30 < config.gate_r2_0_30_threshold:
+        return False, None, None, end_idx, f"r2_0_30 still below threshold: {new_interval.r2_0_30:.3f} < {config.gate_r2_0_30_threshold}"
+    
+    # Success! Add flag and return
+    if 'PLATEAU_RESOLVED' not in new_interval.quality_flags:
+        new_interval.quality_flags.append('PLATEAU_RESOLVED')
+    
+    return True, new_interval, new_interval_samples, new_end_idx, f"resolved: r2_0_30 {interval.r2_0_30:.3f} -> {new_interval.r2_0_30:.3f}, shifted +{plateau_offset}s"
+
+
 # =============================================================================
 # Feature Extraction Pipeline
 # =============================================================================
@@ -1559,72 +1664,23 @@ def extract_features(
         # Compute segment R² values
         interval = compute_all_segment_r2(interval_samples, interval)
         
-        # Plateau detection: if r2_0_30 < threshold, try to find true peak
+        # Plateau detection: if r2_0_30 < threshold, try to re-anchor to true peak
         # This catches double-peak patterns where scipy detected the wrong peak
         if interval.r2_0_30 is not None and interval.r2_0_30 < config.gate_r2_0_30_threshold:
-            hr_values = np.array([s.hr_value for s in interval_samples])
-            nadir_idx = interval.nadir_time_sec or len(hr_values) - 1
+            logger.info(f"Interval {interval_order}: r2_0_30={interval.r2_0_30:.3f} < {config.gate_r2_0_30_threshold}, attempting re-anchor")
             
-            # Try to find true peak using both methods
-            plateau_offset, plateau_confidence, debug_info = find_true_peak_plateau(
-                hr_values, nadir_idx, config
+            success, new_interval, new_samples, new_end, reason = attempt_plateau_reanchor(
+                samples, interval, interval_samples, adjusted_start_idx, end_idx,
+                interval_order, resting_hr, config
             )
             
-            logger.info(
-                f"Plateau detected at interval {interval_order}: r2_0_30={interval.r2_0_30:.3f}, "
-                f"offset={plateau_offset}s, confidence={plateau_confidence}, "
-                f"slope={debug_info['slope_offset']}s/{debug_info['slope_status']}, "
-                f"geom={debug_info['geom_offset']}s/{debug_info['geom_status']}"
-            )
-            
-            # Only re-anchor if we found a meaningful offset (>5 seconds)
-            if plateau_offset > 5 and plateau_confidence != 'failed':
-                # Calculate new start index
-                new_start_idx = adjusted_start_idx + plateau_offset
-                
-                # Make sure we still have enough data after the new start
-                if new_start_idx < end_idx - config.min_decline_duration_sec:
-                    # Find new recovery end from new peak
-                    new_end_idx = find_recovery_end(samples, new_start_idx, config)
-                    
-                    if new_end_idx is not None and new_end_idx > new_start_idx + config.min_decline_duration_sec:
-                        # Recreate interval from new anchor point
-                        new_interval = create_recovery_interval(
-                            samples, new_start_idx, new_end_idx, interval_order, resting_hr, config
-                        )
-                        
-                        if new_interval is not None:
-                            # Get new interval samples
-                            new_onset_offset = new_interval.onset_delay_sec or 0
-                            new_adjusted_start = new_start_idx + new_onset_offset
-                            new_interval_samples = samples[new_adjusted_start:new_end_idx + 1]
-                            
-                            if len(new_interval_samples) >= config.min_decline_duration_sec:
-                                # Recompute exponential fit
-                                new_interval = fit_exponential_decay(new_interval_samples, new_interval, config)
-                                
-                                # Recompute segment R²
-                                new_interval = compute_all_segment_r2(new_interval_samples, new_interval)
-                                
-                                # Check if re-anchor improved r2_0_30
-                                if new_interval.r2_0_30 is not None and new_interval.r2_0_30 >= config.gate_r2_0_30_threshold:
-                                    logger.info(
-                                        f"Plateau resolved: r2_0_30 {interval.r2_0_30:.3f} -> {new_interval.r2_0_30:.3f}, "
-                                        f"shifted +{plateau_offset}s"
-                                    )
-                                    # Use the re-anchored interval
-                                    interval = new_interval
-                                    interval_samples = new_interval_samples
-                                    end_idx = new_end_idx
-                                    
-                                    # Add flag to indicate plateau was resolved
-                                    if 'PLATEAU_RESOLVED' not in interval.quality_flags:
-                                        interval.quality_flags.append('PLATEAU_RESOLVED')
-                                else:
-                                    logger.info(
-                                        f"Plateau re-anchor did not improve r2_0_30: "
-                                        f"{interval.r2_0_30:.3f} -> {new_interval.r2_0_30 if new_interval.r2_0_30 else 'None'}"
-                                    )
+            if success:
+                logger.info(f"Interval {interval_order}: {reason}")
+                interval = new_interval
+                interval_samples = new_samples
+                end_idx = new_end
+            else:
+                logger.info(f"Interval {interval_order}: re-anchor failed - {reason}")
         
         # Compute late slope
         interval = compute_late_slope(interval_samples, interval)
