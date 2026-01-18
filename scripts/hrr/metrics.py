@@ -247,13 +247,20 @@ def compute_late_slope(
 # =============================================================================
 
 def assess_quality(interval: RecoveryInterval, config: HRRConfig) -> RecoveryInterval:
-    """
-    Assess interval quality and set flags/status.
+    """Assess interval quality and set flags/status.
 
-    Quality rules:
-    - slope_90_120 > 0.1: HARD REJECT (definite activity resumption)
-    - r2 < 0.75 for best window: HARD REJECT (statistically validated threshold)
-    - Everything else with concerns: FLAG for human review
+    Args:
+        interval: RecoveryInterval with computed metrics
+        config: HRRConfig with threshold settings
+
+    Returns:
+        interval: Updated with quality_status, quality_flags, review_priority
+
+    Notes:
+        - Hard reject criteria: slope_90_120 > 0.1, best R² < 0.75, r2_30_60 < 0.75
+        - Warning flags demote status to "flagged": LATE_RISE, ONSET_DISAGREEMENT, LOW_SIGNAL
+        - Informational flags preserve "pass" status: PLATEAU_RESOLVED, MANUAL_ADJUSTED, ONSET_ADJUSTED
+        - Informational flags indicate successful corrections, not quality problems
     """
     # Sample quality
     interval.quality_status = 'pending'

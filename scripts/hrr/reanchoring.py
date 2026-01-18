@@ -218,11 +218,7 @@ def attempt_plateau_reanchor(
     resting_hr: int,
     config: HRRConfig
 ) -> Tuple[bool, Optional[RecoveryInterval], Optional[List[HRSample]], int, str]:
-    """
-    Attempt to re-anchor interval when plateau/double-peak detected (r2_0_30 < threshold).
-
-    Uses guard clauses pattern - each check returns early with failure reason if not met.
-    This replaces the previous deeply-nested if statements that silently fell through.
+    """Attempt to re-anchor interval when plateau/double-peak detected (r2_0_30 < threshold).
 
     Args:
         samples: Full session HR samples
@@ -235,12 +231,26 @@ def attempt_plateau_reanchor(
         config: HRR configuration
 
     Returns:
-        (success, new_interval, new_samples, new_end_idx, reason)
+        Tuple of (success, new_interval, new_samples, new_end_idx, reason):
         - success: True if re-anchor improved r2_0_30 above threshold
         - new_interval: Re-anchored interval (or None if failed)
         - new_samples: Samples for re-anchored interval (or None if failed)
         - new_end_idx: New end index (or original if failed)
         - reason: Description of outcome for logging
+
+    Notes:
+        Guard clauses (returns early if any fail):
+        1. Plateau detection succeeded (not 'failed')
+        2. Offset > 5 seconds (meaningful shift)
+        3. Sufficient data remains after shift
+        4. find_recovery_end() returns valid end
+        5. New interval long enough (>= min_decline_duration_sec)
+        6. create_recovery_interval() succeeds
+        7. Enough samples after onset adjustment
+        8. r2_0_30 is not None after recompute
+        9. r2_0_30 >= gate_r2_0_30_threshold
+
+        On success, adds PLATEAU_RESOLVED flag (informational, doesn't demote to 'flagged').
     """
     # Import here to avoid circular imports
     from .detection import find_recovery_end, create_recovery_interval

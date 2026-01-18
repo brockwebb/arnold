@@ -69,12 +69,14 @@ athlete_defaults:
 # Each gate can have: threshold, enabled, description
 # =============================================================================
 gates:
-  # Gate: Double-peak detection (Issue #015)
+  # Gate: Double-peak detection (Issue #015, #020)
   # First 30s doesn't fit exponential = false start (plateau/rise before real recovery)
+  # When r2_0_30 < threshold, triggers attempt_plateau_reanchor() to find true peak
+  # If re-anchor succeeds, PLATEAU_RESOLVED flag is added and interval passes
   double_peak:
     threshold: 0.5
     enabled: true
-    description: "r2_0_30 < 0.5 indicates false start before true recovery"
+    description: "r2_0_30 < 0.5 triggers re-anchor attempt to find true peak"
   
   # Gate: Segment quality for HRR60 measurement
   r2_30_60:
