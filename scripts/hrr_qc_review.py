@@ -1,536 +1,609 @@
 #!/usr/bin/env python3
 """
-HRR QC Review Workflow
+HRR QC Review Tool
+Keyboard-driven workflow for reviewing HRR interval quality decisions.
 
-Systematic review of HRR intervals for algorithm validation.
-
-Usage:
-    # See review queue (sessions needing review)
-    python scripts/hrr_qc_review.py --queue
-    
-    # Export all intervals to CSV for manual judgment
-    python scripts/hrr_qc_review.py --export-all
-    
-    # Export single session for review
-    python scripts/hrr_qc_review.py --export --session-id 71
-    
-    # Review a session (viz + export + mark in progress)
-    python scripts/hrr_qc_review.py --review --session-id 71
-    
-    # Review next unreviewed session
-    python scripts/hrr_qc_review.py --review --next
-    
-    # Import judgments from CSV
-    python scripts/hrr_qc_review.py --import-judgments data/qc/hrr_judgments.csv
-    
-    # Calculate precision/recall stats
-    python scripts/hrr_qc_review.py --stats
-    
-    # Mark session as reviewed
-    python scripts/hrr_qc_review.py --mark-reviewed --session-id 71
+Key design:
+- Speed is paramount: Enter = accept default (confirm)
+- Session-level "all good" to skip sessions where algo is correct
+- Reason codes are one-key selections, not typing
+- Visual context without plot overhead (use separate viewer)
 """
 
-import argparse
-import csv
-import json
 import os
-import subprocess
+import sys
 from datetime import datetime
-from pathlib import Path
-from typing import List, Optional
-
+from typing import Optional, List, Tuple
 import psycopg2
-from dotenv import load_dotenv
+from psycopg2.extras import RealDictCursor
+import click
+from rich.console import Console
+from rich.table import Table
+from rich.panel import Panel
+from rich.prompt import Prompt, Confirm
+from rich import box
 
-PROJECT_ROOT = Path(__file__).parent.parent
-load_dotenv(PROJECT_ROOT / '.env')
+console = Console()
 
-# QC output directory
-QC_DIR = PROJECT_ROOT / 'data' / 'qc'
-JUDGMENTS_FILE = QC_DIR / 'hrr_judgments.csv'
-REVIEW_STATE_FILE = QC_DIR / 'review_state.json'
+# Database connection
+DB_URL = os.environ.get('DATABASE_URL', 'postgresql://localhost:5432/arnold_analytics')
 
-
-def get_db_connection():
-    dsn = os.getenv('POSTGRES_DSN', 'postgresql://brock@localhost:5432/arnold_analytics')
-    return psycopg2.connect(dsn)
-
-
-def ensure_qc_dir():
-    """Create QC directory if it doesn't exist."""
-    QC_DIR.mkdir(parents=True, exist_ok=True)
+def get_db():
+    """Get database connection."""
+    return psycopg2.connect(DB_URL, cursor_factory=RealDictCursor)
 
 
-def load_review_state() -> dict:
-    """Load review state from JSON file."""
-    if REVIEW_STATE_FILE.exists():
-        with open(REVIEW_STATE_FILE) as f:
-            return json.load(f)
-    return {'reviewed_sessions': [], 'in_progress': []}
+# =============================================================================
+# REASON CODES
+# =============================================================================
+
+REJECT_CODES = [
+    ('1', 'peak_misplaced', 'Peak not at true maximum'),
+    ('2', 'double_peak_undetected', 'Double peak not detected'),
+    ('3', 'early_termination', 'Recovery cut too short'),
+    ('4', 'late_onset', 'Peak detection started late'),
+    ('5', 'no_true_recovery', 'Not a true recovery'),
+    ('6', 'signal_artifact', 'Noise/artifact'),
+    ('7', 'sub_threshold', 'Below activation threshold'),
+    ('o', 'other', 'Other (will prompt for notes)'),
+]
+
+OVERRIDE_CODES = [
+    ('1', 'false_positive_double', 'False double peak detection'),
+    ('2', 'acceptable_r2', 'R² acceptable for analysis'),
+    ('3', 'known_context', 'Contextual knowledge (notes required)'),
+    ('4', 'peak_shift_fixes', 'Peak shift makes it valid'),
+    ('5', 'hiit_expected', 'Expected for HIIT pattern'),
+    ('o', 'other', 'Other (will prompt for notes)'),
+]
 
 
-def save_review_state(state: dict):
-    """Save review state to JSON file."""
-    ensure_qc_dir()
-    with open(REVIEW_STATE_FILE, 'w') as f:
-        json.dump(state, f, indent=2, default=str)
+# =============================================================================
+# DATA ACCESS
+# =============================================================================
+
+def get_sessions_summary(db) -> List[dict]:
+    """Get summary of all sessions with intervals."""
+    with db.cursor() as cur:
+        cur.execute("""
+            SELECT 
+                ps.id as session_id,
+                ps.start_time::date as session_date,
+                ps.sport_type,
+                COUNT(*) as total,
+                COUNT(*) FILTER (WHERE hri.quality_status = 'pass') as passed,
+                COUNT(*) FILTER (WHERE hri.quality_status = 'rejected') as rejected,
+                COUNT(*) FILTER (WHERE hri.quality_status = 'flagged') as flagged,
+                COUNT(*) FILTER (WHERE hri.needs_review = true) as needs_review,
+                COUNT(*) FILTER (WHERE hri.human_verified = true) as verified,
+                ROUND(AVG(hri.hrr60_abs) FILTER (WHERE hri.quality_status = 'pass'), 1) as avg_hrr60
+            FROM polar_sessions ps
+            JOIN hr_recovery_intervals hri ON hri.polar_session_id = ps.id
+            WHERE hri.excluded IS NOT TRUE
+            GROUP BY ps.id, ps.start_time, ps.sport_type
+            ORDER BY ps.start_time
+        """)
+        return cur.fetchall()
 
 
-def get_all_sessions(conn) -> List[dict]:
-    """Get all sessions with HRR intervals."""
-    query = """
-        SELECT 
-            hri.polar_session_id as session_id,
-            ps.start_time,
-            ps.sport_type,
-            COUNT(*) as total_intervals,
-            SUM(CASE WHEN hri.quality_status = 'pass' THEN 1 ELSE 0 END) as pass_ct,
-            SUM(CASE WHEN hri.quality_status = 'flagged' THEN 1 ELSE 0 END) as flagged_ct,
-            SUM(CASE WHEN hri.quality_status = 'rejected' THEN 1 ELSE 0 END) as rejected_ct
-        FROM hr_recovery_intervals hri
-        JOIN polar_sessions ps ON ps.id = hri.polar_session_id
-        GROUP BY hri.polar_session_id, ps.start_time, ps.sport_type
-        ORDER BY ps.start_time
-    """
-    with conn.cursor() as cur:
-        cur.execute(query)
-        rows = cur.fetchall()
-    
-    return [
-        {
-            'session_id': r[0],
-            'start_time': r[1],
-            'sport_type': r[2],
-            'total_intervals': r[3],
-            'pass_ct': r[4],
-            'flagged_ct': r[5],
-            'rejected_ct': r[6],
-        }
-        for r in rows
-    ]
+def get_session_intervals(db, session_id: int) -> List[dict]:
+    """Get all intervals for a session."""
+    with db.cursor() as cur:
+        cur.execute("""
+            SELECT 
+                id,
+                interval_order,
+                quality_status,
+                quality_flags,
+                auto_reject_reason,
+                hrr60_abs,
+                tau_fit_r2,
+                r2_0_30,
+                r2_30_60,
+                r2_30_90,
+                hr_peak,
+                hr_60s,
+                duration_seconds,
+                start_time,
+                human_verified,
+                needs_review,
+                notes
+            FROM hr_recovery_intervals
+            WHERE polar_session_id = %s
+              AND excluded IS NOT TRUE
+            ORDER BY interval_order
+        """, (session_id,))
+        return cur.fetchall()
 
 
-def get_intervals_for_export(conn, session_id: Optional[int] = None) -> List[dict]:
-    """Get intervals formatted for QC export."""
-    query = """
-        SELECT 
-            hri.polar_session_id as session_id,
-            ps.start_time as session_date,
-            ps.sport_type,
-            hri.interval_order,
-            hri.id as interval_id,
-            hri.start_time as interval_start,
-            hri.hr_peak,
-            hri.duration_seconds,
-            hri.hrr60_abs,
-            hri.hrr120_abs,
-            hri.hrr300_abs,
-            hri.quality_status,
-            hri.quality_flags,
-            hri.auto_reject_reason,
-            hri.r2_0_60,
-            hri.r2_0_120,
-            hri.tau_seconds
-        FROM hr_recovery_intervals hri
-        JOIN polar_sessions ps ON ps.id = hri.polar_session_id
-        WHERE (%s IS NULL OR hri.polar_session_id = %s)
-        ORDER BY ps.start_time, hri.interval_order
-    """
-    with conn.cursor() as cur:
-        cur.execute(query, (session_id, session_id))
-        rows = cur.fetchall()
-    
-    intervals = []
-    for r in rows:
-        intervals.append({
-            'session_id': r[0],
-            'session_date': r[1].strftime('%Y-%m-%d') if r[1] else '',
-            'sport_type': r[2],
-            'interval_order': r[3],
-            'interval_id': r[4],
-            'interval_start': r[5].strftime('%H:%M:%S') if r[5] else '',
-            'peak_label': f"S{r[0]}:p{r[3]:02d}" if r[3] else f"S{r[0]}:p??",
-            'hr_peak': r[6],
-            'duration_sec': r[7],
-            'hrr60': r[8],
-            'hrr120': r[9],
-            'hrr300': r[10],
-            'algo_status': r[11],
-            'quality_flags': r[12] if r[12] else '',
-            'reject_reason': r[13] if r[13] else '',
-            'r2_60': f"{r[14]:.3f}" if r[14] else '',
-            'r2_120': f"{r[15]:.3f}" if r[15] else '',
-            'tau': f"{r[16]:.1f}" if r[16] else '',
-        })
-    
-    return intervals
-
-
-def show_queue(conn):
-    """Show sessions needing review."""
-    sessions = get_all_sessions(conn)
-    state = load_review_state()
-    reviewed = set(state.get('reviewed_sessions', []))
-    in_progress = set(state.get('in_progress', []))
-    
-    print(f"\n{'='*100}")
-    print("HRR QC REVIEW QUEUE")
-    print(f"{'='*100}")
-    print(f"\n{'ID':>4} | {'Date':^12} | {'Sport':<20} | {'Tot':>4} | {'Pass':>4} | {'Flag':>4} | {'Rej':>4} | {'Status':<12}")
-    print(f"{'-'*100}")
-    
-    pending = 0
-    for s in sessions:
-        sid = s['session_id']
-        if sid in reviewed:
-            status = '✓ reviewed'
-        elif sid in in_progress:
-            status = '→ in progress'
-        else:
-            status = 'pending'
-            pending += 1
+def record_judgment(db, interval: dict, human_status: str, 
+                   reason_code: Optional[str] = None,
+                   notes: Optional[str] = None,
+                   peak_shift: Optional[int] = None):
+    """Record a QC judgment for an interval."""
+    with db.cursor() as cur:
+        # Insert judgment record
+        cur.execute("""
+            INSERT INTO hrr_qc_judgments (
+                polar_session_id, interval_order, judgment,
+                algo_status, algo_reject_reason, interval_id,
+                interval_start_ts, human_status, reason_code, notes,
+                peak_shift_sec, judged_at
+            ) VALUES (
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW()
+            )
+            ON CONFLICT (polar_session_id, interval_order) 
+            DO UPDATE SET
+                judgment = EXCLUDED.judgment,
+                human_status = EXCLUDED.human_status,
+                reason_code = EXCLUDED.reason_code,
+                notes = EXCLUDED.notes,
+                peak_shift_sec = EXCLUDED.peak_shift_sec,
+                judged_at = NOW()
+        """, (
+            interval['polar_session_id'] if 'polar_session_id' in interval else None,
+            interval['interval_order'],
+            human_status,  # legacy field
+            interval['quality_status'],
+            interval.get('auto_reject_reason'),
+            interval['id'],
+            interval['start_time'],
+            human_status,
+            reason_code,
+            notes,
+            peak_shift
+        ))
         
-        print(f"{sid:>4} | {s['start_time'].strftime('%Y-%m-%d'):^12} | {s['sport_type'][:20]:<20} | {s['total_intervals']:>4} | {s['pass_ct']:>4} | {s['flagged_ct']:>4} | {s['rejected_ct']:>4} | {status:<12}")
+        # Update the interval's verification status
+        cur.execute("""
+            UPDATE hr_recovery_intervals
+            SET human_verified = true,
+                verified_at = NOW(),
+                verified_status = %s,
+                verification_notes = %s,
+                needs_review = false
+            WHERE id = %s
+        """, (human_status, notes, interval['id']))
+        
+        db.commit()
+
+
+def batch_confirm_session(db, session_id: int, intervals: List[dict]):
+    """Batch confirm all passed intervals in a session."""
+    confirmed = 0
+    for interval in intervals:
+        if interval['quality_status'] == 'pass':
+            interval['polar_session_id'] = session_id
+            record_judgment(db, interval, 'confirm_pass')
+            confirmed += 1
     
-    print(f"\n{len(sessions)} sessions total | {len(reviewed)} reviewed | {len(in_progress)} in progress | {pending} pending")
-    print()
+    # Record session-level review
+    with db.cursor() as cur:
+        cur.execute("""
+            INSERT INTO hrr_session_reviews (
+                polar_session_id, review_action, intervals_confirmed,
+                intervals_rejected, intervals_skipped, reviewed_at
+            ) VALUES (%s, 'batch_confirm_passed', %s, 0, %s, NOW())
+        """, (session_id, confirmed, len(intervals) - confirmed))
+        db.commit()
+    
+    return confirmed
 
 
-def export_intervals(conn, session_id: Optional[int] = None, output_path: Optional[str] = None):
-    """Export intervals to CSV for manual review."""
-    intervals = get_intervals_for_export(conn, session_id)
+# =============================================================================
+# UI COMPONENTS
+# =============================================================================
+
+def show_session_list(sessions: List[dict]):
+    """Display session summary table."""
+    table = Table(title="Sessions Overview", box=box.ROUNDED)
+    table.add_column("#", style="dim")
+    table.add_column("Date")
+    table.add_column("Sport")
+    table.add_column("Pass", style="green")
+    table.add_column("Reject", style="red")
+    table.add_column("Flag", style="yellow")
+    table.add_column("Review", style="cyan")
+    table.add_column("Verified", style="blue")
+    table.add_column("HRR60")
+    
+    for i, s in enumerate(sessions, 1):
+        review_indicator = "⚠" if s['needs_review'] > 0 else ""
+        table.add_row(
+            str(i),
+            str(s['session_date']),
+            s['sport_type'] or '-',
+            str(s['passed']),
+            str(s['rejected']),
+            str(s['flagged']),
+            f"{s['needs_review']}{review_indicator}",
+            str(s['verified']),
+            str(s['avg_hrr60'] or '-')
+        )
+    
+    console.print(table)
+
+
+def show_interval(interval: dict, index: int, total: int):
+    """Display single interval for review."""
+    status_colors = {
+        'pass': 'green',
+        'rejected': 'red',
+        'flagged': 'yellow'
+    }
+    color = status_colors.get(interval['quality_status'], 'white')
+    
+    # Build info panel
+    info = f"""[{color}]{interval['quality_status'].upper()}[/{color}] | Interval #{interval['interval_order']} ({index}/{total})
+    
+[bold]Key Metrics:[/bold]
+  HRR60: {interval['hrr60_abs'] or '-'} bpm
+  Peak HR: {interval['hr_peak']} → 60s: {interval['hr_60s'] or '-'}
+  τ R²: {float(interval['tau_fit_r2'] or 0):.3f}
+  
+[bold]Segment R²:[/bold]
+  0-30s: {float(interval['r2_0_30'] or 0):.3f}
+  30-60s: {float(interval['r2_30_60'] or 0):.3f}
+  30-90s: {float(interval['r2_30_90'] or 0):.3f}
+  
+[bold]Duration:[/bold] {interval['duration_seconds']}s"""
+
+    if interval['quality_flags']:
+        flags = ', '.join(interval['quality_flags'])
+        info += f"\n[yellow]Flags: {flags}[/yellow]"
+    
+    if interval['auto_reject_reason']:
+        info += f"\n[red]Reject reason: {interval['auto_reject_reason']}[/red]"
+    
+    if interval['notes']:
+        info += f"\n[dim]Notes: {interval['notes']}[/dim]"
+    
+    verified = "✓ Verified" if interval['human_verified'] else ""
+    title = f"Interval Review {verified}"
+    
+    console.print(Panel(info, title=title, border_style=color))
+
+
+def show_reason_codes(codes: List[Tuple[str, str, str]], action: str):
+    """Display reason code options."""
+    console.print(f"\n[bold]{action} - Select reason:[/bold]")
+    for key, code, desc in codes:
+        console.print(f"  [{key}] {desc}")
+    console.print("  [Esc/q] Cancel")
+
+
+def get_single_key(prompt_text: str) -> str:
+    """Get single keypress (cross-platform)."""
+    console.print(prompt_text, end='', style="bold cyan")
+    try:
+        import termios
+        import tty
+        fd = sys.stdin.fileno()
+        old_settings = termios.tcgetattr(fd)
+        try:
+            tty.setraw(fd)
+            ch = sys.stdin.read(1)
+        finally:
+            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+        console.print()  # newline
+        return ch
+    except ImportError:
+        # Windows fallback
+        import msvcrt
+        ch = msvcrt.getch().decode('utf-8', errors='ignore')
+        console.print()
+        return ch
+
+
+# =============================================================================
+# REVIEW WORKFLOWS
+# =============================================================================
+
+def review_single_interval(db, interval: dict, session_id: int) -> str:
+    """Review a single interval. Returns action taken."""
+    interval['polar_session_id'] = session_id
+    status = interval['quality_status']
+    
+    # Show actions based on current status
+    if status == 'pass':
+        console.print("\n[green]PASSED[/green] → [Enter]=Confirm  [R]=Reject  [S]=Skip  [Q]=Quit session")
+    else:
+        console.print("\n[red]REJECTED[/red] → [Enter]=Confirm rejection  [O]=Override (accept)  [S]=Skip  [Q]=Quit session")
+    
+    key = get_single_key("> ")
+    
+    if key in ('\r', '\n', ''):
+        # Default: confirm current status
+        if status == 'pass':
+            record_judgment(db, interval, 'confirm_pass')
+            console.print("[green]✓ Confirmed pass[/green]")
+            return 'confirmed'
+        else:
+            record_judgment(db, interval, 'confirm_rejection')
+            console.print("[red]✓ Confirmed rejection[/red]")
+            return 'confirmed'
+    
+    elif key.lower() == 'r' and status == 'pass':
+        # Reject a passed interval
+        show_reason_codes(REJECT_CODES, "Reject passed interval")
+        reason_key = get_single_key("> ")
+        
+        for k, code, desc in REJECT_CODES:
+            if reason_key == k:
+                notes = None
+                if code == 'other':
+                    notes = Prompt.ask("Notes")
+                record_judgment(db, interval, 'reject_passed', code, notes)
+                console.print(f"[red]✗ Rejected: {desc}[/red]")
+                return 'rejected'
+        
+        console.print("[dim]Cancelled[/dim]")
+        return 'skipped'
+    
+    elif key.lower() == 'o' and status != 'pass':
+        # Override a rejection
+        show_reason_codes(OVERRIDE_CODES, "Override rejection")
+        reason_key = get_single_key("> ")
+        
+        for k, code, desc in OVERRIDE_CODES:
+            if reason_key == k:
+                notes = None
+                peak_shift = None
+                
+                if code == 'other' or code == 'known_context':
+                    notes = Prompt.ask("Notes")
+                
+                if code == 'peak_shift_fixes':
+                    shift_str = Prompt.ask("Peak shift (seconds, + or -)", default="0")
+                    try:
+                        peak_shift = int(shift_str)
+                    except ValueError:
+                        peak_shift = None
+                
+                record_judgment(db, interval, 'override_accept', code, notes, peak_shift)
+                console.print(f"[green]✓ Overridden to accept: {desc}[/green]")
+                return 'overridden'
+        
+        console.print("[dim]Cancelled[/dim]")
+        return 'skipped'
+    
+    elif key.lower() == 's':
+        console.print("[dim]Skipped[/dim]")
+        return 'skipped'
+    
+    elif key.lower() == 'q':
+        return 'quit'
+    
+    else:
+        console.print("[dim]Unknown key, skipping[/dim]")
+        return 'skipped'
+
+
+def review_session(db, session_id: int, session_info: dict):
+    """Review all intervals in a session."""
+    intervals = get_session_intervals(db, session_id)
     
     if not intervals:
-        print("No intervals found.")
+        console.print("[yellow]No intervals found[/yellow]")
         return
     
-    ensure_qc_dir()
+    console.clear()
+    console.print(f"\n[bold]Session {session_id}: {session_info['session_date']} - {session_info['sport_type'] or 'Unknown'}[/bold]")
+    console.print(f"Total: {len(intervals)} intervals | "
+                  f"Pass: {session_info['passed']} | "
+                  f"Reject: {session_info['rejected']} | "
+                  f"Flagged: {session_info['flagged']}")
     
-    if output_path:
-        out_file = Path(output_path)
-    elif session_id:
-        out_file = QC_DIR / f'hrr_qc_session_{session_id}.csv'
-    else:
-        out_file = QC_DIR / 'hrr_qc_all_intervals.csv'
+    # Quick session-level options
+    console.print("\n[bold cyan]Session Actions:[/bold cyan]")
+    console.print("  [A] All Good - batch confirm all passed intervals")
+    console.print("  [R] Review individually")
+    console.print("  [S] Skip session")
+    console.print("  [Q] Quit")
     
-    # CSV columns
-    fieldnames = [
-        'session_id', 'session_date', 'sport_type', 'interval_order', 'interval_id',
-        'peak_label', 'interval_start', 'hr_peak', 'duration_sec',
-        'hrr60', 'hrr120', 'hrr300', 'r2_60', 'r2_120', 'tau',
-        'algo_status', 'reject_reason', 'quality_flags',
-        # Human judgment columns (to be filled in)
-        'human_judgment', 'peak_correct', 'notes'
-    ]
+    key = get_single_key("\n> ")
     
-    with open(out_file, 'w', newline='') as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
-        writer.writeheader()
+    if key.lower() == 'a':
+        confirmed = batch_confirm_session(db, session_id, intervals)
+        console.print(f"[green]✓ Batch confirmed {confirmed} passed intervals[/green]")
+        return
+    
+    elif key.lower() == 's':
+        console.print("[dim]Session skipped[/dim]")
+        return
+    
+    elif key.lower() == 'q':
+        return 'quit'
+    
+    elif key.lower() != 'r':
+        console.print("[dim]Unknown key[/dim]")
+        return
+    
+    # Individual review
+    stats = {'confirmed': 0, 'rejected': 0, 'overridden': 0, 'skipped': 0}
+    
+    for i, interval in enumerate(intervals, 1):
+        if interval['human_verified']:
+            continue  # Skip already verified
         
-        for i in intervals:
-            # Add empty judgment columns
-            i['human_judgment'] = ''
-            i['peak_correct'] = ''
-            i['notes'] = ''
-            writer.writerow(i)
+        console.clear()
+        show_interval(interval, i, len(intervals))
+        
+        result = review_single_interval(db, interval, session_id)
+        
+        if result == 'quit':
+            break
+        
+        if result in stats:
+            stats[result] += 1
     
-    print(f"Exported {len(intervals)} intervals to: {out_file}")
-    print(f"\nJudgment column values:")
-    print(f"  human_judgment: TP, FP, TN, FN_REJECTED, FN_MISSED, SKIP")
-    print(f"  peak_correct:   yes, no, shifted (if peak location is wrong)")
-    print(f"  notes:          free text explanation")
-    print()
+    # Summary
+    console.print(f"\n[bold]Session Review Complete:[/bold]")
+    console.print(f"  Confirmed: {stats['confirmed']}")
+    console.print(f"  Rejected: {stats['rejected']}")
+    console.print(f"  Overridden: {stats['overridden']}")
+    console.print(f"  Skipped: {stats['skipped']}")
 
 
-def import_judgments(csv_path: str):
-    """Import judgments from CSV and store."""
-    judgments_path = Path(csv_path)
-    if not judgments_path.exists():
-        print(f"File not found: {csv_path}")
-        return
-    
-    ensure_qc_dir()
-    
-    # Read judgments
-    judgments = []
-    with open(judgments_path, newline='') as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            if row.get('human_judgment'):  # Only rows with judgments
-                judgments.append({
-                    'session_id': int(row['session_id']),
-                    'interval_id': int(row['interval_id']),
-                    'interval_order': int(row['interval_order']) if row.get('interval_order') else None,
-                    'peak_label': row.get('peak_label', ''),
-                    'algo_status': row.get('algo_status', ''),
-                    'human_judgment': row['human_judgment'].strip().upper(),
-                    'peak_correct': row.get('peak_correct', '').strip().lower(),
-                    'notes': row.get('notes', ''),
-                    'judged_at': datetime.now().isoformat(),
-                })
-    
-    if not judgments:
-        print("No judgments found in file.")
-        return
-    
-    # Append to master judgments file
-    existing = []
-    if JUDGMENTS_FILE.exists():
-        with open(JUDGMENTS_FILE, newline='') as f:
-            existing = list(csv.DictReader(f))
-    
-    # Merge: update existing, add new
-    existing_keys = {(j['session_id'], j['interval_id']) for j in existing}
-    
-    fieldnames = ['session_id', 'interval_id', 'interval_order', 'peak_label', 
-                  'algo_status', 'human_judgment', 'peak_correct', 'notes', 'judged_at']
-    
-    # Convert existing to same format
-    existing_dict = {(int(j['session_id']), int(j['interval_id'])): j for j in existing}
-    
-    # Update/add
-    for j in judgments:
-        key = (j['session_id'], j['interval_id'])
-        existing_dict[key] = j
-    
-    # Write back
-    with open(JUDGMENTS_FILE, 'w', newline='') as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
-        writer.writeheader()
-        for j in sorted(existing_dict.values(), key=lambda x: (x['session_id'], x.get('interval_order', 0))):
-            writer.writerow({k: j.get(k, '') for k in fieldnames})
-    
-    print(f"Imported {len(judgments)} judgments to: {JUDGMENTS_FILE}")
-    
-    # Update review state
-    sessions_judged = set(j['session_id'] for j in judgments)
-    state = load_review_state()
-    for sid in sessions_judged:
-        if sid not in state['reviewed_sessions']:
-            if sid not in state['in_progress']:
-                state['in_progress'].append(sid)
-    save_review_state(state)
-    print(f"Updated review state for sessions: {sorted(sessions_judged)}")
+# =============================================================================
+# CLI COMMANDS
+# =============================================================================
+
+@click.group()
+def cli():
+    """HRR QC Review Tool - Fast keyboard-driven QC workflow."""
+    pass
 
 
-def calculate_stats():
-    """Calculate precision/recall from judgments."""
-    if not JUDGMENTS_FILE.exists():
-        print(f"No judgments file found: {JUDGMENTS_FILE}")
-        print("Run --import-judgments first.")
-        return
-    
-    with open(JUDGMENTS_FILE, newline='') as f:
-        judgments = list(csv.DictReader(f))
-    
-    if not judgments:
-        print("No judgments found.")
-        return
-    
-    # Count by judgment type
-    counts = {'TP': 0, 'FP': 0, 'TN': 0, 'FN_REJECTED': 0, 'FN_MISSED': 0, 'SKIP': 0, 'UNKNOWN': 0}
-    by_session = {}
-    
-    for j in judgments:
-        judgment = j.get('human_judgment', '').strip().upper()
-        if judgment in counts:
-            counts[judgment] += 1
+@cli.command()
+def sessions():
+    """List all sessions with interval counts."""
+    with get_db() as db:
+        all_sessions = get_sessions_summary(db)
+        show_session_list(all_sessions)
+
+
+@cli.command()
+@click.option('--session', '-s', type=int, help='Specific session ID to review')
+@click.option('--unverified', '-u', is_flag=True, help='Only show unverified sessions')
+@click.option('--needs-review', '-r', is_flag=True, help='Only show sessions needing review')
+def review(session: Optional[int], unverified: bool, needs_review: bool):
+    """Interactive review of HRR intervals."""
+    with get_db() as db:
+        all_sessions = get_sessions_summary(db)
+        
+        # Filter sessions
+        if needs_review:
+            all_sessions = [s for s in all_sessions if s['needs_review'] > 0]
+        if unverified:
+            all_sessions = [s for s in all_sessions if s['verified'] < s['total']]
+        
+        if session:
+            # Review specific session
+            target = next((s for s in all_sessions if s['session_id'] == session), None)
+            if not target:
+                console.print(f"[red]Session {session} not found[/red]")
+                return
+            result = review_session(db, session, target)
+            if result == 'quit':
+                return
         else:
-            counts['UNKNOWN'] += 1
-        
-        sid = j['session_id']
-        if sid not in by_session:
-            by_session[sid] = {'TP': 0, 'FP': 0, 'TN': 0, 'FN_REJECTED': 0, 'FN_MISSED': 0}
-        if judgment in by_session[sid]:
-            by_session[sid][judgment] += 1
-    
-    # Calculate metrics
-    tp = counts['TP']
-    fp = counts['FP']
-    tn = counts['TN']
-    fn = counts['FN_REJECTED'] + counts['FN_MISSED']
-    
-    precision = tp / (tp + fp) if (tp + fp) > 0 else 0
-    recall = tp / (tp + fn) if (tp + fn) > 0 else 0
-    f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
-    
-    # Detection metrics (did algorithm find the peak at all?)
-    detection_tp = tp + counts['FN_REJECTED']  # Found peak (even if rejected)
-    detection_fn = counts['FN_MISSED']  # Missed entirely
-    detection_recall = detection_tp / (detection_tp + detection_fn) if (detection_tp + detection_fn) > 0 else 0
-    
-    # Rejection accuracy (of rejected intervals, how many should have been rejected?)
-    rejection_correct = tn
-    rejection_incorrect = counts['FN_REJECTED']
-    rejection_accuracy = rejection_correct / (rejection_correct + rejection_incorrect) if (rejection_correct + rejection_incorrect) > 0 else 0
-    
-    print(f"\n{'='*70}")
-    print("HRR ALGORITHM VALIDATION STATS")
-    print(f"{'='*70}")
-    print(f"\nTotal judgments: {sum(counts.values())}")
-    print(f"Sessions with judgments: {len(by_session)}")
-    print(f"\nCounts:")
-    print(f"  TP (correct detections):     {tp:>4}")
-    print(f"  FP (false detections):       {fp:>4}")
-    print(f"  TN (correct rejections):     {tn:>4}")
-    print(f"  FN_REJECTED (wrong reject):  {counts['FN_REJECTED']:>4}")
-    print(f"  FN_MISSED (missed peaks):    {counts['FN_MISSED']:>4}")
-    print(f"  SKIP:                        {counts['SKIP']:>4}")
-    
-    print(f"\n--- Classification Metrics (Pass/Reject decision) ---")
-    print(f"  Precision:  {precision:.3f}  (of intervals marked 'pass', how many are real?)")
-    print(f"  Recall:     {recall:.3f}  (of real peaks, how many marked 'pass'?)")
-    print(f"  F1 Score:   {f1:.3f}")
-    
-    print(f"\n--- Detection Metrics (Finding peaks at all) ---")
-    print(f"  Detection Recall: {detection_recall:.3f}  (of real peaks, how many detected?)")
-    print(f"    (TP + FN_REJECTED) / (TP + FN_REJECTED + FN_MISSED)")
-    
-    print(f"\n--- Rejection Accuracy ---")
-    print(f"  Rejection Accuracy: {rejection_accuracy:.3f}  (of rejected, how many should be?)")
-    print(f"    TN / (TN + FN_REJECTED)")
-    
-    # Per-session breakdown
-    print(f"\n--- Per-Session Breakdown ---")
-    print(f"{'Session':>8} | {'TP':>3} | {'FP':>3} | {'TN':>3} | {'FN_R':>4} | {'FN_M':>4} | {'Prec':>5} | {'Recall':>6}")
-    print(f"{'-'*60}")
-    
-    for sid in sorted(by_session.keys(), key=int):
-        s = by_session[sid]
-        s_tp = s['TP']
-        s_fp = s['FP']
-        s_fn = s['FN_REJECTED'] + s['FN_MISSED']
-        s_prec = s_tp / (s_tp + s_fp) if (s_tp + s_fp) > 0 else 0
-        s_recall = s_tp / (s_tp + s_fn) if (s_tp + s_fn) > 0 else 0
-        
-        print(f"{sid:>8} | {s['TP']:>3} | {s['FP']:>3} | {s['TN']:>3} | {s['FN_REJECTED']:>4} | {s['FN_MISSED']:>4} | {s_prec:>5.2f} | {s_recall:>6.2f}")
-    
-    print()
+            # Show session picker
+            show_session_list(all_sessions)
+            console.print("\nEnter session number to review, 'q' to quit:")
+            
+            while True:
+                choice = Prompt.ask(">")
+                
+                if choice.lower() == 'q':
+                    break
+                
+                try:
+                    idx = int(choice) - 1
+                    if 0 <= idx < len(all_sessions):
+                        target = all_sessions[idx]
+                        result = review_session(db, target['session_id'], target)
+                        if result == 'quit':
+                            break
+                        # Refresh and show list again
+                        all_sessions = get_sessions_summary(db)
+                        if needs_review:
+                            all_sessions = [s for s in all_sessions if s['needs_review'] > 0]
+                        if unverified:
+                            all_sessions = [s for s in all_sessions if s['verified'] < s['total']]
+                        show_session_list(all_sessions)
+                        console.print("\nEnter session number to review, 'q' to quit:")
+                    else:
+                        console.print("[red]Invalid session number[/red]")
+                except ValueError:
+                    console.print("[red]Enter a number[/red]")
 
 
-def mark_reviewed(session_id: int):
-    """Mark a session as reviewed."""
-    state = load_review_state()
+@cli.command()
+@click.argument('session_ids', nargs=-1, type=int)
+def batch_confirm(session_ids: Tuple[int]):
+    """Batch confirm all passed intervals in specified sessions."""
+    if not session_ids:
+        console.print("[red]Provide session IDs[/red]")
+        return
     
-    if session_id not in state['reviewed_sessions']:
-        state['reviewed_sessions'].append(session_id)
-    
-    if session_id in state['in_progress']:
-        state['in_progress'].remove(session_id)
-    
-    save_review_state(state)
-    print(f"Session {session_id} marked as reviewed.")
+    with get_db() as db:
+        for session_id in session_ids:
+            intervals = get_session_intervals(db, session_id)
+            if intervals:
+                confirmed = batch_confirm_session(db, session_id, intervals)
+                console.print(f"Session {session_id}: confirmed {confirmed} intervals")
+            else:
+                console.print(f"Session {session_id}: no intervals found")
 
 
-def review_session(conn, session_id: int, output_dir: str, age: int, rhr: int):
-    """Review a single session: viz + export + mark in progress."""
-    # Mark in progress
-    state = load_review_state()
-    if session_id not in state['in_progress'] and session_id not in state['reviewed_sessions']:
-        state['in_progress'].append(session_id)
-        save_review_state(state)
+@cli.command()
+def stats():
+    """Show overall QC statistics."""
+    with get_db() as db:
+        with db.cursor() as cur:
+            cur.execute("""
+                SELECT
+                    COUNT(*) as total,
+                    COUNT(*) FILTER (WHERE quality_status = 'pass') as algo_pass,
+                    COUNT(*) FILTER (WHERE quality_status = 'rejected') as algo_reject,
+                    COUNT(*) FILTER (WHERE quality_status = 'flagged') as algo_flagged,
+                    COUNT(*) FILTER (WHERE human_verified = true) as verified,
+                    COUNT(*) FILTER (WHERE needs_review = true) as needs_review
+                FROM hr_recovery_intervals
+                WHERE excluded IS NOT TRUE
+            """)
+            stats = cur.fetchone()
+            
+            cur.execute("""
+                SELECT human_status, COUNT(*) as count
+                FROM hrr_qc_judgments
+                WHERE human_status IS NOT NULL
+                GROUP BY human_status
+                ORDER BY count DESC
+            """)
+            judgments = cur.fetchall()
     
-    # Export CSV for this session
-    export_intervals(conn, session_id)
+    console.print("\n[bold]HRR QC Statistics[/bold]")
+    console.print(f"Total intervals: {stats['total']}")
+    console.print(f"  Algorithm pass: {stats['algo_pass']}")
+    console.print(f"  Algorithm reject: {stats['algo_reject']}")
+    console.print(f"  Algorithm flagged: {stats['algo_flagged']}")
+    console.print(f"\nHuman verified: {stats['verified']} ({100*stats['verified']/stats['total']:.1f}%)")
+    console.print(f"Needs review: {stats['needs_review']}")
     
-    # Run viz
-    viz_script = PROJECT_ROOT / 'scripts' / 'hrr_qc_viz.py'
-    cmd = [
-        'python', str(viz_script),
-        '--session-id', str(session_id),
-        '--output-dir', output_dir,
-        '--age', str(age),
-        '--rhr', str(rhr),
-    ]
-    print(f"\nRunning: {' '.join(cmd)}\n")
+    if judgments:
+        console.print("\n[bold]Judgment Distribution:[/bold]")
+        for j in judgments:
+            console.print(f"  {j['human_status']}: {j['count']}")
+
+
+
+
+@cli.command()
+@click.argument('session_id', type=int)
+@click.option('--no-show', is_flag=True, help='Save only, do not display')
+def viz(session_id: int, no_show: bool):
+    """Show HRR visualization for a session."""
+    import subprocess
+    cmd = ['python', 'scripts/hrr_qc_viz.py', '--session-id', str(session_id)]
+    if no_show:
+        cmd.append('--no-show')
+    subprocess.run(cmd)
+
+@cli.command()
+@click.argument('session_id', type=int)
+@click.option('--no-show', is_flag=True, help='Save only, do not display')
+def viz(session_id: int, no_show: bool):
+    """Show HRR visualization for a session."""
+    import subprocess
+    import os
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    cmd = ['python', os.path.join(script_dir, 'hrr_qc_viz.py'), '--session-id', str(session_id)]
+    if no_show:
+        cmd.append('--no-show')
     subprocess.run(cmd)
 
 
-def get_next_unreviewed(conn) -> Optional[int]:
-    """Get the next unreviewed session ID."""
-    sessions = get_all_sessions(conn)
-    state = load_review_state()
-    reviewed = set(state.get('reviewed_sessions', []))
-    in_progress = set(state.get('in_progress', []))
-    
-    for s in sessions:
-        if s['session_id'] not in reviewed and s['session_id'] not in in_progress:
-            return s['session_id']
-    
-    # If all are reviewed or in progress, return first in progress
-    for s in sessions:
-        if s['session_id'] in in_progress:
-            return s['session_id']
-    
-    return None
-
-
-def main():
-    parser = argparse.ArgumentParser(description='HRR QC Review Workflow')
-    
-    # Modes
-    parser.add_argument('--queue', action='store_true', help='Show review queue')
-    parser.add_argument('--export-all', action='store_true', help='Export all intervals to CSV')
-    parser.add_argument('--export', action='store_true', help='Export session intervals to CSV')
-    parser.add_argument('--review', action='store_true', help='Review a session (viz + export)')
-    parser.add_argument('--import-judgments', type=str, metavar='CSV', help='Import judgments from CSV')
-    parser.add_argument('--stats', action='store_true', help='Calculate precision/recall stats')
-    parser.add_argument('--mark-reviewed', action='store_true', help='Mark session as reviewed')
-    
-    # Options
-    parser.add_argument('--session-id', type=int, help='Session ID')
-    parser.add_argument('--next', action='store_true', help='Use next unreviewed session')
-    parser.add_argument('--output-dir', default='/tmp', help='Output directory for viz')
-    parser.add_argument('--age', type=int, default=50, help='Age for zone calculation')
-    parser.add_argument('--rhr', type=int, default=60, help='RHR for zone calculation')
-    
-    args = parser.parse_args()
-    
-    conn = get_db_connection()
-    
-    try:
-        if args.queue:
-            show_queue(conn)
-        
-        elif args.export_all:
-            export_intervals(conn, session_id=None)
-        
-        elif args.export:
-            if not args.session_id:
-                parser.error("--export requires --session-id")
-            export_intervals(conn, args.session_id)
-        
-        elif args.review:
-            session_id = args.session_id
-            if args.next:
-                session_id = get_next_unreviewed(conn)
-                if session_id is None:
-                    print("All sessions reviewed or in progress!")
-                    return
-                print(f"Next unreviewed session: {session_id}")
-            
-            if not session_id:
-                parser.error("--review requires --session-id or --next")
-            
-            review_session(conn, session_id, args.output_dir, args.age, args.rhr)
-        
-        elif args.import_judgments:
-            import_judgments(args.import_judgments)
-        
-        elif args.stats:
-            calculate_stats()
-        
-        elif args.mark_reviewed:
-            if not args.session_id:
-                parser.error("--mark-reviewed requires --session-id")
-            mark_reviewed(args.session_id)
-        
-        else:
-            parser.print_help()
-    
-    finally:
-        conn.close()
-
-
 if __name__ == '__main__':
-    main()
+    cli()
