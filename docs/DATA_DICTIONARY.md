@@ -1,7 +1,7 @@
 # Arnold Data Dictionary
 
 > **Purpose**: Comprehensive reference for the Arnold analytics data lake. Describes all data sources, schemas, relationships, and fitness for use.
-> **Last Updated**: January 17, 2026 (Migration 021: HRR extended columns)
+> **Last Updated**: January 18, 2026 (Migration 022: HRR QC validation system)
 > **Location**: `/arnold/data/`
 
 ---
@@ -807,6 +807,8 @@ GROUP BY 1;
 
 **Extraction Script**: `python scripts/hrr_feature_extraction.py --session-id <ID>`
 
+**⚠️ WARNING**: Do NOT use `hrr_batch.py` - it is DEPRECATED and contains divergent detection logic. Always use `hrr_feature_extraction.py`.
+
 **Quality Documentation**: See [hrr_quality_gates.md](./hrr_quality_gates.md)
 
 ---
@@ -831,6 +833,190 @@ GROUP BY 1;
   - `rejected_override` - Force reject otherwise passing interval
 
 **Helper View**: `hrr_review_status` joins intervals with reviews.
+
+---
+
+# HRR Quality Control (QC) System
+
+The HRR QC system supports algorithm validation and human oversight of heart rate recovery interval detection. See also: [hrr_quality_gates.md](./hrr_quality_gates.md)
+
+## QC Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    HRR QC DATA MODEL                            │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  DETECTION OUTPUT (regenerated on re-extraction)                │
+│  ├── hr_recovery_intervals  ← Algorithm detects these           │
+│  └── polar_sessions.hrr_qc_status  ← Review tracking            │
+│                                                                 │
+│  HUMAN CURATION (persists across re-extraction)                 │
+│  ├── peak_adjustments       ← Shift peak locations              │
+│  ├── hrr_quality_overrides  ← Force pass/reject decisions       │
+│  ├── hrr_qc_judgments       ← TP/FP/TN/FN for validation        │
+│  ├── hrr_missed_peaks       ← Peaks algorithm didn't detect     │
+│  └── hrr_interval_reviews   ← General review notes              │
+│                                                                 │
+│  ANALYTICS VIEWS                                                │
+│  ├── hrr_qc_stats           ← Precision/recall metrics          │
+│  └── hrr_session_qc_queue   ← Review queue status               │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Key Design Principle**: Human curation tables use stable keys (`session_id` + `interval_order`) rather than volatile `interval_id` foreign keys, so corrections persist when intervals are re-extracted.
+
+---
+
+## hrr_qc_judgments
+**Algorithm validation judgments for precision/recall calculation**
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | SERIAL PK | Auto-increment |
+| polar_session_id | INT FK | Reference to polar_sessions (PK with interval_order) |
+| endurance_session_id | INT FK | Reference to endurance_sessions (alternative PK) |
+| interval_order | SMALLINT | Which interval (1-indexed, stable key) |
+| judgment | VARCHAR(20) | Validation classification (see below) |
+| algo_status | VARCHAR(20) | Algorithm's decision (pass/flagged/rejected) snapshot |
+| algo_reject_reason | TEXT | Algorithm's rejection reason snapshot |
+| peak_correct | VARCHAR(10) | Peak location accuracy: yes, no, shifted |
+| peak_shift_sec | SMALLINT | If shifted, by how many seconds |
+| notes | TEXT | Human explanation |
+| judged_at | TIMESTAMPTZ | When judgment was made |
+
+- **Unique Constraint**: (polar_session_id, interval_order) or (endurance_session_id, interval_order)
+- **Migration**: 022_hrr_qc_validation.sql
+
+**Judgment Values:**
+
+| Code | Meaning | When to Use |
+|------|---------|-------------|
+| `TP` | True Positive | Algorithm correctly found a real recovery peak |
+| `FP` | False Positive | Algorithm detected something that isn't a real recovery |
+| `TN` | True Negative | Algorithm correctly rejected a non-recovery |
+| `FN_REJECTED` | False Negative (Rejected) | Real peak but algorithm rejected it |
+| `FN_MISSED` | False Negative (Missed) | Algorithm didn't detect the peak at all |
+| `SKIP` | Skip | Cannot determine / not enough information |
+
+**Usage:**
+```sql
+-- Add a judgment
+INSERT INTO hrr_qc_judgments 
+    (polar_session_id, interval_order, judgment, algo_status, notes)
+VALUES (71, 3, 'FP', 'pass', 'Movement artifact, not real recovery');
+
+-- View all judgments for a session
+SELECT * FROM hrr_qc_judgments WHERE polar_session_id = 71;
+```
+
+---
+
+## hrr_missed_peaks
+**Peaks the algorithm failed to detect entirely (FN_MISSED cases)**
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | SERIAL PK | Auto-increment |
+| polar_session_id | INT FK | Reference to polar_sessions |
+| endurance_session_id | INT FK | Reference to endurance_sessions |
+| peak_time_elapsed_sec | INT NOT NULL | Seconds from session start where peak should be |
+| hr_peak_approx | SMALLINT | Approximate peak HR value |
+| notes | TEXT | Description of missed peak |
+| created_at | TIMESTAMPTZ | When recorded |
+
+- **Use Case**: Document peaks the algorithm completely missed for improving detection
+- **Migration**: 022_hrr_qc_validation.sql
+
+---
+
+## hrr_qc_stats (View)
+**Algorithm validation metrics calculated from judgments**
+
+| Column | Type | Description |
+|--------|------|-------------|
+| tp | INT | True positive count |
+| fp | INT | False positive count |
+| tn | INT | True negative count |
+| fn_rejected | INT | False negatives (rejected) count |
+| fn_missed | INT | False negatives (missed) count |
+| total | INT | Total judgments |
+| precision | NUMERIC | TP / (TP + FP) - of passes, how many real? |
+| recall | NUMERIC | TP / (TP + FN) - of real peaks, how many pass? |
+| f1 | NUMERIC | Harmonic mean of precision and recall |
+| detection_recall | NUMERIC | (TP + FN_REJECTED) / (TP + FN) - did we find the peak at all? |
+| rejection_accuracy | NUMERIC | TN / (TN + FN_REJECTED) - of rejected, how many should be? |
+
+**Usage:**
+```sql
+SELECT * FROM hrr_qc_stats;
+-- Returns current precision/recall metrics
+```
+
+---
+
+## hrr_session_qc_queue (View)
+**Review queue showing all sessions and their QC status**
+
+| Column | Type | Description |
+|--------|------|-------------|
+| source | TEXT | 'polar' or 'endurance' |
+| session_id | INT | Session ID |
+| session_date | DATE | Session date |
+| sport_type | VARCHAR | Sport type |
+| hrr_qc_status | VARCHAR | pending, in_progress, reviewed |
+| hrr_qc_reviewed_at | TIMESTAMPTZ | When review completed |
+| total_intervals | INT | Total detected intervals |
+| pass_ct | INT | Intervals that passed |
+| flagged_ct | INT | Intervals flagged for review |
+| rejected_ct | INT | Intervals auto-rejected |
+| judged_ct | INT | Intervals with human judgments |
+
+**Usage:**
+```sql
+-- See review queue
+SELECT * FROM hrr_session_qc_queue WHERE hrr_qc_status = 'pending';
+```
+
+---
+
+## QC Workflow
+
+### Interactive Review (Recommended)
+
+```bash
+# ONE COMMAND - walks you through everything
+python scripts/hrr_qc.py
+```
+
+This interactive script:
+1. Shows queue of sessions needing review
+2. Opens visualization for selected session
+3. Prompts for judgment on each interval
+4. Stores judgments in database
+5. Shows precision/recall stats
+
+### Manual Review
+
+```bash
+# 1. Visualize a session
+python scripts/hrr_qc_viz.py --session-id 71
+
+# 2. Add judgments via SQL
+INSERT INTO hrr_qc_judgments 
+    (polar_session_id, interval_order, judgment, algo_status, notes)
+VALUES 
+    (71, 1, 'TP', 'pass', NULL),
+    (71, 2, 'FP', 'pass', 'Artifact'),
+    (71, 3, 'TN', 'rejected', NULL);
+
+# 3. Mark session reviewed
+UPDATE polar_sessions SET hrr_qc_status = 'reviewed' WHERE id = 71;
+
+# 4. Check stats
+SELECT * FROM hrr_qc_stats;
+```
 
 ---
 
