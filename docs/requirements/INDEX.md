@@ -28,6 +28,7 @@
 | ID | Title | Priority | Status |
 |----|-------|----------|--------|
 | [FR-006](FR-006-adaptive-coaching-personalization.md) | Adaptive Coaching Personalization | High | Proposed |
+| [FR-007](FR-007-rest-recovery-first-class-training.md) | Rest and Recovery as First-Class Training | Medium | Proposed |
 
 ---
 
