@@ -4,17 +4,116 @@
 
 Quality gates filter recovery intervals to ensure only physiologically valid data enters analytics. Gates run in sequence; first failure triggers rejection.
 
+## Querying Existing QC Data
+
+Before making changes to HRR detection, check what manual corrections already exist:
+
+### Peak Adjustments
+
+Manual corrections for false peak detection:
+
+```sql
+-- View all peak adjustments
+SELECT 
+    pa.polar_session_id,
+    ps.start_time::date as session_date,
+    ps.sport_type,
+    pa.interval_order,
+    pa.shift_seconds,
+    pa.reason,
+    pa.applied_at
+FROM peak_adjustments pa
+JOIN polar_sessions ps ON pa.polar_session_id = ps.id
+ORDER BY pa.polar_session_id, pa.interval_order;
+```
+
+**Current known adjustments:**
+
+| Session | Date | Interval | Shift | Reason |
+|---------|------|----------|-------|--------|
+| 5 | 2025-06-17 | 10 | +120s | Plateau anchor |
+| 51 | 2025-07-27 | 3 | +54s | False peak |
+
+### Quality Overrides
+
+Human decisions to force-pass or force-reject intervals:
+
+```sql
+-- View all quality overrides
+SELECT 
+    qo.polar_session_id,
+    ps.start_time::date as session_date,
+    qo.interval_order,
+    qo.override_action,
+    qo.original_status,
+    qo.original_reason,
+    qo.reason as override_reason,
+    qo.applied_at
+FROM hrr_quality_overrides qo
+JOIN polar_sessions ps ON qo.polar_session_id = ps.id
+ORDER BY qo.polar_session_id, qo.interval_order;
+```
+
+### Interval Reviews
+
+Granular review decisions (flag clearing, verification):
+
+```sql
+-- View all interval reviews with context
+SELECT 
+    i.polar_session_id,
+    i.interval_order,
+    r.review_action,
+    r.original_flags,
+    r.notes,
+    r.reviewed_at
+FROM hrr_interval_reviews r
+JOIN hr_recovery_intervals i ON r.interval_id = i.id
+ORDER BY i.polar_session_id, i.interval_order;
+
+-- Or use the convenience view
+SELECT * FROM hrr_review_status WHERE polar_session_id = 5;
+```
+
+### Session QC Status
+
+```sql
+-- Sessions with QC review status
+SELECT 
+    id,
+    start_time::date as session_date,
+    sport_type,
+    hrr_qc_status,
+    hrr_qc_reviewed_at
+FROM polar_sessions
+WHERE id IN (SELECT DISTINCT polar_session_id FROM hr_recovery_intervals)
+ORDER BY start_time DESC;
+```
+
+### How Extraction Uses This Data
+
+During extraction, the pipeline loads adjustments and overrides from Postgres:
+
+- **Peak adjustments**: `scripts/hrr/persistence.py::load_peak_adjustments(session_id)` returns `{interval_order: shift_seconds}`
+- **Quality overrides**: Applied after quality gates run, overriding the computed status
+- Both use `(session_id, interval_order)` as stable keys that survive re-extraction
+
+---
+
 ## Hard Reject Criteria
 
 | Gate | Metric | Threshold | Reject Reason | Rationale |
 |------|--------|-----------|---------------|-----------|
-| 0 | `r2_0_60` | None | `insufficient_duration` | Too short for HRR60 |
+| 0 | `r2_0_60` | None | `insufficient_duration_Xs` | Too short for HRR60 |
 | 1 | `slope_90_120` | > 0.1 bpm/sec | `activity_resumed` | HR rising = athlete moved |
-| 2 | `best_r2` (0-60 through 0-300) | None | `no_valid_r2_windows` | Too short for validation |
+| 2 | `best_r2` (0-60 through 0-300) | None | `no_valid_r2_windows_Xs` | Too short for validation |
 | 3 | `best_r2` | < 0.75 | `poor_fit_quality` | Exponential decay doesn't fit |
 | 4 | `r2_30_60` | < 0.75 | `r2_30_60_below_0.75` | HRR60 unreliable (mid-recovery disruption) |
 | 5 | `r2_0_30` | < 0.5 | `double_peak` | Plateau/rise in first 30s = false start |
 | 6 | `tau_seconds` | >= 299 | `tau_clipped` | Fit hit ceiling, recovery shape invalid |
+
+> **Note (2026-01-20)**: Rejection reasons for gates 0 and 2 now include duration context
+> (e.g., `insufficient_duration_45s`, `no_valid_r2_windows_52s`) for easier debugging.
 
 > **Note (Migration 024)**: `r2_30_90 < 0.75` was previously Gate 5 but is now **diagnostic only**.
 > It validates HRR120 quality but does NOT reject the interval. Valid HRR60 intervals were being
@@ -47,6 +146,43 @@ Even if R² values look acceptable, tau=300 indicates the **shape** of recovery 
 
 **Added**: January 2026 (Migration TBD)
 
+## Peak Detection Enhancements
+
+### Backward Peak Search (Issue #43)
+
+When scipy's `find_peaks()` detects a peak, it may anchor on the end of a gradual deceleration plateau rather than the true maximum HR. The backward search looks backward from the detected peak to find the true maximum.
+
+**Configuration** (`config/hrr_extraction.yaml`):
+- `backward_lookback_sec`: Maximum seconds to search backward (default: 60)
+- `backward_threshold_bpm`: Minimum HR increase to consider (default: 3)
+
+> **Note (2026-01-20)**: Lookback increased from 30s to 60s after regression testing showed
+> gradual deceleration patterns where the true peak can be 40-60s before scipy detection.
+> Session 22, Interval 3 demonstrated a true peak ~50s back from the detected point.
+
+**Behavior**:
+1. From detected peak, search backward up to `backward_lookback_sec`
+2. If a point ≥ `backward_threshold_bpm` higher is found, shift to that point
+3. Intervals with backward shift get `BACKWARD_SHIFTED` flag
+
+**Test case**: Session 22, Interval 3 — demonstrates backward shift correcting a gradual deceleration detection.
+
+### Forward Re-anchoring (Plateau Detection)
+
+When the first 30-45 seconds don't fit exponential decay, the interval likely started on a plateau before the true peak. Forward re-anchoring searches ahead for the actual recovery start.
+
+**Trigger conditions** (either triggers re-anchor attempt):
+- `r2_0_30 < 0.5` — Immediate plateau in first 30 seconds
+- `r2_15_45 < 0.5` — Delayed plateau pattern (Issue #43)
+
+**Method conflict resolution**: When slope and geometry methods disagree significantly (>10s difference), the slope method is trusted. Geometry uses inflection point detection which fails on long declining plateaus.
+
+**Result**:
+- Success: Interval shifted forward, `PLATEAU_RESOLVED` flag added
+- Failure: Original interval kept, may be rejected by quality gates
+
+**Test case**: Session 22, Interval 1 — demonstrates r2_15_45 trigger with +141s shift (correctly rejected at 45s duration).
+
 ## Flag Criteria (Review, Not Reject)
 
 | Flag | Condition | Meaning |
@@ -59,8 +195,8 @@ Even if R² values look acceptable, tau=300 indicates the **shape** of recovery 
 
 | Window | Validates | Notes |
 |--------|-----------|-------|
-| r2_0_30 | Early phase | <0.5 triggers double_peak rejection |
-| r2_15_45 | Centered window | Diagnostic for edge artifacts (new in Mig 024) |
+| r2_0_30 | Early phase | <0.5 triggers re-anchor attempt and double_peak rejection |
+| r2_15_45 | Centered window | <0.5 triggers re-anchor attempt (Issue #43) |
 | r2_30_60 | HRR60 | <0.75 triggers hard reject |
 | r2_0_60 | Overall decay | First phase gate |
 | r2_30_90 | HRR120 | **Diagnostic only** - does NOT reject (Mig 024) |
@@ -68,8 +204,8 @@ Even if R² values look acceptable, tau=300 indicates the **shape** of recovery 
 
 ## Implementation Notes
 
-- `r2_0_30 < 0.5` triggers `double_peak` rejection (catches plateau/rise before real recovery)
-- `r2_15_45` is diagnostic only - helps identify edge artifacts affecting r2_30_60
+- `r2_0_30 < 0.5` OR `r2_15_45 < 0.5` triggers forward re-anchor attempt (Issue #43)
+- If re-anchor fails and `r2_0_30 < 0.5`, `double_peak` rejection is applied
 - `r2_30_90` is diagnostic only - validates HRR120 but does NOT reject interval (Mig 024)
 - `best_r2` uses r2_0_60 through r2_0_300 only (excludes r2_0_30)
 - Fit failures return `None` (no data) or very low R² (triggers rejection)
