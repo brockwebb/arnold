@@ -184,6 +184,20 @@ class Neo4jTrainingClient:
             
             return results
 
+    def get_exercise_by_id(self, exercise_id: str) -> dict | None:
+        """Get exercise name by ID. Used to resolve missing names during logging."""
+        if not exercise_id:
+            return None
+        query = """
+        MATCH (e:Exercise {exercise_id: $exercise_id})
+        RETURN e.name as name, e.exercise_id as exercise_id
+        LIMIT 1
+        """
+        with self.driver.session() as session:
+            result = session.run(query, exercise_id=exercise_id)
+            record = result.single()
+            return dict(record) if record else None
+
     def resolve_exercises(self, names: List[str], confidence_threshold: float = 0.3) -> Dict[str, Any]:
         """
         Batch resolve exercise names to IDs.

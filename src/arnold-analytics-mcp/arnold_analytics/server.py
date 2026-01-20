@@ -485,25 +485,25 @@ async def get_training_load(days: int):
     conn = get_db()
     cur = conn.cursor()
     
-    # Overall summary from workout_summaries
+    # Overall summary from workout_summaries_v2 (V2 schema)
     cur.execute("""
         SELECT 
             COUNT(*) as workouts,
             SUM(set_count) as total_sets,
             SUM(total_volume_lbs) as total_volume
-        FROM workout_summaries
+        FROM workout_summaries_v2
         WHERE workout_date BETWEEN %s AND %s
     """, [start_date, end_date])
     summary = cur.fetchone()
     
-    # Weekly trend
+    # Weekly trend from V2
     cur.execute("""
         SELECT 
             DATE_TRUNC('week', workout_date)::date as week_start,
             COUNT(*) as workouts,
             SUM(set_count) as total_sets,
             ROUND(SUM(total_volume_lbs) / 1000, 1) as volume_klbs
-        FROM workout_summaries
+        FROM workout_summaries_v2
         WHERE workout_date >= %s
         GROUP BY DATE_TRUNC('week', workout_date)
         ORDER BY week_start DESC
@@ -511,12 +511,12 @@ async def get_training_load(days: int):
     """, [start_date])
     weekly = cur.fetchall()
     
-    # Pattern distribution from JSONB
+    # Pattern distribution from V2 JSONB
     cur.execute("""
         SELECT 
             pattern,
             COUNT(*) as workout_count
-        FROM workout_summaries,
+        FROM workout_summaries_v2,
              jsonb_array_elements_text(patterns) as pattern
         WHERE workout_date >= %s
         GROUP BY pattern
@@ -524,10 +524,10 @@ async def get_training_load(days: int):
     """, [start_date])
     patterns = cur.fetchall()
     
-    # Find pattern gaps (no work in 10+ days)
+    # Find pattern gaps (no work in 10+ days) from V2
     cur.execute("""
         SELECT DISTINCT pattern
-        FROM workout_summaries,
+        FROM workout_summaries_v2,
              jsonb_array_elements_text(patterns) as pattern
         WHERE workout_date >= CURRENT_DATE - INTERVAL '10 days'
     """)
@@ -535,7 +535,7 @@ async def get_training_load(days: int):
     
     cur.execute("""
         SELECT DISTINCT pattern
-        FROM workout_summaries,
+        FROM workout_summaries_v2,
              jsonb_array_elements_text(patterns) as pattern
         WHERE workout_date >= %s
     """, [start_date])
@@ -621,7 +621,7 @@ async def get_exercise_history(exercise: str, days: int):
     conn = get_db()
     cur = conn.cursor()
     
-    # Query exercise data from JSONB
+    # Query exercise data from V2 JSONB
     exercise_lower = exercise.lower()
     
     cur.execute("""
@@ -632,7 +632,7 @@ async def get_exercise_history(exercise: str, days: int):
             (ex->>'total_reps')::int as total_reps,
             (ex->>'sets')::int as sets,
             ex->'set_details' as set_details
-        FROM workout_summaries ws,
+        FROM workout_summaries_v2 ws,
              jsonb_array_elements(ws.exercises) as ex
         WHERE LOWER(ex->>'name') LIKE %s
           AND ws.workout_date >= %s
@@ -827,10 +827,10 @@ async def check_red_flags():
                 }
             })
     
-    # === PATTERN DISTRIBUTION ===
+    # === PATTERN DISTRIBUTION === (from V2)
     cur.execute("""
         SELECT DISTINCT pattern
-        FROM workout_summaries,
+        FROM workout_summaries_v2,
              jsonb_array_elements_text(patterns) as pattern
         WHERE workout_date >= CURRENT_DATE - INTERVAL '10 days'
     """)

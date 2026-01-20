@@ -156,6 +156,10 @@ def compute_all_segment_r2(
     # === First 30s - critical for detecting plateau/double-peak ===
     interval.r2_0_30 = compute_segment_r2(hr_values, 0, 30)
 
+    # === 15-45s centered window - diagnostic for edge artifacts ===
+    # Hypothesis: robust to boundary artifacts that hurt r2_30_60
+    interval.r2_15_45 = compute_segment_r2(hr_values, 15, 45)
+
     # === 30-60s - CRITICAL for HRR60 quality ===
     interval.r2_30_60 = compute_segment_r2(hr_values, 30, 60)
 
@@ -257,7 +261,8 @@ def assess_quality(interval: RecoveryInterval, config: HRRConfig) -> RecoveryInt
         interval: Updated with quality_status, quality_flags, review_priority
 
     Notes:
-        - Hard reject criteria: slope_90_120 > 0.1, best R² < 0.75, r2_30_60 < 0.75
+        - Hard reject criteria: slope_90_120 > 0.1, best R² < 0.75, r2_30_60 < 0.75, r2_0_30 < 0.5
+        - r2_30_90 is diagnostic only (validates HRR120), not a hard reject
         - Warning flags demote status to "flagged": LATE_RISE, ONSET_DISAGREEMENT, LOW_SIGNAL
         - Informational flags preserve "pass" status: PLATEAU_RESOLVED, MANUAL_ADJUSTED, ONSET_ADJUSTED
         - Informational flags indicate successful corrections, not quality problems
@@ -306,11 +311,10 @@ def assess_quality(interval: RecoveryInterval, config: HRRConfig) -> RecoveryInt
         hard_reject = True
         reject_reason = 'r2_30_60_below_0.75'
 
-    # 4. Gate 9: r2_30_90 validates HRR120 measurement
-    # Mid-interval bounce destroys the 120s window even if 0-120 R² looks OK
-    if interval.r2_30_90 is not None and interval.r2_30_90 < 0.75:
-        hard_reject = True
-        reject_reason = 'r2_30_90_below_0.75'
+    # 4. r2_30_90 validates HRR120 measurement (NOT a hard reject)
+    # Mid-interval bounce invalidates the 120s window, but HRR60 can still be valid
+    # This is a diagnostic marker, not a rejection gate
+    # TODO: Add hrr120_valid field to track this separately
 
     # 5. Gate 10: r2_0_30 < 0.5 = double-peak detection (Issue #015)
     # If first 30s doesn't fit exponential decay, we caught a false start

@@ -13,7 +13,11 @@ Quality gates filter recovery intervals to ensure only physiologically valid dat
 | 2 | `best_r2` (0-60 through 0-300) | None | `no_valid_r2_windows` | Too short for validation |
 | 3 | `best_r2` | < 0.75 | `poor_fit_quality` | Exponential decay doesn't fit |
 | 4 | `r2_30_60` | < 0.75 | `r2_30_60_below_0.75` | HRR60 unreliable (mid-recovery disruption) |
-| 5 | `r2_30_90` | < 0.75 | `r2_30_90_below_0.75` | HRR120 unreliable |
+| 5 | `r2_0_30` | < 0.5 | `double_peak` | Plateau/rise in first 30s = false start |
+
+> **Note (Migration 024)**: `r2_30_90 < 0.75` was previously Gate 5 but is now **diagnostic only**.
+> It validates HRR120 quality but does NOT reject the interval. Valid HRR60 intervals were being
+> incorrectly rejected when only HRR120 was invalid.
 
 ## Flag Criteria (Review, Not Reject)
 
@@ -27,14 +31,18 @@ Quality gates filter recovery intervals to ensure only physiologically valid dat
 
 | Window | Validates | Notes |
 |--------|-----------|-------|
+| r2_0_30 | Early phase | <0.5 triggers double_peak rejection |
+| r2_15_45 | Centered window | Diagnostic for edge artifacts (new in Mig 024) |
+| r2_30_60 | HRR60 | <0.75 triggers hard reject |
 | r2_0_60 | Overall decay | First phase gate |
-| r2_30_60 | HRR60 | Catches double-bounce after initial drop |
-| r2_30_90 | HRR120 | Mid-interval quality |
+| r2_30_90 | HRR120 | **Diagnostic only** - does NOT reject (Mig 024) |
 | r2_0_120+ | Longer HRR | Extended windows |
 
 ## Implementation Notes
 
-- `r2_0_30` computed but **not** used for gating (too noise-prone from catch-breath)
+- `r2_0_30 < 0.5` triggers `double_peak` rejection (catches plateau/rise before real recovery)
+- `r2_15_45` is diagnostic only - helps identify edge artifacts affecting r2_30_60
+- `r2_30_90` is diagnostic only - validates HRR120 but does NOT reject interval (Mig 024)
 - `best_r2` uses r2_0_60 through r2_0_300 only (excludes r2_0_30)
 - Fit failures return `None` (no data) or very low R² (triggers rejection)
 - Rejected intervals stored with `auto_reject_reason` for audit trail

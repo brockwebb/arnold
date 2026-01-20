@@ -47,6 +47,17 @@ postgres_client = PostgresTrainingClient()
 _cached_person_id = None
 
 
+
+def ensure_exercise_name(exercise_id: str | None, exercise_name: str | None, neo4j_client) -> str:
+    """Resolve exercise_name from Neo4j if missing but exercise_id exists."""
+    if exercise_name:
+        return exercise_name
+    if not exercise_id:
+        return "Unknown"
+    result = neo4j_client.get_exercise_by_id(exercise_id)
+    return result['name'] if result else exercise_id
+
+
 def get_person_id() -> str:
     """Get person_id from profile or cache."""
     global _cached_person_id
@@ -1065,7 +1076,7 @@ Use `confirm_plan` when ready to lock it in."""
                 for s in block.get('sets', []):
                     sets.append({
                         'exercise_id': s.get('exercise_id'),
-                        'exercise_name': s.get('exercise_name'),
+                        'exercise_name': ensure_exercise_name(s.get('exercise_id'), s.get('exercise_name'), neo4j_client),
                         'block_name': block.get('name'),
                         'block_type': block.get('block_type'),
                         'set_order': s.get('order'),
@@ -1165,7 +1176,7 @@ Great work! 💪"""
                     
                     sets.append({
                         'exercise_id': dev.get('substitute_exercise_id') or s.get('exercise_id'),
-                        'exercise_name': s.get('exercise_name'),  # Will update if substituted
+                        'exercise_name': ensure_exercise_name(s.get('exercise_id'), s.get('exercise_name'), neo4j_client),  # Will update if substituted
                         'block_name': block.get('name'),
                         'block_type': block.get('block_type'),
                         'set_order': s.get('order'),

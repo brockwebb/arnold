@@ -1,7 +1,7 @@
 # Arnold Data Dictionary
 
 > **Purpose**: Comprehensive reference for the Arnold analytics data lake. Describes all data sources, schemas, relationships, and fitness for use.
-> **Last Updated**: January 18, 2026 (Migration 022: HRR QC validation system)
+> **Last Updated**: January 19, 2026 (Migration 023: r2_15_45, r2_30_90 gate fix)
 > **Location**: `/arnold/data/`
 
 ---
@@ -675,13 +675,22 @@ Heart rate recovery (HRR) intervals are extracted from Polar/endurance sessions 
 
 ### Segment R² Values (Quality Metrics)
 
+Segment R² values measure how well HR decay fits an exponential model within specific time windows. Used for quality gating and validity assessment.
+
+**Quality Gate Logic (as of Migration 023):**
+- `r2_0_30 < 0.5` → Hard reject (double-peak detection)
+- `r2_30_60 < 0.75` → Hard reject (validates HRR60)
+- `r2_30_90 < 0.75` → **Diagnostic only** (validates HRR120, does NOT reject interval)
+- `best_r2 < 0.75` → Hard reject (no valid windows)
+
 | Column | Type | Description |
 |--------|------|-------------|
-| r2_0_30 | DOUBLE | R² for 0-30s window |
-| r2_30_60 | DOUBLE | R² for 30-60s window |
-| r2_0_60 | REAL | R² for 0-60s window |
+| r2_0_30 | DOUBLE | R² for 0-30s window. <0.5 triggers double_peak rejection |
+| r2_15_45 | REAL | R² for 15-45s centered window. Diagnostic for edge artifacts |
+| r2_30_60 | DOUBLE | R² for 30-60s window. <0.75 triggers hard reject |
+| r2_0_60 | REAL | R² for 0-60s window. Validates HRR60 measurement |
 | r2_0_90 | REAL | R² for 0-90s window |
-| r2_30_90 | REAL | R² for 30-90s window |
+| r2_30_90 | REAL | R² for 30-90s window. Diagnostic for HRR120 validity (NOT a reject gate) |
 | r2_0_120 | REAL | R² for 0-120s window |
 | r2_0_180 | REAL | R² for 0-180s window |
 | r2_0_240 | REAL | R² for 0-240s window |

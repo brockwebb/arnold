@@ -130,7 +130,7 @@ def save_intervals(conn, intervals: List[RecoveryInterval], session_id: int, sou
         # Decay model
         'tau_seconds', 'tau_fit_r2', 'fit_amplitude', 'fit_asymptote',
         # Segment R² values
-        'r2_0_30', 'r2_30_60', 'r2_0_60', 'r2_30_90', 'r2_0_90',
+        'r2_0_30', 'r2_15_45', 'r2_30_60', 'r2_0_60', 'r2_30_90', 'r2_0_90',
         'r2_0_120', 'r2_0_180', 'r2_0_240', 'r2_0_300', 'r2_delta',
         # Nadir and slopes
         'nadir_time_sec', 'slope_90_120', 'slope_90_120_r2',
@@ -163,7 +163,7 @@ def save_intervals(conn, intervals: List[RecoveryInterval], session_id: int, sou
             # Decay model
             interval.tau_seconds, interval.tau_fit_r2, interval.fit_amplitude, interval.fit_asymptote,
             # Segment R²
-            interval.r2_0_30, interval.r2_30_60, interval.r2_0_60, interval.r2_30_90, interval.r2_0_90,
+            interval.r2_0_30, interval.r2_15_45, interval.r2_30_60, interval.r2_0_60, interval.r2_30_90, interval.r2_0_90,
             interval.r2_0_120, interval.r2_0_180, interval.r2_0_240, interval.r2_0_300, interval.r2_delta,
             # Nadir and slopes
             interval.nadir_time_sec, interval.slope_90_120, interval.slope_90_120_r2,

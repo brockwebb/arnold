@@ -1,12 +1,20 @@
 # Examples
 
-Reusable patterns and automation templates for Arnold.
+Reusable patterns, automation templates, and analyzed use cases for Arnold.
 
 ## Contents
 
 | File | Description |
 |------|-------------|
 | [macos-launchagent-sync.md](./macos-launchagent-sync.md) | Automated daily data sync using macOS LaunchAgents |
+
+## HRR Use Cases
+
+Documented edge cases showing how quality gates handle real-world recovery patterns.
+
+| File | Pattern | Outcome |
+|------|---------|---------|
+| [hrr-use-case-activity-resumed.md](./hrr-use-case-activity-resumed.md) | Activity resumed mid-recovery (S23:I9) | Correctly rejected via `r2_30_60` |
 
 ## Contributing Examples
 

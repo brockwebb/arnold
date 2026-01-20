@@ -235,10 +235,11 @@ class RecoveryInterval:
     fit_asymptote: Optional[float] = None  # DB: fit_asymptote (was tau_baseline)
 
     # Segment R² values (for window-specific quality)
-    r2_0_30: Optional[float] = None   # First 30s segment
-    r2_30_60: Optional[float] = None  # Second 30s segment - CRITICAL for HRR60 quality
+    r2_0_30: Optional[float] = None   # First 30s segment. <0.5 = double_peak reject
+    r2_15_45: Optional[float] = None  # Centered window - diagnostic for edge artifacts
+    r2_30_60: Optional[float] = None  # Second 30s segment - <0.75 = hard reject (validates HRR60)
     r2_0_60: Optional[float] = None   # Validates HRR60
-    r2_30_90: Optional[float] = None  # Transition zone
+    r2_30_90: Optional[float] = None  # Diagnostic only - validates HRR120 (NOT a reject gate)
     r2_0_90: Optional[float] = None   # Validates HRR90
     r2_0_120: Optional[float] = None  # Validates HRR120
     r2_0_180: Optional[float] = None  # Validates HRR180
