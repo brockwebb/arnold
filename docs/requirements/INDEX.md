@@ -19,10 +19,16 @@
 | [FR-003](FR-003-hr-session-workout-linking.md) | HR Session to Workout Linking | High | Proposed |
 | [FR-004](FR-004-recovery-interval-detection.md) | Recovery Interval Detection (HRR) | Medium | Proposed |
 
-### Exercise Resolution (Backlog)
+### Exercise Resolution
 | ID | Title | Priority | Status |
 |----|-------|----------|--------|
 | [FR-005](FR-005-exercise-alias-system.md) | Exercise Alias System | High | Proposed |
+
+### Coaching Intelligence
+| ID | Title | Priority | Status |
+|----|-------|----------|--------|
+| [FR-006](FR-006-adaptive-coaching-personalization.md) | Adaptive Coaching Personalization | High | Proposed |
+| [FR-007](FR-007-rest-recovery-first-class-training.md) | Rest and Recovery as First-Class Training | Medium | Proposed |
 
 ---
 
