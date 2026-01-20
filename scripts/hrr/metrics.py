@@ -261,8 +261,9 @@ def assess_quality(interval: RecoveryInterval, config: HRRConfig) -> RecoveryInt
         interval: Updated with quality_status, quality_flags, review_priority
 
     Notes:
-        - Hard reject criteria: slope_90_120 > 0.1, best R² < 0.75, r2_30_60 < 0.75, r2_0_30 < 0.5
+        - Hard reject criteria: slope_90_120 > 0.1, best R² < 0.75, r2_30_60 < 0.75, r2_0_30 < 0.5, tau >= 299
         - r2_30_90 is diagnostic only (validates HRR120), not a hard reject
+        - tau_clipped rejects intervals where exponential fit hit ceiling (shape invalid)
         - Warning flags demote status to "flagged": LATE_RISE, ONSET_DISAGREEMENT, LOW_SIGNAL
         - Informational flags preserve "pass" status: PLATEAU_RESOLVED, MANUAL_ADJUSTED, ONSET_ADJUSTED
         - Informational flags indicate successful corrections, not quality problems
@@ -322,6 +323,16 @@ def assess_quality(interval: RecoveryInterval, config: HRRConfig) -> RecoveryInt
     if interval.r2_0_30 is not None and interval.r2_0_30 < 0.5:
         hard_reject = True
         reject_reason = 'double_peak'
+
+    # 6. Gate: tau_clipped - exponential fit hit ceiling
+    # tau=300 (max bound) means recovery shape doesn't fit expected physiology.
+    # Even with acceptable R² values, the shape is wrong. Often indicates:
+    # - Zone 1-2 flutter/pause rather than real recovery
+    # - Plateau patterns that don't match exponential decay
+    # See hrr_quality_gates.md for detailed rationale and monitoring notes.
+    if not hard_reject and interval.tau_seconds is not None and interval.tau_seconds >= 299:
+        hard_reject = True
+        reject_reason = 'tau_clipped'
 
     # === FLAG CRITERIA (for human review, not auto-reject) ===
 

@@ -14,10 +14,38 @@ Quality gates filter recovery intervals to ensure only physiologically valid dat
 | 3 | `best_r2` | < 0.75 | `poor_fit_quality` | Exponential decay doesn't fit |
 | 4 | `r2_30_60` | < 0.75 | `r2_30_60_below_0.75` | HRR60 unreliable (mid-recovery disruption) |
 | 5 | `r2_0_30` | < 0.5 | `double_peak` | Plateau/rise in first 30s = false start |
+| 6 | `tau_seconds` | >= 299 | `tau_clipped` | Fit hit ceiling, recovery shape invalid |
 
 > **Note (Migration 024)**: `r2_30_90 < 0.75` was previously Gate 5 but is now **diagnostic only**.
 > It validates HRR120 quality but does NOT reject the interval. Valid HRR60 intervals were being
 > incorrectly rejected when only HRR120 was invalid.
+
+### Gate 6: tau_clipped
+
+**What is tau (τ)?** The time constant in exponential decay fitting. It measures how fast HR drops:
+- **Small tau (30-60s)** = fast recovery, HR drops quickly toward baseline
+- **Large tau (100-150s)** = slower recovery, HR drops gradually
+- **tau = 300** = fit hit the ceiling constraint (max bound), algorithm gave up
+
+**Why reject tau = 300?** When the exponential fit returns exactly 300s (the configured max), it means:
+1. Recovery was impossibly slow (doesn't match exponential decay physiology)
+2. Data contains plateau, interruption, or irregular pattern that broke the model
+3. The interval may be a pause/flutter rather than a true recovery attempt
+
+Even if R² values look acceptable, tau=300 indicates the **shape** of recovery doesn't match expected physiology. The HRR60 measurement may be numerically present but is not trustworthy for longitudinal trend analysis.
+
+**Observations from QC review:**
+- tau=300 intervals often have low peak HR (zone 1-2 effort)
+- Frequently show flat/plateau patterns rather than exponential decay
+- Sometimes followed immediately by a "real" recovery with normal tau
+- Correlated with lower r2_15_45 values (avg 0.65 vs 0.85 for normal tau)
+
+**Monitoring:** Track tau_clipped rejection rate as a baseline. Potential signals:
+- Sudden increase may indicate sensor fit issues (chest strap contact)
+- Sustained elevation could indicate training pattern changes
+- Or could be early sign of autonomic changes worth investigating
+
+**Added**: January 2026 (Migration TBD)
 
 ## Flag Criteria (Review, Not Reject)
 
