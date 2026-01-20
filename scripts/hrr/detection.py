@@ -22,6 +22,56 @@ logger = logging.getLogger(__name__)
 # Peak Detection
 # =============================================================================
 
+def search_backward_for_true_peak(
+    samples: List[HRSample],
+    detected_peak_idx: int,
+    config: HRRConfig
+) -> Tuple[int, bool]:
+    """
+    Search backward from detected peak to find true maximum.
+    
+    Catches gradual deceleration patterns where scipy detects the END
+    of a plateau instead of the true peak (Issue #036).
+    
+    Args:
+        samples: Full session HR samples
+        detected_peak_idx: Index where scipy found a "peak"
+        config: HRR configuration
+        
+    Returns:
+        Tuple of (true_peak_idx, was_shifted):
+        - true_peak_idx: Index of the actual peak (may be same as input)
+        - was_shifted: True if we found a higher peak backward
+    """
+    lookback_sec = config.backward_lookback_sec
+    threshold_bpm = config.backward_threshold_bpm
+    
+    # Define search window
+    start_idx = max(0, detected_peak_idx - lookback_sec)
+    
+    if start_idx >= detected_peak_idx:
+        return detected_peak_idx, False
+    
+    # Get HR values in lookback window (includes detected peak)
+    lookback_samples = samples[start_idx:detected_peak_idx + 1]
+    if not lookback_samples:
+        return detected_peak_idx, False
+    
+    hr_values = [s.hr_value for s in lookback_samples]
+    detected_hr = samples[detected_peak_idx].hr_value
+    max_hr = max(hr_values)
+    
+    # Only shift if significantly higher peak exists
+    if max_hr > detected_hr + threshold_bpm:
+        # Find LAST index of max (handles plateaus - use end of plateau)
+        for i in range(len(hr_values) - 1, -1, -1):
+            if hr_values[i] == max_hr:
+                true_peak_idx = start_idx + i
+                return true_peak_idx, True
+    
+    return detected_peak_idx, False
+
+
 def detect_peaks(samples: List[HRSample], config: HRRConfig) -> List[int]:
     """
     Detect HR peaks using scipy.signal.find_peaks.
@@ -486,6 +536,19 @@ def extract_features(
     last_interval_end = -1  # Track end of previous interval for measurement window constraint
 
     for peak_idx in valid_peaks:
+        # Issue #036: Search backward for true peak (gradual deceleration patterns)
+        true_peak_idx, backward_shift_applied = search_backward_for_true_peak(samples, peak_idx, config)
+        if backward_shift_applied:
+            backward_shift_delta = true_peak_idx - peak_idx  # Will be negative (shifted earlier)
+            logger.info(
+                f"Backward search: peak {interval_order} shifted from idx {peak_idx} "
+                f"(HR={samples[peak_idx].hr_value}) to idx {true_peak_idx} "
+                f"(HR={samples[true_peak_idx].hr_value}), delta={backward_shift_delta}s"
+            )
+            peak_idx = true_peak_idx
+        else:
+            backward_shift_delta = 0
+
         # Apply manual peak adjustment if one exists for this interval_order
         if peak_adjustments and interval_order in peak_adjustments:
             shift = peak_adjustments[interval_order]
@@ -541,10 +604,13 @@ def extract_features(
         # Compute segment R² values
         interval = compute_all_segment_r2(interval_samples, interval)
 
-        # Plateau detection: if r2_0_30 < threshold, try to re-anchor to true peak
-        # This catches double-peak patterns where scipy detected the wrong peak
-        if interval.r2_0_30 is not None and interval.r2_0_30 < config.gate_r2_0_30_threshold:
-            logger.info(f"Interval {interval_order}: r2_0_30={interval.r2_0_30:.3f} < {config.gate_r2_0_30_threshold}, attempting re-anchor")
+        # Plateau detection: if r2_0_30 OR r2_15_45 < threshold, try to re-anchor to true peak
+        # r2_0_30 catches immediate plateau, r2_15_45 catches delayed plateau (Issue #043)
+        r2_0_30_bad = interval.r2_0_30 is not None and interval.r2_0_30 < config.gate_r2_0_30_threshold
+        r2_15_45_bad = interval.r2_15_45 is not None and interval.r2_15_45 < config.gate_r2_0_30_threshold
+        if r2_0_30_bad or r2_15_45_bad:
+            trigger = f"r2_0_30={interval.r2_0_30:.3f}" if r2_0_30_bad else f"r2_15_45={interval.r2_15_45:.3f}"
+            logger.info(f"Interval {interval_order}: {trigger} < {config.gate_r2_0_30_threshold}, attempting re-anchor")
 
             success, new_interval, new_samples, new_end, reason = attempt_plateau_reanchor(
                 samples, interval, interval_samples, adjusted_start_idx, end_idx,
@@ -569,6 +635,11 @@ def extract_features(
         if manual_adjustment_applied:
             if 'MANUAL_ADJUSTED' not in interval.quality_flags:
                 interval.quality_flags.append('MANUAL_ADJUSTED')
+
+        # Add backward shift flag if applicable (Issue #036)
+        if backward_shift_applied:
+            if 'BACKWARD_SHIFTED' not in interval.quality_flags:
+                interval.quality_flags.append('BACKWARD_SHIFTED')
 
         intervals.append(interval)
         interval_order += 1

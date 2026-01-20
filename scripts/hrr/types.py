@@ -65,6 +65,11 @@ class HRRConfig:
     # Estimated max HR (can be overridden per-athlete)
     default_max_hr: int = 180  # Conservative default
 
+    # Backward peak search (Issue #036 - gradual deceleration)
+    # Increased from 30s to 60s per regression testing 2026-01-20 (S22:I3 true peak was ~50s back)
+    backward_lookback_sec: int = 60  # How far back to search for true peak
+    backward_threshold_bpm: int = 3  # Only shift if higher peak exceeds this delta
+
     # Valley detection (Issue #020)
     valley_lookback_sec: int = 120  # How far back to search for peak before valley
     valley_min_drop_bpm: int = 12   # Minimum HR drop from peak to valley
@@ -133,6 +138,12 @@ class HRRConfig:
         if 'athlete_defaults' in yaml_config:
             ad = yaml_config['athlete_defaults']
             kwargs['default_max_hr'] = ad.get('default_max_hr', 180)
+
+        # Backward peak search (Issue #036)
+        if 'backward_search' in yaml_config:
+            bs = yaml_config['backward_search']
+            kwargs['backward_lookback_sec'] = bs.get('lookback_sec', 30)
+            kwargs['backward_threshold_bpm'] = bs.get('threshold_bpm', 3)
 
         # Valley detection (Issue #020)
         if 'valley_detection' in yaml_config:

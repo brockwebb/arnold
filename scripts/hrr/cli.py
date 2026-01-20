@@ -87,10 +87,10 @@ def print_summary_tables(intervals: List[RecoveryInterval], session_id: int, ses
         print(f"{i.interval_order:>3} {hrr30:>6} {hrr60:>6} {hrr120:>7} {hrr180:>7} {hrr240:>7} {hrr300:>7} {tau:>6} {r2:>5}")
 
     # Table 3: Segment R² values (all intervals)
-    print(f"\n{'Segment R² Values':^95}")
-    print("-" * 95)
-    print(f"{'#':>3} {'0-30':>6} {'30-60':>6} {'0-60':>6} {'30-90':>6} {'Slope':>7} {'0-120':>7} {'0-180':>7} {'0-240':>7} {'0-300':>7}")
-    print("-" * 95)
+    print(f"\n{'Segment R² Values':^103}")
+    print("-" * 103)
+    print(f"{'#':>3} {'0-30':>6} {'15-45':>6} {'30-60':>6} {'0-60':>6} {'30-90':>6} {'Slope':>7} {'0-120':>7} {'0-180':>7} {'0-240':>7} {'0-300':>7}")
+    print("-" * 103)
 
     def mark(v):
         if v is None:
@@ -111,7 +111,7 @@ def print_summary_tables(intervals: List[RecoveryInterval], session_id: int, ses
             return f"{v:.3f}"
 
     for i in intervals:
-        print(f"{i.interval_order:>3} {mark(i.r2_0_30):>6} {mark(i.r2_30_60):>6} {mark(i.r2_0_60):>6} {mark(i.r2_30_90):>6} {fmt_slope(i.slope_90_120):>7} {mark(i.r2_0_120):>7} {mark(i.r2_0_180):>7} {mark(i.r2_0_240):>7} {mark(i.r2_0_300):>7}")
+        print(f"{i.interval_order:>3} {mark(i.r2_0_30):>6} {mark(i.r2_15_45):>6} {mark(i.r2_30_60):>6} {mark(i.r2_0_60):>6} {mark(i.r2_30_90):>6} {fmt_slope(i.slope_90_120):>7} {mark(i.r2_0_120):>7} {mark(i.r2_0_180):>7} {mark(i.r2_0_240):>7} {mark(i.r2_0_300):>7}")
 
     # Table 4: Quality flags
     print(f"\n{'Quality Assessment':^80}")

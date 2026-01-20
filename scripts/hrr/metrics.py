@@ -278,7 +278,7 @@ def assess_quality(interval: RecoveryInterval, config: HRRConfig) -> RecoveryInt
     # 0. Insufficient duration - can't compute HRR60
     if interval.r2_0_60 is None:
         hard_reject = True
-        reject_reason = 'insufficient_duration'
+        reject_reason = f'insufficient_duration_{interval.duration_seconds}s'
 
     # 1. Late slope > 0.1 bpm/sec = definite activity resumption
     if interval.slope_90_120 is not None and interval.slope_90_120 > 0.1:
@@ -300,7 +300,7 @@ def assess_quality(interval: RecoveryInterval, config: HRRConfig) -> RecoveryInt
     if best_r2 is None:
         # No valid windows to evaluate - too short or all fits failed
         hard_reject = True
-        reject_reason = 'no_valid_r2_windows'
+        reject_reason = f'no_valid_r2_windows_{interval.duration_seconds}s'
     elif best_r2 < 0.75:
         hard_reject = True
         reject_reason = 'poor_fit_quality'

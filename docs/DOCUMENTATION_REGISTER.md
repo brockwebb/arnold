@@ -1,6 +1,6 @@
 # Documentation Register
 
-> **Last Updated**: January 12, 2026  
+> **Last Updated**: January 20, 2026  
 > **Purpose**: Master index of all documentation artifacts. Read before creating or editing docs.
 
 ---
@@ -24,6 +24,7 @@
 | Log a decision | `docs/adr/` |
 | Document a requirement | `docs/requirements/` |
 | Understand an MCP | `docs/mcps/` |
+| Verify changes / regression test | `docs/TESTING.md` |
 
 ---
 
@@ -116,6 +117,7 @@ Day-to-day operations and automation.
 
 | Document | Purpose | Location |
 |----------|---------|----------|
+| **Testing Guide** | Verification procedures, test cases, regression testing | `docs/TESTING.md` |
 | Data Sources | Source hierarchy, provenance | `docs/DATA_SOURCES.md` |
 | Data Dictionary | Data catalog reference | `docs/DATA_DICTIONARY.md` |
 | Training Metrics | Evidence-based metrics | `docs/TRAINING_METRICS.md` |

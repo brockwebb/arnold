@@ -199,9 +199,9 @@ def find_true_peak_plateau(
         avg_offset = (offset_slope + offset_geom) // 2
         return avg_offset, 'medium', debug_info
     else:
-        # Large disagreement - take average, low confidence
-        avg_offset = (offset_slope + offset_geom) // 2
-        return avg_offset, 'low', debug_info
+        # Large disagreement - trust slope method
+        # Geometry uses inflection point detection which fails on long declining plateaus
+        return offset_slope, 'medium', debug_info
 
 
 # =============================================================================
