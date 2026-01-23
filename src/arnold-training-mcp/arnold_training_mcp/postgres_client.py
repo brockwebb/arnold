@@ -3,9 +3,9 @@
 Per ADR-002: Executed workouts live in Postgres (facts/measurements).
 Plans stay in Neo4j (intentions/relationships).
 
-Updated Jan 2026 (Issue 013): Uses unified segment-based schema:
-- workouts_v2 → segments → sport-specific child tables
-- v2_strength_sets, v2_running_intervals, v2_rowing_intervals, etc.
+Updated Jan 2026 (Issue 013, ADR-007): Uses simplified schema:
+- workouts → blocks → sets
+- Clean three-table design with nullable columns for different modalities.
 """
 
 import os
@@ -71,7 +71,7 @@ class PostgresTrainingClient:
         """
         Log a strength training session to v2 schema.
         
-        Creates: workouts_v2 → segments → v2_strength_sets
+        Creates: workouts → blocks → sets
         
         Args:
             session_date: YYYY-MM-DD
@@ -96,7 +96,7 @@ class PostgresTrainingClient:
             user_id: User UUID (defaults to profile)
             
         Returns:
-            Dict with workout_id, segment_id, set_count
+            Dict with workout_id, block_id, set_count
         """
         cursor = self.conn.cursor(cursor_factory=RealDictCursor)
         user_id = user_id or DEFAULT_USER_ID
@@ -125,7 +125,7 @@ class PostgresTrainingClient:
             
             # 1. Insert workout
             cursor.execute("""
-                INSERT INTO workouts_v2 (
+                INSERT INTO workouts (
                     user_id, start_time, duration_seconds, rpe, notes,
                     source, source_fidelity
                 ) VALUES (
@@ -148,14 +148,14 @@ class PostgresTrainingClient:
             # 2. Insert segment (single strength segment)
             segment_extra = extra.copy()
             cursor.execute("""
-                INSERT INTO segments (
-                    workout_id, seq, sport_type, duration_seconds, 
+                INSERT INTO blocks (
+                    workout_id, seq, modality, duration_seconds,
                     planned_segment_id, extra
                 ) VALUES (
                     %(workout_id)s, 1, 'strength', %(duration_seconds)s,
                     %(plan_id)s, %(extra)s
                 )
-                RETURNING segment_id
+                RETURNING block_id
             """, {
                 'workout_id': workout_id,
                 'duration_seconds': duration_seconds,
@@ -163,9 +163,9 @@ class PostgresTrainingClient:
                 'extra': psycopg2.extras.Json(segment_extra)
             })
             
-            segment_id = cursor.fetchone()['segment_id']
+            block_id = cursor.fetchone()['block_id']
             
-            # 3. Insert sets into v2_strength_sets
+            # 3. Insert sets
             if sets:
                 set_values = []
                 for i, s in enumerate(sets):
@@ -190,8 +190,15 @@ class PostgresTrainingClient:
                     if s.get('block_type'):
                         set_extra['block_type'] = s['block_type']
                     
+                    # Convert planned_set_id to UUID if it's a string like "PLANSET:..."
+                    planned_set_id = s.get('planned_set_id')
+                    if planned_set_id and isinstance(planned_set_id, str):
+                        # Extract UUID from "PLANSET:uuid" format
+                        if planned_set_id.startswith('PLANSET:'):
+                            planned_set_id = planned_set_id.replace('PLANSET:', '')
+
                     set_values.append((
-                        segment_id,
+                        block_id,
                         s.get('set_order', i + 1),
                         s.get('exercise_id'),
                         s.get('exercise_name') or s.get('name') or 'Unknown',
@@ -205,15 +212,16 @@ class PostgresTrainingClient:
                         s.get('set_type') == 'warmup' or s.get('is_warmup', False),
                         s.get('tempo') or s.get('tempo_code'),
                         s.get('notes'),
-                        psycopg2.extras.Json(set_extra) if set_extra else None
+                        psycopg2.extras.Json(set_extra) if set_extra else None,
+                        planned_set_id  # FK to planned_sets (Phase 6b)
                     ))
-                
+
                 execute_values(cursor, """
-                    INSERT INTO v2_strength_sets (
-                        segment_id, seq, exercise_id, exercise_name,
+                    INSERT INTO sets (
+                        block_id, seq, exercise_id, exercise_name,
                         reps, load, load_unit, rpe,
                         rest_seconds, failed, pain_scale, is_warmup,
-                        tempo_code, notes, extra
+                        tempo_code, notes, extra, planned_set_id
                     ) VALUES %s
                 """, set_values)
             
@@ -222,7 +230,7 @@ class PostgresTrainingClient:
             return {
                 'session_id': str(workout_id),  # For backward compat
                 'workout_id': str(workout_id),
-                'segment_id': str(segment_id),
+                'block_id': str(block_id),
                 'set_count': len(sets),
                 'date': session_date
             }
@@ -231,6 +239,191 @@ class PostgresTrainingClient:
             self.conn.rollback()
             logger.error(f"Error logging strength session: {e}")
             raise
+
+    def log_workout_session(
+        self,
+        session_date: str,
+        name: str,
+        blocks: List[Dict[str, Any]],
+        sport_type: str = 'strength',
+        duration_minutes: int = None,
+        notes: str = None,
+        session_rpe: int = None,
+        source: str = 'logged',
+        plan_id: str = None,
+        user_id: str = None
+    ) -> Dict[str, Any]:
+        """
+        Log a workout session with proper block structure per ADR-007.
+
+        Creates: 1 workout → N blocks → M sets per block
+
+        This is the unified method for logging workouts of any modality.
+        Block type (warmup/main/finisher) is orthogonal to modality (strength/running).
+
+        Args:
+            session_date: YYYY-MM-DD
+            name: Session name
+            blocks: List of block dicts, each with:
+                - name: Block name ("Warmup", "Main Work", etc.)
+                - block_type: warmup/main/accessory/finisher/cooldown
+                - modality: Optional override (defaults to sport_type)
+                - sets: List of set dicts
+            sport_type: Workout-level modality (strength, running, cycling, etc.)
+            duration_minutes: Total duration
+            notes: Session notes
+            session_rpe: Overall RPE
+            source: 'logged', 'from_plan', 'imported'
+            plan_id: Neo4j PlannedWorkout ID (if from plan)
+            user_id: User UUID
+
+        Returns:
+            Dict with workout_id, block_count, block_ids, set_count, total_volume
+        """
+        cursor = self.conn.cursor(cursor_factory=RealDictCursor)
+        user_id = user_id or DEFAULT_USER_ID
+
+        try:
+            # Parse date
+            if isinstance(session_date, str):
+                parsed_date = datetime.strptime(session_date, '%Y-%m-%d').date()
+            else:
+                parsed_date = session_date
+
+            start_time = datetime.combine(parsed_date, time(9, 0))
+            duration_seconds = int(duration_minutes * 60) if duration_minutes else None
+
+            # 1. Insert workout
+            cursor.execute("""
+                INSERT INTO workouts (
+                    user_id, start_time, duration_seconds, rpe, notes,
+                    sport_type, source, source_fidelity
+                ) VALUES (
+                    %(user_id)s, %(start_time)s, %(duration_seconds)s, %(rpe)s, %(notes)s,
+                    %(sport_type)s, %(source)s, %(source_fidelity)s
+                )
+                RETURNING workout_id
+            """, {
+                'user_id': user_id,
+                'start_time': start_time,
+                'duration_seconds': duration_seconds,
+                'rpe': session_rpe,
+                'notes': notes,
+                'sport_type': sport_type,
+                'source': source,
+                'source_fidelity': 4 if source == 'logged' else 3
+            })
+
+            workout_id = cursor.fetchone()['workout_id']
+
+            total_sets = 0
+            total_volume = 0
+            block_ids = []
+
+            # 2. Insert each block
+            for block_seq, block in enumerate(blocks, start=1):
+                block_extra = {'name': block.get('name', f'Block {block_seq}')}
+                if plan_id:
+                    block_extra['plan_id'] = plan_id
+
+                # Block modality: use override if provided, else inherit from workout
+                block_modality = block.get('modality') or sport_type
+
+                cursor.execute("""
+                    INSERT INTO blocks (
+                        workout_id, seq, modality, block_type, extra
+                    ) VALUES (
+                        %(workout_id)s, %(seq)s, %(modality)s, %(block_type)s, %(extra)s
+                    )
+                    RETURNING block_id
+                """, {
+                    'workout_id': workout_id,
+                    'seq': block_seq,
+                    'modality': block_modality,
+                    'block_type': block.get('block_type', 'main'),
+                    'extra': psycopg2.extras.Json(block_extra)
+                })
+
+                block_id = cursor.fetchone()['block_id']
+                block_ids.append(block_id)
+
+                # 3. Insert sets for this block
+                block_sets = block.get('sets', [])
+                if block_sets:
+                    set_values = []
+                    for set_seq, s in enumerate(block_sets, start=1):
+                        exercise_id = s.get('exercise_id')
+                        exercise_name = s.get('exercise_name') or s.get('name')
+
+                        # Resolve exercise name if missing
+                        if not exercise_name and exercise_id:
+                            exercise_name = exercise_id  # Fallback to ID
+
+                        reps = s.get('reps') or s.get('actual_reps')
+                        load = s.get('load_lbs') or s.get('load') or s.get('actual_load_lbs')
+                        rpe = s.get('rpe') or s.get('actual_rpe')
+
+                        # Calculate volume contribution
+                        if reps and load:
+                            total_volume += (reps * load)
+
+                        set_extra = {}
+                        if s.get('notes'):
+                            set_extra['notes'] = s['notes']
+                        if s.get('duration_seconds'):
+                            set_extra['duration_seconds'] = s['duration_seconds']
+
+                        set_values.append((
+                            block_id,
+                            set_seq,
+                            exercise_id,
+                            exercise_name or 'Unknown',
+                            reps,
+                            load,
+                            'lb' if load else None,
+                            rpe,
+                            s.get('rest_seconds'),
+                            False,  # failed
+                            None,   # pain_scale
+                            block.get('block_type') == 'warmup',  # is_warmup
+                            s.get('tempo_code') or s.get('tempo'),
+                            s.get('notes'),
+                            psycopg2.extras.Json(set_extra) if set_extra else None,
+                            s.get('planned_set_id')  # FK to planned_sets
+                        ))
+
+                    execute_values(cursor, """
+                        INSERT INTO sets (
+                            block_id, seq, exercise_id, exercise_name,
+                            reps, load, load_unit, rpe,
+                            rest_seconds, failed, pain_scale, is_warmup,
+                            tempo_code, notes, extra, planned_set_id
+                        ) VALUES %s
+                    """, set_values)
+
+                    total_sets += len(block_sets)
+
+            self.conn.commit()
+
+            return {
+                'session_id': str(workout_id),
+                'workout_id': str(workout_id),
+                'block_count': len(blocks),
+                'block_ids': [str(bid) for bid in block_ids],
+                'set_count': total_sets,
+                'total_volume': total_volume,
+                'date': session_date
+            }
+
+        except Exception as e:
+            self.conn.rollback()
+            logger.error(f"Error logging workout session: {e}")
+            raise
+
+    # Alias for backward compatibility
+    def log_strength_session_with_blocks(self, *args, **kwargs):
+        """Deprecated: Use log_workout_session instead."""
+        return self.log_workout_session(*args, **kwargs)
 
     def log_endurance_session(
         self,
@@ -254,9 +447,10 @@ class PostgresTrainingClient:
         """
         Log an endurance session to v2 schema.
         
-        Creates: workouts_v2 → segments → sport-specific interval table
-        
-        Routes to: v2_running_intervals, v2_rowing_intervals, v2_cycling_intervals, etc.
+        Creates: workouts → blocks → sets
+
+        NOTE: Endurance tables (v2_*_intervals) are deprecated. This function
+        will need updating to use the unified sets table with endurance columns.
         
         Args:
             session_date: YYYY-MM-DD
@@ -277,7 +471,7 @@ class PostgresTrainingClient:
             user_id: User UUID
             
         Returns:
-            Dict with workout_id, segment_id, sport, distance_miles
+            Dict with workout_id, block_id, sport, distance_miles
         """
         cursor = self.conn.cursor(cursor_factory=RealDictCursor)
         user_id = user_id or DEFAULT_USER_ID
@@ -306,7 +500,7 @@ class PostgresTrainingClient:
             
             # 1. Insert workout
             cursor.execute("""
-                INSERT INTO workouts_v2 (
+                INSERT INTO workouts (
                     user_id, start_time, duration_seconds, rpe, notes,
                     source, source_fidelity
                 ) VALUES (
@@ -328,12 +522,12 @@ class PostgresTrainingClient:
             
             # 2. Insert segment
             cursor.execute("""
-                INSERT INTO segments (
-                    workout_id, seq, sport_type, duration_seconds, extra
+                INSERT INTO blocks (
+                    workout_id, seq, modality, duration_seconds, extra
                 ) VALUES (
                     %(workout_id)s, 1, %(sport)s, %(duration_seconds)s, %(extra)s
                 )
-                RETURNING segment_id
+                RETURNING block_id
             """, {
                 'workout_id': workout_id,
                 'sport': sport,
@@ -341,7 +535,7 @@ class PostgresTrainingClient:
                 'extra': psycopg2.extras.Json(extra) if extra else None
             })
             
-            segment_id = cursor.fetchone()['segment_id']
+            block_id = cursor.fetchone()['block_id']
             
             # 3. Insert sport-specific interval
             interval_extra = {}
@@ -351,17 +545,17 @@ class PostgresTrainingClient:
             if sport == 'running':
                 cursor.execute("""
                     INSERT INTO v2_running_intervals (
-                        segment_id, seq, distance_m, duration_seconds,
+                        block_id, seq, distance_m, duration_seconds,
                         avg_pace_per_km, avg_hr, max_hr, avg_cadence,
                         elevation_gain_m, extra
                     ) VALUES (
-                        %(segment_id)s, 1, %(distance_m)s, %(duration_seconds)s,
+                        %(block_id)s, 1, %(distance_m)s, %(duration_seconds)s,
                         %(avg_pace)s, %(avg_hr)s, %(max_hr)s, %(avg_cadence)s,
                         %(elevation_gain_m)s, %(extra)s
                     )
                     RETURNING interval_id
                 """, {
-                    'segment_id': segment_id,
+                    'block_id': block_id,
                     'distance_m': distance_m,
                     'duration_seconds': duration_seconds,
                     'avg_pace': avg_pace,
@@ -375,15 +569,15 @@ class PostgresTrainingClient:
             elif sport == 'rowing':
                 cursor.execute("""
                     INSERT INTO v2_rowing_intervals (
-                        segment_id, seq, distance_m, duration_seconds,
+                        block_id, seq, distance_m, duration_seconds,
                         avg_hr, max_hr, extra
                     ) VALUES (
-                        %(segment_id)s, 1, %(distance_m)s, %(duration_seconds)s,
+                        %(block_id)s, 1, %(distance_m)s, %(duration_seconds)s,
                         %(avg_hr)s, %(max_hr)s, %(extra)s
                     )
                     RETURNING interval_id
                 """, {
-                    'segment_id': segment_id,
+                    'block_id': block_id,
                     'distance_m': distance_m,
                     'duration_seconds': duration_seconds,
                     'avg_hr': avg_hr,
@@ -394,15 +588,15 @@ class PostgresTrainingClient:
             elif sport == 'cycling':
                 cursor.execute("""
                     INSERT INTO v2_cycling_intervals (
-                        segment_id, seq, distance_m, duration_seconds,
+                        block_id, seq, distance_m, duration_seconds,
                         avg_hr, max_hr, avg_cadence, elevation_gain_m, extra
                     ) VALUES (
-                        %(segment_id)s, 1, %(distance_m)s, %(duration_seconds)s,
+                        %(block_id)s, 1, %(distance_m)s, %(duration_seconds)s,
                         %(avg_hr)s, %(max_hr)s, %(avg_cadence)s, %(elevation_gain_m)s, %(extra)s
                     )
                     RETURNING interval_id
                 """, {
-                    'segment_id': segment_id,
+                    'block_id': block_id,
                     'distance_m': distance_m,
                     'duration_seconds': duration_seconds,
                     'avg_hr': avg_hr,
@@ -415,15 +609,15 @@ class PostgresTrainingClient:
             elif sport == 'swimming':
                 cursor.execute("""
                     INSERT INTO v2_swimming_laps (
-                        segment_id, seq, distance_m, duration_seconds,
+                        block_id, seq, distance_m, duration_seconds,
                         avg_hr, extra
                     ) VALUES (
-                        %(segment_id)s, 1, %(distance_m)s, %(duration_seconds)s,
+                        %(block_id)s, 1, %(distance_m)s, %(duration_seconds)s,
                         %(avg_hr)s, %(extra)s
                     )
                     RETURNING lap_id
                 """, {
-                    'segment_id': segment_id,
+                    'block_id': block_id,
                     'distance_m': distance_m,
                     'duration_seconds': duration_seconds,
                     'avg_hr': avg_hr,
@@ -434,12 +628,12 @@ class PostgresTrainingClient:
                 if distance_m:
                     cursor.execute("""
                         INSERT INTO v2_segment_events_generic (
-                            segment_id, seq, metric_name, metric_value, metric_unit, source
+                            block_id, seq, metric_name, metric_value, metric_unit, source
                         ) VALUES (
-                            %(segment_id)s, 1, 'distance_m', %(distance_m)s, 'm', %(source)s
+                            %(block_id)s, 1, 'distance_m', %(distance_m)s, 'm', %(source)s
                         )
                     """, {
-                        'segment_id': segment_id,
+                        'block_id': block_id,
                         'distance_m': distance_m,
                         'source': source
                     })
@@ -449,7 +643,7 @@ class PostgresTrainingClient:
             return {
                 'session_id': str(workout_id),  # Backward compat
                 'workout_id': str(workout_id),
-                'segment_id': str(segment_id),
+                'block_id': str(block_id),
                 'sport': sport,
                 'distance_miles': distance_miles,
                 'date': session_date
@@ -466,7 +660,7 @@ class PostgresTrainingClient:
         try:
             # session_id is now workout_id (UUID)
             cursor.execute("""
-                UPDATE segments 
+                UPDATE blocks 
                 SET extra = COALESCE(extra, '{}'::jsonb) || jsonb_build_object('neo4j_id', %s)
                 WHERE workout_id = %s::uuid
             """, (neo4j_id, session_id))
@@ -498,27 +692,27 @@ class PostgresTrainingClient:
             SELECT 
                 w.workout_id, w.start_time::date as session_date,
                 w.duration_seconds, w.rpe as session_rpe, w.notes, w.source,
-                s.segment_id, s.sport_type, s.extra as segment_extra
-            FROM workouts_v2 w
-            JOIN segments s ON w.workout_id = s.workout_id
+                b.block_id, b.modality, b.extra as block_extra
+            FROM workouts w
+            JOIN blocks b ON w.workout_id = b.workout_id
             WHERE w.start_time::date = %s
             ORDER BY w.created_at DESC
             LIMIT 1
         """, (session_date,))
-        
+
         workout = cursor.fetchone()
         if not workout:
             return None
-        
+
         result = {
             'session': self._convert_decimals(dict(workout)),
             'sets': [],
             'intervals': []
         }
-        
+
         # Get sport-specific data
-        sport = workout['sport_type']
-        segment_id = workout['segment_id']
+        sport = workout['modality']
+        block_id = workout['block_id']
         
         if sport == 'strength':
             cursor.execute("""
@@ -526,10 +720,10 @@ class PostgresTrainingClient:
                     set_id as id, seq as set_order, exercise_id, exercise_name,
                     reps, load as load_lbs, rpe, rest_seconds,
                     is_warmup, failed, notes, extra
-                FROM v2_strength_sets
-                WHERE segment_id = %s
+                FROM sets
+                WHERE block_id = %s
                 ORDER BY seq
-            """, (segment_id,))
+            """, (block_id,))
             result['sets'] = [self._convert_decimals(dict(s)) for s in cursor.fetchall()]
             
             # Calculate totals
@@ -548,9 +742,9 @@ class PostgresTrainingClient:
                     avg_pace_per_km, avg_hr, max_hr, avg_cadence,
                     elevation_gain_m, elevation_loss_m, extra
                 FROM v2_running_intervals
-                WHERE segment_id = %s
+                WHERE block_id = %s
                 ORDER BY seq
-            """, (segment_id,))
+            """, (block_id,))
             result['intervals'] = [self._convert_decimals(dict(i)) for i in cursor.fetchall()]
             
         elif sport == 'rowing':
@@ -559,9 +753,9 @@ class PostgresTrainingClient:
                     interval_id as id, seq, distance_m, duration_seconds,
                     avg_500m_pace_seconds, stroke_rate, avg_hr, max_hr, extra
                 FROM v2_rowing_intervals
-                WHERE segment_id = %s
+                WHERE block_id = %s
                 ORDER BY seq
-            """, (segment_id,))
+            """, (block_id,))
             result['intervals'] = [self._convert_decimals(dict(i)) for i in cursor.fetchall()]
         
         return result
@@ -574,21 +768,21 @@ class PostgresTrainingClient:
             SELECT 
                 w.workout_id as id,
                 w.start_time::date as session_date,
-                s.sport_type,
-                COALESCE(s.extra->>'name', s.sport_type || ' session') as name,
+                b.modality,
+                COALESCE(b.extra->>'name', b.modality || ' session') as name,
                 w.duration_seconds / 60 as duration_minutes,
                 w.rpe as session_rpe,
                 w.source,
-                s.extra->>'neo4j_id' as neo4j_id,
+                b.extra->>'neo4j_id' as neo4j_id,
                 -- Strength totals
-                CASE WHEN s.sport_type = 'strength' THEN (
-                    SELECT COUNT(*) FROM v2_strength_sets WHERE segment_id = s.segment_id
+                CASE WHEN b.modality = 'strength' THEN (
+                    SELECT COUNT(*) FROM sets WHERE block_id = b.block_id
                 ) ELSE 0 END as total_sets,
-                CASE WHEN s.sport_type = 'strength' THEN (
-                    SELECT COALESCE(SUM(reps * load), 0) FROM v2_strength_sets WHERE segment_id = s.segment_id
+                CASE WHEN b.modality = 'strength' THEN (
+                    SELECT COALESCE(SUM(reps * load), 0) FROM sets WHERE block_id = b.block_id
                 ) ELSE 0 END as total_volume_lbs
-            FROM workouts_v2 w
-            JOIN segments s ON w.workout_id = s.workout_id
+            FROM workouts w
+            JOIN blocks b ON w.workout_id = b.workout_id
             WHERE w.start_time >= CURRENT_DATE - %s
             ORDER BY w.start_time DESC
         """, (days,))
@@ -607,21 +801,21 @@ class PostgresTrainingClient:
             SELECT 
                 w.workout_id as id,
                 w.start_time::date as date,
-                s.sport_type as type,
-                COALESCE(s.extra->>'name', s.sport_type) as name,
+                b.modality as type,
+                COALESCE(b.extra->>'name', b.modality) as name,
                 w.rpe as session_rpe,
-                CASE WHEN s.sport_type = 'strength' THEN (
-                    SELECT COUNT(*) FROM v2_strength_sets WHERE segment_id = s.segment_id
+                CASE WHEN b.modality = 'strength' THEN (
+                    SELECT COUNT(*) FROM sets WHERE block_id = b.block_id
                 ) ELSE 0 END as sets,
-                CASE WHEN s.sport_type = 'strength' THEN (
-                    SELECT COALESCE(SUM(reps * load), 0) FROM v2_strength_sets WHERE segment_id = s.segment_id
+                CASE WHEN b.modality = 'strength' THEN (
+                    SELECT COALESCE(SUM(reps * load), 0) FROM sets WHERE block_id = b.block_id
                 ) ELSE NULL END as volume,
-                CASE WHEN s.sport_type = 'strength' THEN (
+                CASE WHEN b.modality = 'strength' THEN (
                     SELECT ARRAY_AGG(DISTINCT exercise_name) 
-                    FROM v2_strength_sets WHERE segment_id = s.segment_id
+                    FROM sets WHERE block_id = b.block_id
                 ) ELSE NULL END as exercises
-            FROM workouts_v2 w
-            JOIN segments s ON w.workout_id = s.workout_id
+            FROM workouts w
+            JOIN blocks b ON w.workout_id = b.workout_id
             WHERE w.start_time >= CURRENT_DATE - %s
             ORDER BY w.start_time DESC
             LIMIT 5
@@ -642,7 +836,7 @@ class PostgresTrainingClient:
         cursor = self.conn.cursor()
         
         cursor.execute("""
-            SELECT COUNT(*) FROM workouts_v2
+            SELECT COUNT(*) FROM workouts
             WHERE start_time >= date_trunc('week', CURRENT_DATE)
         """)
         
@@ -700,9 +894,9 @@ class PostgresTrainingClient:
                 ss.load as load_lbs,
                 ss.rpe,
                 (ss.reps * ss.load) as volume
-            FROM v2_strength_sets ss
-            JOIN segments s ON ss.segment_id = s.segment_id
-            JOIN workouts_v2 w ON s.workout_id = w.workout_id
+            FROM sets ss
+            JOIN blocks b ON ss.block_id = b.block_id
+            JOIN workouts w ON b.workout_id = w.workout_id
             WHERE ss.exercise_id = %s
               AND w.start_time >= CURRENT_DATE - %s
             ORDER BY w.start_time DESC, ss.seq
@@ -711,17 +905,17 @@ class PostgresTrainingClient:
         return [self._convert_decimals(dict(r)) for r in cursor.fetchall()]
 
     def get_exercise_pr(self, exercise_id: str) -> List[Dict[str, Any]]:
-        """Get personal records for an exercise from v2 schema."""
+        """Get personal records for an exercise."""
         cursor = self.conn.cursor(cursor_factory=RealDictCursor)
-        
+
         # Get max load per rep range
         cursor.execute("""
-            SELECT 
+            SELECT
                 ss.reps,
                 MAX(ss.load) as max_load,
                 MAX(ss.reps * ss.load) as max_volume
-            FROM v2_strength_sets ss
-            JOIN segments s ON ss.segment_id = s.segment_id
+            FROM sets ss
+            JOIN blocks b ON ss.block_id = b.block_id
             WHERE ss.exercise_id = %s
               AND ss.reps IS NOT NULL
               AND ss.load IS NOT NULL
@@ -736,23 +930,109 @@ class PostgresTrainingClient:
     # =========================================================================
 
     def get_weekly_volume(self, weeks: int = 4) -> List[Dict[str, Any]]:
-        """Get weekly volume summary from v2 schema."""
+        """Get weekly volume summary."""
         cursor = self.conn.cursor(cursor_factory=RealDictCursor)
-        
+
         cursor.execute("""
-            SELECT 
+            SELECT
                 date_trunc('week', w.start_time)::date as week_start,
                 COUNT(DISTINCT w.workout_id) as workout_count,
                 SUM(ss.reps * ss.load) as total_volume,
                 COUNT(ss.set_id) as total_sets
-            FROM workouts_v2 w
-            JOIN segments s ON w.workout_id = s.workout_id
-            LEFT JOIN v2_strength_sets ss ON s.segment_id = ss.segment_id
-            WHERE s.sport_type = 'strength'
+            FROM workouts w
+            JOIN blocks b ON w.workout_id = b.workout_id
+            LEFT JOIN sets ss ON b.block_id = ss.block_id
+            WHERE b.modality = 'strength'
               AND w.start_time >= CURRENT_DATE - (%s * 7)
             GROUP BY date_trunc('week', w.start_time)
             ORDER BY week_start DESC
             LIMIT %s
         """, (weeks, weeks))
-        
+
         return [self._convert_decimals(dict(r)) for r in cursor.fetchall()]
+
+    # =========================================================================
+    # PLANNED SETS (Phase 6b - mirror from Neo4j for FK joins)
+    # =========================================================================
+
+    def insert_planned_sets(self, plan_id: str, blocks: List[Dict[str, Any]]) -> int:
+        """
+        Mirror planned sets from Neo4j to Postgres for FK joins.
+
+        Called after create_planned_workout in Neo4j to enable
+        execution_vs_plan view with proper FK relationships.
+
+        Args:
+            plan_id: Neo4j PlannedWorkout ID
+            blocks: List of block dicts with 'sets' containing planned set data
+
+        Returns:
+            Number of rows inserted
+        """
+        cursor = self.conn.cursor()
+
+        try:
+            rows = []
+            for block_idx, block in enumerate(blocks):
+                for set_idx, set_data in enumerate(block.get('sets', [])):
+                    # Extract UUID from "PLANSET:uuid" format
+                    set_id = set_data.get('id')
+                    if set_id and isinstance(set_id, str) and set_id.startswith('PLANSET:'):
+                        set_id = set_id.replace('PLANSET:', '')
+
+                    rows.append((
+                        set_id,  # Same UUID as Neo4j PlannedSet
+                        plan_id,
+                        block_idx + 1,  # block_seq
+                        set_idx + 1,    # set_seq
+                        set_data.get('exercise_id'),
+                        set_data.get('exercise_name') or set_data.get('name') or 'Unknown',
+                        set_data.get('prescribed_reps') or set_data.get('reps'),
+                        set_data.get('prescribed_load_lbs') or set_data.get('load_lbs'),
+                        set_data.get('prescribed_rpe') or set_data.get('rpe'),
+                        set_data.get('intensity_zone'),
+                        block.get('name'),
+                        block.get('block_type'),
+                        set_data.get('notes')
+                    ))
+
+            if rows:
+                execute_values(cursor, """
+                    INSERT INTO planned_sets (
+                        id, plan_id, block_seq, set_seq,
+                        exercise_id, exercise_name,
+                        prescribed_reps, prescribed_load_lbs, prescribed_rpe,
+                        intensity_zone, block_name, block_type, notes
+                    ) VALUES %s
+                    ON CONFLICT (id) DO UPDATE SET
+                        prescribed_reps = EXCLUDED.prescribed_reps,
+                        prescribed_load_lbs = EXCLUDED.prescribed_load_lbs,
+                        prescribed_rpe = EXCLUDED.prescribed_rpe
+                """, rows)
+
+                self.conn.commit()
+                return len(rows)
+
+            return 0
+
+        except Exception as e:
+            self.conn.rollback()
+            logger.error(f"Error inserting planned sets: {e}")
+            raise
+
+    def get_planned_sets_for_plan(self, plan_id: str) -> List[Dict[str, Any]]:
+        """Get planned sets for a plan, for matching during workout completion."""
+        cursor = self.conn.cursor(cursor_factory=RealDictCursor)
+
+        cursor.execute("""
+            SELECT
+                id, plan_id, block_seq, set_seq,
+                exercise_id, exercise_name,
+                prescribed_reps, prescribed_load_lbs, prescribed_rpe,
+                block_name, block_type
+            FROM planned_sets
+            WHERE plan_id = %s
+            ORDER BY block_seq, set_seq
+        """, (plan_id,))
+
+        return [dict(r) for r in cursor.fetchall()]

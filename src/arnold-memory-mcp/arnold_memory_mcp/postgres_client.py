@@ -38,9 +38,10 @@ class PostgresAnalyticsClient:
 
     @property
     def conn(self):
-        """Lazy connection."""
+        """Lazy connection with autocommit to avoid transaction state issues."""
         if self._conn is None or self._conn.closed:
             self._conn = psycopg2.connect(self.dsn)
+            self._conn.autocommit = True  # Prevent "transaction aborted" cascading failures
         return self._conn
 
     def close(self):
@@ -97,9 +98,9 @@ class PostgresAnalyticsClient:
         
         try:
             # Get today's biometrics
+            # Note: sleep_deep_min, sleep_rem_min, sleep_quality_pct not in daily_status view
             cur.execute("""
-                SELECT date, hrv_ms, rhr_bpm, sleep_hours, sleep_deep_min, 
-                       sleep_rem_min, sleep_quality_pct, data_coverage
+                SELECT date, hrv_ms, rhr_bpm, sleep_hours, data_coverage
                 FROM daily_status
                 WHERE date = %s
             """, [target_date])
@@ -172,18 +173,16 @@ class PostgresAnalyticsClient:
                         coaching_notes.append(f"HRV {round(hrv_val)} is {round((1 - hrv_val/hrv_7d) * 100)}% below 7-day avg")
                 
                 # Sleep
+                # Note: sleep_deep_min, sleep_rem_min, sleep_quality_pct not synced yet
                 if today.get('sleep_hours'):
                     sleep_hrs = float(today['sleep_hours'])
-                    total_min = sleep_hrs * 60
-                    deep_min = float(today['sleep_deep_min']) if today['sleep_deep_min'] else None
-                    deep_pct = round(deep_min / total_min * 100) if deep_min and total_min else None
-                    
+
                     result["sleep"] = {
                         "hours": round(sleep_hrs, 1),
-                        "quality_pct": float(today['sleep_quality_pct']) if today['sleep_quality_pct'] else None,
-                        "deep_pct": deep_pct
+                        "quality_pct": None,  # Not available in daily_status
+                        "deep_pct": None      # Not available in daily_status
                     }
-                    
+
                     if sleep_hrs < 6:
                         coaching_notes.append(f"Sleep {round(sleep_hrs, 1)}hrs - under 6hr recovery threshold")
                     elif sleep_hrs < 7:
@@ -209,7 +208,8 @@ class PostgresAnalyticsClient:
         end_date = datetime.now().strftime("%Y-%m-%d")
         start_date = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
         
-        cur = self.conn.cursor(cursor_factory=RealDictCursor)
+        logger.debug(f"get_training_load_summary: querying {start_date} to {end_date}")
+        logger.debug(f"DSN: {self.dsn}")
         
         result = {
             "workouts": 0,
@@ -221,7 +221,16 @@ class PostgresAnalyticsClient:
         coaching_notes = []
         
         try:
+            cur = self.conn.cursor(cursor_factory=RealDictCursor)
+            logger.debug(f"Postgres connection established, closed={self.conn.closed}")
+            
+            # Test connection
+            cur.execute("SELECT 1 as test")
+            test_result = cur.fetchone()
+            logger.debug(f"Connection test: {test_result}")
+            
             # Overall summary
+            logger.debug("Executing workout_summaries query...")
             cur.execute("""
                 SELECT 
                     COUNT(*) as workouts,
@@ -231,6 +240,7 @@ class PostgresAnalyticsClient:
                 WHERE workout_date BETWEEN %s AND %s
             """, [start_date, end_date])
             summary = cur.fetchone()
+            logger.debug(f"workout_summaries result: {summary}")
             
             if summary:
                 result["workouts"] = summary['workouts'] or 0
@@ -279,7 +289,7 @@ class PostgresAnalyticsClient:
             result["coaching_notes"] = coaching_notes
             
         except Exception as e:
-            logger.error(f"Error getting training load: {e}")
+            logger.error(f"Error getting training load: {e}", exc_info=True)
         
         return result
 
@@ -497,6 +507,43 @@ class PostgresAnalyticsClient:
         
         return result
 
+    def get_diagnostics(self) -> Dict[str, Any]:
+        """
+        Get diagnostic info for debugging connection issues.
+        """
+        diag = {
+            "dsn": self.dsn,
+            "dsn_source": "unknown",
+            "connection_ok": False,
+            "test_query": None,
+            "workout_summaries_count": None,
+            "error": None
+        }
+        
+        # Determine DSN source
+        if os.environ.get("POSTGRES_DSN"):
+            diag["dsn_source"] = "POSTGRES_DSN env var"
+        elif os.environ.get("DATABASE_URI"):
+            diag["dsn_source"] = "DATABASE_URI env var"
+        else:
+            diag["dsn_source"] = "default fallback"
+        
+        try:
+            cur = self.conn.cursor(cursor_factory=RealDictCursor)
+            diag["connection_ok"] = True
+            
+            cur.execute("SELECT 1 as test")
+            diag["test_query"] = cur.fetchone()
+            
+            cur.execute("SELECT COUNT(*) as cnt FROM workout_summaries")
+            diag["workout_summaries_count"] = cur.fetchone()
+            
+        except Exception as e:
+            diag["error"] = str(e)
+            logger.error(f"Diagnostics error: {e}", exc_info=True)
+        
+        return diag
+
     def get_analytics_for_briefing(self) -> Dict[str, Any]:
         """
         Get all analytics data for consolidated briefing.
@@ -522,6 +569,9 @@ class PostgresAnalyticsClient:
                     all_notes.append(note)
                     seen.add(note)
         
+        # Get diagnostics for debugging
+        diagnostics = self.get_diagnostics()
+        
         return {
             "readiness": {
                 "hrv": readiness.get("hrv"),
@@ -542,5 +592,6 @@ class PostgresAnalyticsClient:
             },
             "annotations": red_flags.get("annotations", []),
             "data_gaps": red_flags.get("observations", []),
-            "coaching_notes": all_notes
+            "coaching_notes": all_notes,
+            "_diagnostics": diagnostics
         }

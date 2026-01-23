@@ -344,10 +344,10 @@ async def get_readiness_snapshot(date_str: str):
     """, [target_date])
     hrv_trend_data = cur.fetchall()
     
-    # Get yesterday's training from training_load_daily
+    # Get yesterday's training from training_monotony_strain (has ACWR)
     cur.execute("""
-        SELECT daily_sets, daily_volume, acwr
-        FROM training_load_daily
+        SELECT workout_count as daily_sets, daily_load as daily_volume, acwr
+        FROM training_monotony_strain
         WHERE workout_date = %s::date - INTERVAL '1 day'
     """, [target_date])
     yesterday = cur.fetchone()
@@ -485,25 +485,25 @@ async def get_training_load(days: int):
     conn = get_db()
     cur = conn.cursor()
     
-    # Overall summary from workout_summaries_v2 (V2 schema)
+    # Overall summary from workout_summaries
     cur.execute("""
         SELECT 
             COUNT(*) as workouts,
             SUM(set_count) as total_sets,
             SUM(total_volume_lbs) as total_volume
-        FROM workout_summaries_v2
+        FROM workout_summaries
         WHERE workout_date BETWEEN %s AND %s
     """, [start_date, end_date])
     summary = cur.fetchone()
     
-    # Weekly trend from V2
+    # Weekly trend
     cur.execute("""
         SELECT 
             DATE_TRUNC('week', workout_date)::date as week_start,
             COUNT(*) as workouts,
             SUM(set_count) as total_sets,
             ROUND(SUM(total_volume_lbs) / 1000, 1) as volume_klbs
-        FROM workout_summaries_v2
+        FROM workout_summaries
         WHERE workout_date >= %s
         GROUP BY DATE_TRUNC('week', workout_date)
         ORDER BY week_start DESC
@@ -511,12 +511,12 @@ async def get_training_load(days: int):
     """, [start_date])
     weekly = cur.fetchall()
     
-    # Pattern distribution from V2 JSONB
+    # Pattern distribution
     cur.execute("""
         SELECT 
             pattern,
             COUNT(*) as workout_count
-        FROM workout_summaries_v2,
+        FROM workout_summaries,
              jsonb_array_elements_text(patterns) as pattern
         WHERE workout_date >= %s
         GROUP BY pattern
@@ -524,10 +524,10 @@ async def get_training_load(days: int):
     """, [start_date])
     patterns = cur.fetchall()
     
-    # Find pattern gaps (no work in 10+ days) from V2
+    # Find pattern gaps (no work in 10+ days)
     cur.execute("""
         SELECT DISTINCT pattern
-        FROM workout_summaries_v2,
+        FROM workout_summaries,
              jsonb_array_elements_text(patterns) as pattern
         WHERE workout_date >= CURRENT_DATE - INTERVAL '10 days'
     """)
@@ -535,7 +535,7 @@ async def get_training_load(days: int):
     
     cur.execute("""
         SELECT DISTINCT pattern
-        FROM workout_summaries_v2,
+        FROM workout_summaries,
              jsonb_array_elements_text(patterns) as pattern
         WHERE workout_date >= %s
     """, [start_date])
@@ -543,10 +543,10 @@ async def get_training_load(days: int):
     
     pattern_gaps = list(all_patterns - recent_patterns)
     
-    # Get latest ACWR values
+    # Get latest ACWR values (from training_monotony_strain which has ACWR)
     cur.execute("""
         SELECT acwr as volume_acwr
-        FROM training_load_daily
+        FROM training_monotony_strain
         ORDER BY workout_date DESC
         LIMIT 1
     """)
@@ -621,7 +621,7 @@ async def get_exercise_history(exercise: str, days: int):
     conn = get_db()
     cur = conn.cursor()
     
-    # Query exercise data from V2 JSONB
+    # Query exercise data from workout_summaries
     exercise_lower = exercise.lower()
     
     cur.execute("""
@@ -632,7 +632,7 @@ async def get_exercise_history(exercise: str, days: int):
             (ex->>'total_reps')::int as total_reps,
             (ex->>'sets')::int as sets,
             ex->'set_details' as set_details
-        FROM workout_summaries_v2 ws,
+        FROM workout_summaries ws,
              jsonb_array_elements(ws.exercises) as ex
         WHERE LOWER(ex->>'name') LIKE %s
           AND ws.workout_date >= %s
@@ -827,10 +827,10 @@ async def check_red_flags():
                 }
             })
     
-    # === PATTERN DISTRIBUTION === (from V2)
+    # === PATTERN DISTRIBUTION ===
     cur.execute("""
         SELECT DISTINCT pattern
-        FROM workout_summaries_v2,
+        FROM workout_summaries,
              jsonb_array_elements_text(patterns) as pattern
         WHERE workout_date >= CURRENT_DATE - INTERVAL '10 days'
     """)

@@ -885,7 +885,18 @@ async def call_tool_handler(name: str, arguments: dict[str, Any]) -> list[types.
                     set_data["order"] = j + 1
             
             result = neo4j_client.create_planned_workout(plan_data)
-            
+
+            # Mirror planned sets to Postgres for FK joins (Phase 6b)
+            try:
+                planned_set_count = postgres_client.insert_planned_sets(
+                    plan_id=plan_data["id"],
+                    blocks=plan_data.get("blocks", [])
+                )
+                logger.info(f"Mirrored {planned_set_count} planned sets to Postgres")
+            except Exception as pg_err:
+                logger.warning(f"Failed to mirror planned sets to Postgres: {pg_err}")
+                # Don't fail the whole operation - Neo4j is source of truth
+
             block_summary = "\n".join([
                 f"  • {b['name']}: {len(b.get('sets', []))} sets"
                 for b in plan_data.get("blocks", [])
@@ -1069,31 +1080,41 @@ Use `confirm_plan` when ready to lock it in."""
                     type="text",
                     text=f"❌ Plan not found: {plan_id}"
                 )]
-            
-            # 2. Transform plan to Postgres format
-            sets = []
+
+            # 1b. Idempotency guard - prevent double-insert
+            if plan.get('status') == 'completed':
+                return [types.TextContent(
+                    type="text",
+                    text=f"⚠️ Plan {plan_id} is already completed. No action taken."
+                )]
+
+            # 2. Transform plan to Postgres format - PRESERVE BLOCK STRUCTURE (ADR-007)
+            blocks = []
             for block in plan.get('blocks', []):
+                block_sets = []
                 for s in block.get('sets', []):
-                    sets.append({
+                    block_sets.append({
                         'exercise_id': s.get('exercise_id'),
                         'exercise_name': ensure_exercise_name(s.get('exercise_id'), s.get('exercise_name'), neo4j_client),
-                        'block_name': block.get('name'),
-                        'block_type': block.get('block_type'),
-                        'set_order': s.get('order'),
-                        'prescribed_reps': s.get('prescribed_reps'),
-                        'prescribed_load_lbs': s.get('prescribed_load_lbs'),
-                        'prescribed_rpe': s.get('prescribed_rpe'),
-                        'actual_reps': s.get('prescribed_reps'),  # As written
-                        'actual_load_lbs': s.get('prescribed_load_lbs'),
-                        'actual_rpe': s.get('prescribed_rpe'),
-                        'is_deviation': False
+                        'reps': s.get('prescribed_reps'),  # As written
+                        'load_lbs': s.get('prescribed_load_lbs'),
+                        'rpe': s.get('prescribed_rpe'),
+                        'planned_set_id': s.get('id'),  # FK to planned_sets
+                        'notes': s.get('notes')
                     })
-            
-            # 3. Write to Postgres (use actual duration/RPE if provided, else plan estimates)
-            result = postgres_client.log_strength_session(
+                blocks.append({
+                    'name': block.get('name', 'Block'),
+                    'block_type': block.get('block_type', 'main'),
+                    'modality': block.get('modality'),  # Per-block override
+                    'sets': block_sets
+                })
+
+            # 3. Write to Postgres with proper block structure
+            result = postgres_client.log_workout_session(
                 session_date=plan['date'],
                 name=plan.get('goal', 'Workout'),
-                sets=sets,
+                blocks=blocks,
+                sport_type=plan.get('sport_type', 'strength'),
                 duration_minutes=actual_duration or plan.get('estimated_duration_minutes'),
                 notes=session_notes or plan.get('notes'),
                 session_rpe=session_rpe,  # Critical for sRPE-based training load
@@ -1102,24 +1123,35 @@ Use `confirm_plan` when ready to lock it in."""
             )
             
             # 4. Create Neo4j reference node
-            neo4j_ref = neo4j_client.create_strength_workout_ref(
-                postgres_id=result['session_id'],
-                date=plan['date'],
-                name=plan.get('goal', 'Workout'),
-                plan_id=plan_id,
-                person_id=person_id
-            )
-            
+            neo4j_ref = None
+            neo4j_warning = ""
+            try:
+                neo4j_ref = neo4j_client.create_strength_workout_ref(
+                    workout_id=result['session_id'],
+                    date=plan['date'],
+                    name=plan.get('goal', 'Workout'),
+                    plan_id=plan_id,
+                    person_id=person_id,
+                    total_sets=result.get('set_count'),
+                    total_volume_lbs=result.get('total_volume')
+                )
+                if not neo4j_ref:
+                    logger.warning(f"Neo4j ref creation returned None for workout {result['session_id']}")
+                    neo4j_warning = "\n⚠️ Neo4j sync failed (returned None) - run backfill_neo4j_workout_refs.py"
+            except Exception as neo4j_err:
+                logger.error(f"Failed to create Neo4j ref for workout {result['session_id']}: {neo4j_err}", exc_info=True)
+                neo4j_warning = f"\n⚠️ Neo4j sync failed: {neo4j_err} - run backfill_neo4j_workout_refs.py"
+
             # 5. Update Postgres with Neo4j ID
             if neo4j_ref:
                 postgres_client.update_session_neo4j_id(
-                    result['session_id'], 
+                    result['session_id'],
                     neo4j_ref.get('id')
                 )
-            
+
             # 6. Update plan status
             neo4j_client.update_plan_status(plan_id, "completed")
-            
+
             # Build sRPE info string
             srpe_info = ""
             if session_rpe and (actual_duration or plan.get('estimated_duration_minutes')):
@@ -1128,20 +1160,23 @@ Use `confirm_plan` when ready to lock it in."""
                 srpe_info = f"\n**sRPE Load:** {srpe_load} AU (RPE {session_rpe} × {dur} min)"
             elif not session_rpe:
                 srpe_info = "\n⚠️ **No session RPE provided** - sRPE load will be imputed"
-            
+
+            # Build block info
+            block_info = f"\n**Blocks:** {result['block_count']}" if result.get('block_count', 0) > 1 else ""
+
             return [types.TextContent(
                 type="text",
                 text=f"""✅ Workout completed!
 
 **Session ID:** {result['session_id']} (Postgres)
 **Neo4j Ref:** {neo4j_ref.get('id') if neo4j_ref else 'N/A'}
-**From Plan:** {plan_id}
+**From Plan:** {plan_id}{block_info}
 **Sets:** {result['set_count']}
-**Compliance:** as_written{srpe_info}
+**Compliance:** as_written{srpe_info}{neo4j_warning}
 
 Great work! 💪"""
             )]
-            
+
         except Exception as e:
             logger.error(f"Error completing workout: {str(e)}", exc_info=True)
             return [types.TextContent(type="text", text=f"❌ Error: {str(e)}")]
@@ -1163,65 +1198,92 @@ Great work! 💪"""
                     type="text",
                     text=f"❌ Plan not found: {plan_id}"
                 )]
-            
+
+            # 1b. Idempotency guard - prevent double-insert
+            if plan.get('status') == 'completed':
+                return [types.TextContent(
+                    type="text",
+                    text=f"⚠️ Plan {plan_id} is already completed. No action taken."
+                )]
+
             # 2. Build deviation lookup
             deviation_map = {d['planned_set_id']: d for d in deviations}
-            
-            # 3. Transform plan to Postgres format with deviations
-            sets = []
+
+            # 3. Transform plan to Postgres format - PRESERVE BLOCK STRUCTURE with deviations
+            blocks = []
             for block in plan.get('blocks', []):
+                block_sets = []
                 for s in block.get('sets', []):
                     set_id = s.get('id')
                     dev = deviation_map.get(set_id, {})
-                    
-                    sets.append({
-                        'exercise_id': dev.get('substitute_exercise_id') or s.get('exercise_id'),
-                        'exercise_name': ensure_exercise_name(s.get('exercise_id'), s.get('exercise_name'), neo4j_client),  # Will update if substituted
-                        'block_name': block.get('name'),
-                        'block_type': block.get('block_type'),
-                        'set_order': s.get('order'),
-                        'prescribed_reps': s.get('prescribed_reps'),
-                        'prescribed_load_lbs': s.get('prescribed_load_lbs'),
-                        'prescribed_rpe': s.get('prescribed_rpe'),
-                        'actual_reps': dev.get('actual_reps') or s.get('prescribed_reps'),
-                        'actual_load_lbs': dev.get('actual_load_lbs') or s.get('prescribed_load_lbs'),
-                        'actual_rpe': dev.get('actual_rpe') or s.get('prescribed_rpe'),
-                        'is_deviation': bool(dev),
-                        'deviation_reason': dev.get('reason'),
-                        'notes': dev.get('notes')
+
+                    # Use deviation values if provided, else use prescribed (as written)
+                    exercise_id = dev.get('substitute_exercise_id') or s.get('exercise_id')
+                    exercise_name = s.get('exercise_name')
+                    if dev.get('substitute_exercise_id'):
+                        exercise_name = ensure_exercise_name(dev['substitute_exercise_id'], None, neo4j_client)
+                    else:
+                        exercise_name = ensure_exercise_name(s.get('exercise_id'), s.get('exercise_name'), neo4j_client)
+
+                    block_sets.append({
+                        'exercise_id': exercise_id,
+                        'exercise_name': exercise_name,
+                        'reps': dev.get('actual_reps') or s.get('prescribed_reps'),
+                        'load_lbs': dev.get('actual_load_lbs') or s.get('prescribed_load_lbs'),
+                        'rpe': dev.get('actual_rpe') or s.get('prescribed_rpe'),
+                        'planned_set_id': set_id,
+                        'notes': dev.get('notes') or s.get('notes')
                     })
-            
-            # 4. Write to Postgres (use actual duration/RPE if provided, else plan estimates)
-            result = postgres_client.log_strength_session(
+                blocks.append({
+                    'name': block.get('name', 'Block'),
+                    'block_type': block.get('block_type', 'main'),
+                    'modality': block.get('modality'),
+                    'sets': block_sets
+                })
+
+            # 4. Write to Postgres with proper block structure
+            result = postgres_client.log_workout_session(
                 session_date=plan['date'],
                 name=plan.get('goal', 'Workout'),
-                sets=sets,
+                blocks=blocks,
+                sport_type=plan.get('sport_type', 'strength'),
                 duration_minutes=actual_duration or plan.get('estimated_duration_minutes'),
                 notes=session_notes or plan.get('notes'),
                 session_rpe=session_rpe,  # Critical for sRPE-based training load
                 source='from_plan',
                 plan_id=plan_id
             )
-            
+
             # 5. Create Neo4j reference node
-            neo4j_ref = neo4j_client.create_strength_workout_ref(
-                postgres_id=result['session_id'],
-                date=plan['date'],
-                name=plan.get('goal', 'Workout'),
-                plan_id=plan_id,
-                person_id=person_id
-            )
-            
+            neo4j_ref = None
+            neo4j_warning = ""
+            try:
+                neo4j_ref = neo4j_client.create_strength_workout_ref(
+                    workout_id=result['session_id'],
+                    date=plan['date'],
+                    name=plan.get('goal', 'Workout'),
+                    plan_id=plan_id,
+                    person_id=person_id,
+                    total_sets=result.get('set_count'),
+                    total_volume_lbs=result.get('total_volume')
+                )
+                if not neo4j_ref:
+                    logger.warning(f"Neo4j ref creation returned None for workout {result['session_id']}")
+                    neo4j_warning = "\n⚠️ Neo4j sync failed (returned None) - run backfill_neo4j_workout_refs.py"
+            except Exception as neo4j_err:
+                logger.error(f"Failed to create Neo4j ref for workout {result['session_id']}: {neo4j_err}", exc_info=True)
+                neo4j_warning = f"\n⚠️ Neo4j sync failed: {neo4j_err} - run backfill_neo4j_workout_refs.py"
+
             # 6. Update Postgres with Neo4j ID
             if neo4j_ref:
                 postgres_client.update_session_neo4j_id(
-                    result['session_id'], 
+                    result['session_id'],
                     neo4j_ref.get('id')
                 )
-            
+
             # 7. Update plan status
             neo4j_client.update_plan_status(plan_id, "completed")
-            
+
             # Build sRPE info string
             srpe_info = ""
             if session_rpe and (actual_duration or plan.get('estimated_duration_minutes')):
@@ -1230,16 +1292,19 @@ Great work! 💪"""
                 srpe_info = f"\n**sRPE Load:** {srpe_load} AU (RPE {session_rpe} × {dur} min)"
             elif not session_rpe:
                 srpe_info = "\n⚠️ **No session RPE provided** - sRPE load will be imputed"
-            
+
+            # Build block info
+            block_info = f"\n**Blocks:** {result['block_count']}" if result.get('block_count', 0) > 1 else ""
+
             return [types.TextContent(
                 type="text",
                 text=f"""✅ Workout completed with deviations recorded!
 
 **Session ID:** {result['session_id']} (Postgres)
 **Neo4j Ref:** {neo4j_ref.get('id') if neo4j_ref else 'N/A'}
-**From Plan:** {plan_id}
+**From Plan:** {plan_id}{block_info}
 **Sets:** {result['set_count']}
-**Deviations:** {len(deviations)}{srpe_info}
+**Deviations:** {len(deviations)}{srpe_info}{neo4j_warning}
 
 Deviations tracked for coaching adjustments."""
             )]
@@ -1338,23 +1403,32 @@ Rest is part of training too."""
                 )
                 
                 # Create Neo4j reference for endurance workout
-                neo4j_ref = neo4j_client.create_endurance_workout_ref(
-                    postgres_id=result['session_id'],
-                    date=workout_data['date'],
-                    name=workout_data.get('name', f'{sport.title()} session'),
-                    sport=sport,
-                    person_id=person_id
-                )
-                
+                neo4j_ref = None
+                neo4j_warning = ""
+                try:
+                    neo4j_ref = neo4j_client.create_endurance_workout_ref(
+                        workout_id=result['session_id'],
+                        date=workout_data['date'],
+                        name=workout_data.get('name', f'{sport.title()} session'),
+                        sport=sport,
+                        person_id=person_id
+                    )
+                    if not neo4j_ref:
+                        logger.warning(f"Neo4j ref creation returned None for endurance workout {result['session_id']}")
+                        neo4j_warning = "\n⚠️ Neo4j sync failed (returned None) - run backfill_neo4j_workout_refs.py"
+                except Exception as neo4j_err:
+                    logger.error(f"Failed to create Neo4j ref for endurance workout {result['session_id']}: {neo4j_err}", exc_info=True)
+                    neo4j_warning = f"\n⚠️ Neo4j sync failed: {neo4j_err} - run backfill_neo4j_workout_refs.py"
+
                 if neo4j_ref:
                     postgres_client.update_endurance_session_neo4j_id(
                         result['session_id'],
                         neo4j_ref.get('id')
                     )
-                
+
                 # Build distance string
                 dist_str = f"{result['distance_miles']:.1f} mi" if result.get('distance_miles') else "N/A"
-                
+
                 return [types.TextContent(
                     type="text",
                     text=f"""✅ Endurance workout logged!
@@ -1363,7 +1437,7 @@ Rest is part of training too."""
 **Sport:** {result['sport']}
 **Distance:** {dist_str}
 **Session ID:** {result['session_id']} (Postgres)
-**Neo4j Ref:** {neo4j_ref.get('id') if neo4j_ref else 'N/A'}"""
+**Neo4j Ref:** {neo4j_ref.get('id') if neo4j_ref else 'N/A'}{neo4j_warning}"""
                 )]
             
             else:
@@ -1371,78 +1445,148 @@ Rest is part of training too."""
                 # STRENGTH WORKOUT PATH (original behavior)
                 # ============================================================
                 logger.info(f"Detected strength workout, routing to strength_sessions")
-                
-                # Transform to Postgres format
-                sets = []
-                set_order = 1
-                
-                for exercise in workout_data.get("exercises", []):
-                    exercise_id = exercise.get("exercise_id")
-                    # Accept both 'exercise_name' and 'name' for flexibility
-                    exercise_name = exercise.get("exercise_name") or exercise.get("name")
-                    
-                    # If no ID, try to resolve or create custom
-                    if not exercise_id and exercise_name:
-                        # Try to find existing (threshold 3.0 for reasonable fuzzy match)
-                        results = neo4j_client.search_exercises(exercise_name, limit=1)
-                        if results and results[0]['score'] > 3.0:
-                            exercise_id = results[0]['exercise_id']
-                            exercise_name = results[0]['name']  # Use canonical name
-                        else:
-                            # Create custom exercise
-                            exercise_id = 'CUSTOM:' + exercise_name.replace(' ', '_')
-                            neo4j_client.create_custom_exercise(exercise_id, exercise_name)
-                    
-                    for s in exercise.get("sets", []):
-                        sets.append({
-                            'exercise_id': exercise_id,
-                            'exercise_name': exercise_name,
-                            'block_name': 'Main',
-                            'block_type': 'main',
-                            'set_order': set_order,
-                            'actual_reps': s.get('reps'),
-                            'actual_load_lbs': s.get('load_lbs'),
-                            'actual_rpe': s.get('rpe'),
-                            'notes': s.get('notes')
+
+                # Detect input format: blocks (preferred) vs exercises (legacy)
+                has_blocks = bool(workout_data.get("blocks"))
+                has_exercises = bool(workout_data.get("exercises"))
+
+                if has_blocks:
+                    # --------------------------------------------------------
+                    # NEW: Block-aware path - proper workouts → blocks → sets
+                    # --------------------------------------------------------
+                    logger.info("Using block-aware logging path")
+
+                    # Resolve exercise IDs/names within blocks
+                    resolved_blocks = []
+                    for block in workout_data['blocks']:
+                        resolved_sets = []
+                        for s in block.get('sets', []):
+                            exercise_id = s.get('exercise_id')
+                            exercise_name = s.get('exercise_name') or s.get('name')
+
+                            # Resolve if needed
+                            if not exercise_id and exercise_name:
+                                results = neo4j_client.search_exercises(exercise_name, limit=1)
+                                if results and results[0]['score'] > 3.0:
+                                    exercise_id = results[0]['exercise_id']
+                                    exercise_name = results[0]['name']
+                                else:
+                                    exercise_id = 'CUSTOM:' + exercise_name.replace(' ', '_')
+                                    neo4j_client.create_custom_exercise(exercise_id, exercise_name)
+
+                            resolved_sets.append({
+                                **s,
+                                'exercise_id': exercise_id,
+                                'exercise_name': exercise_name
+                            })
+
+                        resolved_blocks.append({
+                            'name': block.get('name', 'Block'),
+                            'block_type': block.get('block_type', 'main'),
+                            'sets': resolved_sets
                         })
-                        set_order += 1
-                
-                # Write to Postgres
-                # Note: strength_sessions source constraint allows: logged, from_plan, imported, migrated
-                result = postgres_client.log_strength_session(
-                    session_date=workout_data['date'],
-                    name=workout_data.get('name', 'Ad-hoc Workout'),
-                    sets=sets,
-                    duration_minutes=workout_data.get('duration_minutes'),
-                    notes=workout_data.get('notes'),
-                    session_rpe=workout_data.get('session_rpe') or workout_data.get('rpe'),
-                    source='logged'
-                )
-                
-                # Create Neo4j reference
-                neo4j_ref = neo4j_client.create_strength_workout_ref(
-                    postgres_id=result['session_id'],
-                    date=workout_data['date'],
-                    name=workout_data.get('name', 'Ad-hoc Workout'),
-                    person_id=person_id
-                )
-                
+
+                    result = postgres_client.log_workout_session(
+                        session_date=workout_data['date'],
+                        name=workout_data.get('name', 'Ad-hoc Workout'),
+                        blocks=resolved_blocks,
+                        sport_type=workout_data.get('sport_type', 'strength'),
+                        duration_minutes=workout_data.get('duration_minutes'),
+                        notes=workout_data.get('notes'),
+                        session_rpe=workout_data.get('session_rpe') or workout_data.get('rpe'),
+                        source='logged'
+                    )
+
+                elif has_exercises:
+                    # --------------------------------------------------------
+                    # LEGACY: Flat exercise path - single block for all sets
+                    # --------------------------------------------------------
+                    logger.info("Using legacy flat exercise logging path")
+
+                    sets = []
+                    set_order = 1
+
+                    for exercise in workout_data.get("exercises", []):
+                        exercise_id = exercise.get("exercise_id")
+                        exercise_name = exercise.get("exercise_name") or exercise.get("name")
+
+                        if not exercise_id and exercise_name:
+                            results = neo4j_client.search_exercises(exercise_name, limit=1)
+                            if results and results[0]['score'] > 3.0:
+                                exercise_id = results[0]['exercise_id']
+                                exercise_name = results[0]['name']
+                            else:
+                                exercise_id = 'CUSTOM:' + exercise_name.replace(' ', '_')
+                                neo4j_client.create_custom_exercise(exercise_id, exercise_name)
+
+                        for s in exercise.get("sets", []):
+                            sets.append({
+                                'exercise_id': exercise_id,
+                                'exercise_name': exercise_name,
+                                'block_name': 'Main',
+                                'block_type': 'main',
+                                'set_order': set_order,
+                                'actual_reps': s.get('reps'),
+                                'actual_load_lbs': s.get('load_lbs'),
+                                'actual_rpe': s.get('rpe'),
+                                'notes': s.get('notes')
+                            })
+                            set_order += 1
+
+                    result = postgres_client.log_strength_session(
+                        session_date=workout_data['date'],
+                        name=workout_data.get('name', 'Ad-hoc Workout'),
+                        sets=sets,
+                        duration_minutes=workout_data.get('duration_minutes'),
+                        notes=workout_data.get('notes'),
+                        session_rpe=workout_data.get('session_rpe') or workout_data.get('rpe'),
+                        source='logged'
+                    )
+
+                else:
+                    return [types.TextContent(
+                        type="text",
+                        text="❌ Error: workout_data must contain 'blocks' or 'exercises' array"
+                    )]
+
+                # Create Neo4j reference (common to both paths)
+                neo4j_ref = None
+                neo4j_warning = ""
+                try:
+                    neo4j_ref = neo4j_client.create_strength_workout_ref(
+                        workout_id=result['session_id'],
+                        date=workout_data['date'],
+                        name=workout_data.get('name', 'Ad-hoc Workout'),
+                        person_id=person_id,
+                        total_sets=result.get('set_count'),
+                        total_volume_lbs=result.get('total_volume')
+                    )
+                    if not neo4j_ref:
+                        logger.warning(f"Neo4j ref creation returned None for workout {result['session_id']}")
+                        neo4j_warning = "\n⚠️ Neo4j sync failed (returned None) - run backfill_neo4j_workout_refs.py"
+                except Exception as neo4j_err:
+                    logger.error(f"Failed to create Neo4j ref for workout {result['session_id']}: {neo4j_err}", exc_info=True)
+                    neo4j_warning = f"\n⚠️ Neo4j sync failed: {neo4j_err} - run backfill_neo4j_workout_refs.py"
+
                 if neo4j_ref:
                     postgres_client.update_session_neo4j_id(
                         result['session_id'],
                         neo4j_ref.get('id')
                     )
-                
+
+                # Build response with block count if available
+                block_info = f"\n**Blocks:** {result['block_count']}" if result.get('block_count', 0) > 1 else ""
+
                 return [types.TextContent(
                     type="text",
                     text=f"""✅ Strength workout logged!
 
 **Date:** {workout_data['date']}
 **Session ID:** {result['session_id']} (Postgres)
-**Neo4j Ref:** {neo4j_ref.get('id') if neo4j_ref else 'N/A'}
-**Sets:** {result['set_count']}"""
+**Neo4j Ref:** {neo4j_ref.get('id') if neo4j_ref else 'N/A'}{block_info}
+**Sets:** {result['set_count']}{neo4j_warning}"""
                 )]
-            
+
         except Exception as e:
             logger.error(f"Error logging workout: {str(e)}", exc_info=True)
             return [types.TextContent(type="text", text=f"❌ Error: {str(e)}")]

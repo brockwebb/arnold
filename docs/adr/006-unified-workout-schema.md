@@ -1,8 +1,10 @@
 # ADR-006: Unified Workout Schema — Segments + Sport-Specific Child Tables
 
 **Date:** January 13, 2026  
-**Status:** Accepted  
+**Status:** Superseded by ADR-007  
 **Deciders:** Brock Webb, Claude, ChatGPT Health, Gemini 2.5 Pro
+
+> ⚠️ **This ADR is superseded.** See ADR-007 for the simplified design that replaced this. The "Why It Failed" section below explains what went wrong.
 
 ## Context
 
@@ -146,9 +148,44 @@ segment_events (
 
 See Issue 013 for implementation details and migration plan.
 
+## Why It Failed
+
+**Added January 20, 2026 during simplification migration.**
+
+This design was over-engineered. Key failures:
+
+### 1. Solved Problems We Didn't Have
+95% of our workouts are strength training. Building elaborate sport-discriminator patterns for rowing, swimming, and cycling was premature optimization for modalities we may never use at scale.
+
+### 2. "Segment" Conflated Two Concepts
+We merged sport modality (strength/running/cycling) with training phase (warmup/main/accessory) into segment_type. These are orthogonal axes:
+- A **running workout** can have **warmup blocks**
+- A **strength workout** can have **conditioning blocks**
+
+By conflating them, we lost the ability to express either cleanly.
+
+### 3. Deviation Capture Friction
+Forcing users to explain deviations at workout completion interrupted the logging flow. Better approach: auto-compute deviations by comparing plan vs execution, capture "why" only when volunteered.
+
+### 4. Discriminator Pattern Overhead
+For a single-sport system, the segment → child_table join pattern added query complexity without benefit. A simple nullable-columns approach handles edge cases just fine.
+
+### 5. "v2" Naming Shipped
+We deployed with `workouts_v2`, `v2_strength_sets` thinking we'd rename later. We didn't. Technical debt accumulated.
+
+### Lessons for Future ADRs
+1. Build for the 95% case, not hypothetical futures
+2. Keep orthogonal concepts on separate axes
+3. Minimize friction at data capture time
+4. OOP hierarchies map cleanly to relational tables without discriminators
+5. Never ship temporary names
+
 ## References
 
+- **AALL-006:** `/docs/adr/AALL-006-unified-workout-schema.md` — After Action Lessons Learned (detailed failure analysis)
 - ADR-001: Data Layer Separation (Postgres for facts, Neo4j for relationships)
-- ADR-002: Strength Workout Migration (current schema)
+- ADR-002: Strength Workout Migration (original design - was actually correct)
+- ADR-007: Simplified Workout Schema (supersedes this ADR)
+- ADR-008: Device Telemetry Layer (separates device data from workout log)
 - Consultation with ChatGPT Health and Gemini 2.5 Pro (January 2026)
 - Open mHealth schemas, UCUM unit standards

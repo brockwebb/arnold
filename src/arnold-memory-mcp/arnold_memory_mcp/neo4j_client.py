@@ -261,7 +261,9 @@ class Neo4jMemoryClient:
             # =========================================================
             # RECENT WORKOUTS (Last 14 days)
             # Match all workout types - :Workout, :StrengthWorkout, :EnduranceWorkout
-            # Deduplicate by date, preferring nodes with actual structure (sets > 0)
+            # StrengthWorkout/EnduranceWorkout are reference nodes with total_sets property
+            # Full Workout nodes have HAS_BLOCK->WorkoutBlock->CONTAINS->Set structure
+            # Deduplicate by date, preferring nodes with most sets
             # =========================================================
             recent_result = session.run("""
                 MATCH (p:Person {id: $person_id})-[:PERFORMED]->(w)
@@ -269,13 +271,16 @@ class Neo4jMemoryClient:
                   AND w.date >= date() - duration('P14D')
                 OPTIONAL MATCH (w)-[:HAS_BLOCK]->(wb:WorkoutBlock)-[:CONTAINS]->(s:Set)
                 OPTIONAL MATCH (s)-[:OF_EXERCISE]->(e:Exercise)-[:INVOLVES]->(mp:MovementPattern)
-                WITH w, count(DISTINCT s) as sets, collect(DISTINCT mp.name) as patterns
+                WITH w,
+                     // Use stored total_sets for reference nodes, or count relationships for full nodes
+                     coalesce(w.total_sets, count(DISTINCT s)) as sets,
+                     collect(DISTINCT mp.name) as patterns
                 WITH w.date as workout_date,
-                     collect({name: coalesce(w.name, w.type), type: w.type, 
+                     collect({name: coalesce(w.name, w.type), type: w.type,
                               duration: w.duration_minutes, sets: sets, patterns: patterns}) as workouts
-                // Pick the workout with most sets (prefers :Workout with structure over reference nodes)
-                WITH workout_date, 
-                     reduce(best = workouts[0], w IN workouts | 
+                // Pick the workout with most sets (prefers nodes with actual data)
+                WITH workout_date,
+                     reduce(best = workouts[0], w IN workouts |
                          CASE WHEN w.sets > best.sets THEN w ELSE best END) as best
                 RETURN toString(workout_date) as date,
                        best.name as name,
@@ -294,11 +299,14 @@ class Neo4jMemoryClient:
             
             # =========================================================
             # COACHING OBSERVATIONS (from past conversations)
+            # Excludes resolved observations (those with resolved_at set)
             # =========================================================
             obs_result = session.run("""
                 MATCH (p:Person {id: $person_id})-[:HAS_OBSERVATION]->(o)
-                WHERE o:Observation OR o:CoachingObservation
+                WHERE (o:Observation OR o:CoachingObservation)
+                  AND o.resolved_at IS NULL
                 RETURN o {
+                    .id,
                     .content,
                     .observation_type,
                     .tags,
@@ -509,6 +517,46 @@ class Neo4jMemoryClient:
             
             return [dict(r["observation"]) for r in result]
 
+    def resolve_observation(
+        self,
+        observation_id: str,
+        resolution_note: str = None
+    ) -> Dict[str, Any]:
+        """
+        Mark an observation as resolved.
+
+        Sets resolved_at timestamp so it no longer appears in active briefings.
+
+        Args:
+            observation_id: The observation ID (e.g., 'OBS:uuid...')
+            resolution_note: Optional note about why/how it was resolved
+
+        Returns:
+            The resolved observation details
+        """
+        with self.driver.session(database=self.database) as session:
+            result = session.run("""
+                MATCH (o)
+                WHERE (o:Observation OR o:CoachingObservation) AND o.id = $observation_id
+                SET o.resolved_at = datetime(),
+                    o.resolution_note = $resolution_note
+                RETURN o {
+                    .id,
+                    .content,
+                    .observation_type,
+                    resolved_at: toString(o.resolved_at)
+                } as observation
+            """,
+                observation_id=observation_id,
+                resolution_note=resolution_note
+            )
+
+            record = result.single()
+            if record:
+                return dict(record["observation"])
+            else:
+                return {"error": f"Observation {observation_id} not found"}
+
     def search_observations(
         self,
         person_id: str,
@@ -546,8 +594,9 @@ class Neo4jMemoryClient:
                 MATCH (p:Person {id: $person_id})-[:HAS_OBSERVATION]->(node)
             """
             
+            # Add optional type filter - must use WHERE after MATCH, not AND
             if observation_type:
-                cypher += " AND node.observation_type = $observation_type"
+                cypher += " WHERE node.observation_type = $observation_type"
             
             cypher += """
                 RETURN node {

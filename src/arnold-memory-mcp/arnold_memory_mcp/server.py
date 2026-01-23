@@ -354,6 +354,33 @@ exact keywords or want to explore related insights.""",
             }
         ),
         types.Tool(
+            name="resolve_observation",
+            description="""Mark an observation as resolved/no longer active.
+
+Use this when:
+- A bug or issue has been fixed
+- A flag is no longer relevant
+- A pattern has changed
+- Information is outdated
+
+Resolved observations won't appear in load_briefing but remain in the database
+for historical reference.""",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "observation_id": {
+                        "type": "string",
+                        "description": "The observation ID (e.g., 'OBS:uuid...')"
+                    },
+                    "resolution_note": {
+                        "type": "string",
+                        "description": "Optional note about why/how it was resolved"
+                    }
+                },
+                "required": ["observation_id"]
+            }
+        ),
+        types.Tool(
             name="get_block_summary",
             description="""Get summary for a training block.
 
@@ -717,6 +744,19 @@ async def call_tool_handler(name: str, arguments: dict[str, Any]) -> list[types.
                 for a in annotations[:3]:  # Top 3
                     lines.append(f"- [{a['reason']}] {a.get('explanation', '')[:80]}")
             
+            # DEBUG: Postgres diagnostics (TEMPORARY)
+            diag = analytics.get("_diagnostics", {})
+            if diag:
+                lines.append("")
+                lines.append("## 🔧 Postgres Diagnostics (DEBUG)")
+                lines.append(f"- DSN: {diag.get('dsn', 'unknown')[:50]}...")
+                lines.append(f"- DSN Source: {diag.get('dsn_source', 'unknown')}")
+                lines.append(f"- Connection OK: {diag.get('connection_ok', 'unknown')}")
+                lines.append(f"- Test Query: {diag.get('test_query', 'failed')}")
+                lines.append(f"- workout_summaries count: {diag.get('workout_summaries_count', 'failed')}")
+                if diag.get('error'):
+                    lines.append(f"- ERROR: {diag.get('error')}")
+            
             return [types.TextContent(
                 type="text",
                 text="\n".join(lines)
@@ -837,6 +877,37 @@ async def call_tool_handler(name: str, arguments: dict[str, Any]) -> list[types.
             
         except Exception as e:
             logger.error(f"Error searching observations: {str(e)}", exc_info=True)
+            return [types.TextContent(type="text", text=f"❌ Error: {str(e)}")]
+
+    # =========================================================================
+    # RESOLVE OBSERVATION
+    # =========================================================================
+
+    elif name == "resolve_observation":
+        try:
+            observation_id = arguments["observation_id"]
+            resolution_note = arguments.get("resolution_note")
+
+            logger.info(f"Resolving observation: {observation_id}")
+
+            result = neo4j_client.resolve_observation(
+                observation_id=observation_id,
+                resolution_note=resolution_note
+            )
+
+            if result.get("error"):
+                return [types.TextContent(
+                    type="text",
+                    text=f"❌ {result['error']}"
+                )]
+
+            return [types.TextContent(
+                type="text",
+                text=f"✅ Observation resolved\n\n**ID:** {result['id']}\n**Type:** {result.get('observation_type')}\n**Resolved at:** {result.get('resolved_at')}"
+            )]
+
+        except Exception as e:
+            logger.error(f"Error resolving observation: {str(e)}", exc_info=True)
             return [types.TextContent(type="text", text=f"❌ Error: {str(e)}")]
 
     # =========================================================================

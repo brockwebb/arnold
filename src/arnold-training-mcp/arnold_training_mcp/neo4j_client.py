@@ -1444,10 +1444,10 @@ class Neo4jTrainingClient:
         Per ADR-002: Facts live in Postgres, but we need Neo4j references
         for relationship queries (goals, blocks, injuries, etc.)
         
-        Updated for v2 schema: uses workout_id (UUID) from workouts_v2 table.
-        
+        Uses workout_id (UUID) from workouts table.
+
         Args:
-            workout_id: The workouts_v2.workout_id UUID from Postgres
+            workout_id: The workouts.workout_id UUID from Postgres
             date: Workout date YYYY-MM-DD
             name: Workout name/goal
             person_id: Person ID for PERFORMED relationship
@@ -1516,10 +1516,10 @@ class Neo4jTrainingClient:
         Per ADR-002: Facts live in Postgres, but we need Neo4j references
         for relationship queries (goals, blocks, injuries, etc.)
         
-        Updated for v2 schema: uses workout_id (UUID) from workouts_v2 table.
-        
+        Uses workout_id (UUID) from workouts table.
+
         Args:
-            workout_id: The workouts_v2.workout_id UUID from Postgres
+            workout_id: The workouts.workout_id UUID from Postgres
             date: Workout date YYYY-MM-DD
             name: Workout name
             sport: running, cycling, hiking, etc.

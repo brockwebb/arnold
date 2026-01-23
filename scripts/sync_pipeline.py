@@ -15,7 +15,7 @@ Steps (in order):
     3. fit          - Import FIT files (Suunto/Garmin/Wahoo) from data/raw/
     4. apple_export - Extract Apple Health export.zip from iCloud (if present)
     5. apple        - Import Apple Health exports (XML → parquet → Postgres)
-    6. neo4j        - Sync workouts from Neo4j to Postgres
+    6. neo4j        - DEPRECATED (skipped) - workout_summaries is now a VIEW
     7. annotations  - Sync annotations from Neo4j to Postgres
     8. relationships - Sync exercise relationships (INVOLVES, TARGETS) from Neo4j
     9. clean        - Run outlier detection on biometrics
@@ -279,9 +279,19 @@ def step_apple(dry_run: bool = False) -> bool:
 
 
 def step_neo4j(dry_run: bool = False) -> bool:
-    """Sync workouts from Neo4j to Postgres."""
+    """DEPRECATED: workout_summaries is now a VIEW over workouts/blocks/sets tables.
+
+    This sync was for legacy workflow where Neo4j was source of truth for workouts.
+    After Phase 7 migration (Jan 2026), Postgres is source of truth and Neo4j
+    holds lightweight reference nodes only.
+
+    The sync_neo4j_to_postgres.py script would fail because it tries to INSERT
+    into workout_summaries which is now a VIEW.
+    """
     log("=== Step: Neo4j → Postgres Sync ===")
-    return run_script("sync_neo4j_to_postgres.py", dry_run=dry_run)
+    log("SKIPPED - workout_summaries is now a VIEW (Phase 7 migration)")
+    log("Neo4j workout nodes are reference pointers, Postgres is source of truth")
+    return True  # Return success to not break pipeline
 
 
 def step_annotations(dry_run: bool = False) -> bool:
