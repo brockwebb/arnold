@@ -820,6 +820,76 @@ def update_catalog(tables: Dict[str, pd.DataFrame]):
         json.dump(catalog, f, indent=2)
 
 
+# Marker file for skip-if-unchanged optimization
+IMPORT_MARKER = DATA_DIR / "sync_state" / "apple_health_last_import.json"
+
+
+def get_file_signature(filepath: Path) -> dict:
+    """Get file signature (mtime + size) for change detection."""
+    stat = filepath.stat()
+    return {
+        "mtime": stat.st_mtime,
+        "size": stat.st_size,
+    }
+
+
+def check_skip_import(xml_path: Path, force: bool = False, verbose: bool = False) -> bool:
+    """Check if we can skip import because export.xml hasn't changed.
+    
+    Returns True if we should skip (file unchanged), False if we should import.
+    """
+    if force:
+        if verbose:
+            print("  --full specified: forcing reimport")
+        return False
+    
+    if not xml_path.exists():
+        return False  # No file to import
+    
+    if not IMPORT_MARKER.exists():
+        if verbose:
+            print("  No previous import marker, will import")
+        return False
+    
+    try:
+        with open(IMPORT_MARKER) as f:
+            marker = json.load(f)
+        
+        current_sig = get_file_signature(xml_path)
+        
+        # Check if file has changed
+        if (marker.get("mtime") == current_sig["mtime"] and 
+            marker.get("size") == current_sig["size"]):
+            if verbose:
+                last_import = marker.get("imported_at", "unknown")
+                print(f"  export.xml unchanged since {last_import}, skipping")
+            return True
+        else:
+            if verbose:
+                print(f"  export.xml changed (mtime/size differ), will import")
+            return False
+    except Exception as e:
+        if verbose:
+            print(f"  Could not read marker ({e}), will import")
+        return False
+
+
+def update_import_marker(xml_path: Path):
+    """Update marker file after successful import."""
+    IMPORT_MARKER.parent.mkdir(parents=True, exist_ok=True)
+    
+    sig = get_file_signature(xml_path)
+    marker = {
+        "mtime": sig["mtime"],
+        "size": sig["size"],
+        "imported_at": datetime.now().isoformat(),
+        "source_file": str(xml_path),
+    }
+    
+    with open(IMPORT_MARKER, "w") as f:
+        json.dump(marker, f, indent=2)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Import Apple Health data")
     parser.add_argument("--verbose", "-v", action="store_true", help="Show progress")
@@ -830,6 +900,12 @@ def main():
     args = parser.parse_args()
     
     print("Importing Apple Health data...")
+    
+    # Check if we can skip (file unchanged)
+    xml_path = RAW_DIR / "export.xml"
+    if not args.clinical_only and check_skip_import(xml_path, force=args.full, verbose=args.verbose):
+        print("✓ No changes to import (export.xml unchanged)")
+        return
     
     tables = {}
     
@@ -955,6 +1031,12 @@ def main():
     # Update catalog
     print("\nUpdating catalog...")
     update_catalog(tables)
+    
+    # Update import marker for skip-if-unchanged optimization
+    if xml_path.exists() and not args.clinical_only:
+        update_import_marker(xml_path)
+        if args.verbose:
+            print(f"  Updated import marker: {IMPORT_MARKER}")
     
     print("\n✓ Done")
     

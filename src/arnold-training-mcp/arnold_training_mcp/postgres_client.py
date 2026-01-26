@@ -681,22 +681,21 @@ class PostgresTrainingClient:
 
     def get_session_by_date(self, session_date: str) -> Optional[Dict[str, Any]]:
         """
-        Get workout(s) for a date with all sets/intervals.
-        
+        Get workout(s) for a date with ALL blocks and sets.
+
         Returns the most recent workout if multiple exist.
+        Properly handles multi-block workouts (warmup, main, finisher, etc.)
         """
         cursor = self.conn.cursor(cursor_factory=RealDictCursor)
-        
-        # Get workout + segment
+
+        # 1. Get the workout (not joined to blocks yet)
         cursor.execute("""
-            SELECT 
-                w.workout_id, w.start_time::date as session_date,
-                w.duration_seconds, w.rpe as session_rpe, w.notes, w.source,
-                b.block_id, b.modality, b.extra as block_extra
-            FROM workouts w
-            JOIN blocks b ON w.workout_id = b.workout_id
-            WHERE w.start_time::date = %s
-            ORDER BY w.created_at DESC
+            SELECT
+                workout_id, start_time::date as session_date,
+                duration_seconds, rpe as session_rpe, notes, source, sport_type
+            FROM workouts
+            WHERE start_time::date = %s
+            ORDER BY created_at DESC
             LIMIT 1
         """, (session_date,))
 
@@ -704,123 +703,156 @@ class PostgresTrainingClient:
         if not workout:
             return None
 
+        workout_id = workout['workout_id']
+
         result = {
             'session': self._convert_decimals(dict(workout)),
-            'sets': [],
+            'blocks': [],
+            'sets': [],        # Flat list of all sets (for backward compat)
             'intervals': []
         }
 
-        # Get sport-specific data
-        sport = workout['modality']
-        block_id = workout['block_id']
-        
-        if sport == 'strength':
-            cursor.execute("""
-                SELECT 
-                    set_id as id, seq as set_order, exercise_id, exercise_name,
-                    reps, load as load_lbs, rpe, rest_seconds,
-                    is_warmup, failed, notes, extra
-                FROM sets
-                WHERE block_id = %s
-                ORDER BY seq
-            """, (block_id,))
-            result['sets'] = [self._convert_decimals(dict(s)) for s in cursor.fetchall()]
-            
-            # Calculate totals
-            total_volume = sum(
-                (s.get('reps') or 0) * (s.get('load_lbs') or 0) 
-                for s in result['sets']
-            )
-            result['session']['total_volume_lbs'] = total_volume
-            result['session']['total_sets'] = len(result['sets'])
-            result['session']['total_reps'] = sum(s.get('reps') or 0 for s in result['sets'])
-            
-        elif sport == 'running':
-            cursor.execute("""
-                SELECT 
-                    interval_id as id, seq, distance_m, duration_seconds,
-                    avg_pace_per_km, avg_hr, max_hr, avg_cadence,
-                    elevation_gain_m, elevation_loss_m, extra
-                FROM v2_running_intervals
-                WHERE block_id = %s
-                ORDER BY seq
-            """, (block_id,))
-            result['intervals'] = [self._convert_decimals(dict(i)) for i in cursor.fetchall()]
-            
-        elif sport == 'rowing':
-            cursor.execute("""
-                SELECT 
-                    interval_id as id, seq, distance_m, duration_seconds,
-                    avg_500m_pace_seconds, stroke_rate, avg_hr, max_hr, extra
-                FROM v2_rowing_intervals
-                WHERE block_id = %s
-                ORDER BY seq
-            """, (block_id,))
-            result['intervals'] = [self._convert_decimals(dict(i)) for i in cursor.fetchall()]
-        
+        # 2. Get ALL blocks for this workout
+        cursor.execute("""
+            SELECT
+                block_id, seq, modality, block_type, duration_seconds,
+                extra as block_extra
+            FROM blocks
+            WHERE workout_id = %s
+            ORDER BY seq
+        """, (workout_id,))
+
+        blocks = cursor.fetchall()
+
+        # 3. Get sets for each block
+        total_volume = 0
+        total_sets = 0
+        total_reps = 0
+
+        for block in blocks:
+            block_dict = self._convert_decimals(dict(block))
+            block_id = block['block_id']
+            modality = block['modality'] or 'strength'
+
+            if modality == 'strength' or modality is None:
+                cursor.execute("""
+                    SELECT
+                        set_id as id, seq as set_order, exercise_id, exercise_name,
+                        reps, load as load_lbs, rpe, rest_seconds,
+                        is_warmup, failed, notes, extra
+                    FROM sets
+                    WHERE block_id = %s
+                    ORDER BY seq
+                """, (block_id,))
+
+                block_sets = [self._convert_decimals(dict(s)) for s in cursor.fetchall()]
+                block_dict['sets'] = block_sets
+
+                # Accumulate to flat list for backward compat
+                result['sets'].extend(block_sets)
+
+                # Accumulate totals
+                for s in block_sets:
+                    reps = s.get('reps') or 0
+                    load = s.get('load_lbs') or 0
+                    total_volume += reps * load
+                    total_sets += 1
+                    total_reps += reps
+
+            elif modality == 'running':
+                cursor.execute("""
+                    SELECT
+                        interval_id as id, seq, distance_m, duration_seconds,
+                        avg_pace_per_km, avg_hr, max_hr, avg_cadence,
+                        elevation_gain_m, elevation_loss_m, extra
+                    FROM v2_running_intervals
+                    WHERE block_id = %s
+                    ORDER BY seq
+                """, (block_id,))
+                block_dict['intervals'] = [self._convert_decimals(dict(i)) for i in cursor.fetchall()]
+                result['intervals'].extend(block_dict['intervals'])
+
+            elif modality == 'rowing':
+                cursor.execute("""
+                    SELECT
+                        interval_id as id, seq, distance_m, duration_seconds,
+                        avg_500m_pace_seconds, stroke_rate, avg_hr, max_hr, extra
+                    FROM v2_rowing_intervals
+                    WHERE block_id = %s
+                    ORDER BY seq
+                """, (block_id,))
+                block_dict['intervals'] = [self._convert_decimals(dict(i)) for i in cursor.fetchall()]
+                result['intervals'].extend(block_dict['intervals'])
+
+            result['blocks'].append(block_dict)
+
+        # Add totals to session
+        result['session']['total_volume_lbs'] = total_volume
+        result['session']['total_sets'] = total_sets
+        result['session']['total_reps'] = total_reps
+        result['session']['block_count'] = len(blocks)
+
         return result
 
     def get_recent_sessions(self, days: int = 7) -> List[Dict[str, Any]]:
-        """Get workouts from the last N days."""
+        """Get workouts from the last N days (one row per workout, aggregated across blocks)."""
         cursor = self.conn.cursor(cursor_factory=RealDictCursor)
-        
+
+        # Aggregate across ALL blocks per workout
         cursor.execute("""
-            SELECT 
+            SELECT
                 w.workout_id as id,
                 w.start_time::date as session_date,
-                b.modality,
-                COALESCE(b.extra->>'name', b.modality || ' session') as name,
+                w.sport_type as modality,
+                COALESCE(w.notes, w.sport_type || ' session') as name,
                 w.duration_seconds / 60 as duration_minutes,
                 w.rpe as session_rpe,
                 w.source,
-                b.extra->>'neo4j_id' as neo4j_id,
-                -- Strength totals
-                CASE WHEN b.modality = 'strength' THEN (
-                    SELECT COUNT(*) FROM sets WHERE block_id = b.block_id
-                ) ELSE 0 END as total_sets,
-                CASE WHEN b.modality = 'strength' THEN (
-                    SELECT COALESCE(SUM(reps * load), 0) FROM sets WHERE block_id = b.block_id
-                ) ELSE 0 END as total_volume_lbs
+                (SELECT COUNT(*) FROM blocks WHERE workout_id = w.workout_id) as block_count,
+                (SELECT COUNT(*) FROM sets s
+                 JOIN blocks b ON s.block_id = b.block_id
+                 WHERE b.workout_id = w.workout_id) as total_sets,
+                (SELECT COALESCE(SUM(s.reps * s.load), 0) FROM sets s
+                 JOIN blocks b ON s.block_id = b.block_id
+                 WHERE b.workout_id = w.workout_id) as total_volume_lbs
             FROM workouts w
-            JOIN blocks b ON w.workout_id = b.workout_id
             WHERE w.start_time >= CURRENT_DATE - %s
             ORDER BY w.start_time DESC
         """, (days,))
-        
+
         return [self._convert_decimals(dict(r)) for r in cursor.fetchall()]
 
     def get_sessions_for_briefing(self, days: int = 7) -> List[Dict[str, Any]]:
         """
         Get sessions formatted for coach briefing.
-        
-        Returns lightweight summaries with pattern info.
+
+        Returns lightweight summaries with pattern info (one row per workout).
         """
         cursor = self.conn.cursor(cursor_factory=RealDictCursor)
-        
+
+        # Aggregate across ALL blocks per workout
         cursor.execute("""
-            SELECT 
+            SELECT
                 w.workout_id as id,
                 w.start_time::date as date,
-                b.modality as type,
-                COALESCE(b.extra->>'name', b.modality) as name,
+                w.sport_type as type,
+                COALESCE(w.notes, w.sport_type) as name,
                 w.rpe as session_rpe,
-                CASE WHEN b.modality = 'strength' THEN (
-                    SELECT COUNT(*) FROM sets WHERE block_id = b.block_id
-                ) ELSE 0 END as sets,
-                CASE WHEN b.modality = 'strength' THEN (
-                    SELECT COALESCE(SUM(reps * load), 0) FROM sets WHERE block_id = b.block_id
-                ) ELSE NULL END as volume,
-                CASE WHEN b.modality = 'strength' THEN (
-                    SELECT ARRAY_AGG(DISTINCT exercise_name) 
-                    FROM sets WHERE block_id = b.block_id
-                ) ELSE NULL END as exercises
+                (SELECT COUNT(*) FROM sets s
+                 JOIN blocks b ON s.block_id = b.block_id
+                 WHERE b.workout_id = w.workout_id) as sets,
+                (SELECT COALESCE(SUM(s.reps * s.load), 0) FROM sets s
+                 JOIN blocks b ON s.block_id = b.block_id
+                 WHERE b.workout_id = w.workout_id) as volume,
+                (SELECT ARRAY_AGG(DISTINCT s.exercise_name) FROM sets s
+                 JOIN blocks b ON s.block_id = b.block_id
+                 WHERE b.workout_id = w.workout_id) as exercises
             FROM workouts w
-            JOIN blocks b ON w.workout_id = b.workout_id
             WHERE w.start_time >= CURRENT_DATE - %s
             ORDER BY w.start_time DESC
             LIMIT 5
         """, (days,))
-        
+
         results = []
         for row in cursor.fetchall():
             row_dict = self._convert_decimals(dict(row))
@@ -828,7 +860,7 @@ class PostgresTrainingClient:
             patterns = self._infer_patterns(row_dict.get('exercises') or [])
             row_dict['patterns'] = patterns
             results.append(row_dict)
-        
+
         return results
 
     def get_workouts_this_week(self) -> int:

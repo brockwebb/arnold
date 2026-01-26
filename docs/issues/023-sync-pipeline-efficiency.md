@@ -1,9 +1,25 @@
 # Issue 023: Sync Pipeline Efficiency Problems
 
 **Created:** 2026-01-23  
-**Status:** Open  
+**Updated:** 2026-01-23  
+**Status:** Partially Resolved  
 **Priority:** Medium  
 **Type:** Performance / Technical Debt
+
+## Resolution Summary (2026-01-23)
+
+**Polar file importer** - FIXED:
+- Added upfront query of all known session IDs
+- Filters file list BEFORE opening any files  
+- Exits immediately when no new sessions exist
+- Fixed DB config to use `DATABASE_URI` env var
+- Added source provenance (`polar_file`) to hr_samples
+
+**Apple Health importer** - FIXED:
+- Added marker file (`data/sync_state/apple_health_last_import.json`)
+- Tracks export.xml mtime + size
+- Skips entire 220MB XML parse if file unchanged
+- Use `--full` to force reimport
 
 ## Problem
 
@@ -137,10 +153,12 @@ This trades one bulk query for N individual queries.
 
 ## Acceptance Criteria
 
-- [ ] Pipeline completes in <10 seconds when no new data exists
-- [ ] Each step logs "No new data" and exits immediately when appropriate
-- [ ] Full historical reprocess still possible via `--force` flag
-- [ ] Import counts are accurate (imported vs skipped)
+- [x] Polar: Exits immediately when no new files (single DB query + filename check)
+- [x] Apple Health: Skips XML parse when export.xml unchanged (marker file)
+- [x] Full reprocess via `--full` flag (Apple Health) or by clearing marker
+- [ ] Pipeline completes in <10 seconds when no new data (needs testing)
+- [ ] FIT importer: Already uses manifest (no change needed)
+- [ ] Ultrahuman: API-based, already efficient (no change needed)
 
 ## Related Issues
 

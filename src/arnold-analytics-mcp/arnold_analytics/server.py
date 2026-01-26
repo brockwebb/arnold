@@ -112,25 +112,17 @@ async def list_tools():
     return [
         Tool(
             name="get_hrr_trend",
-            description="""Get HRR (Heart Rate Recovery) trend analysis with EWMA/CUSUM detection.
+            description="""Get HRR (Heart Rate Recovery) trend analysis using Theil-Sen median regression.
             
-Returns per-stratum baselines, recent trends, and any warning/action alerts.
-Uses confidence-weighted HRR60 values for robust trend detection.
-Key for assessing cardiovascular recovery and overtraining risk.""",
+Returns:
+- Long-term: median HRR60 and slope (bpm/month) over ALL available data
+- Last 30 days: median HRR60 and slope (bpm/week)
+
+Theil-Sen regression is robust to outliers - appropriate for noisy HRR measurements.
+Uses quality_status='pass' intervals only.""",
             inputSchema={
                 "type": "object",
-                "properties": {
-                    "days": {
-                        "type": "integer",
-                        "description": "Days of history to analyze (default: 28)",
-                        "default": 28
-                    },
-                    "stratum": {
-                        "type": "string",
-                        "description": "Filter to specific stratum: STRENGTH, ENDURANCE, or OTHER (default: all)",
-                        "enum": ["STRENGTH", "ENDURANCE", "OTHER"]
-                    }
-                }
+                "properties": {}
             }
         ),
         Tool(
@@ -260,10 +252,7 @@ async def call_tool(name: str, arguments: dict):
     """Handle tool calls."""
     
     if name == "get_hrr_trend":
-        return await get_hrr_trend(
-            arguments.get("days", 28),
-            arguments.get("stratum")
-        )
+        return await get_hrr_trend()
     
     elif name == "get_readiness_snapshot":
         return await get_readiness_snapshot(arguments.get("date", "today"))
@@ -1165,237 +1154,128 @@ async def get_sync_history(limit: int = 5):
     return [TextContent(type="text", text=json.dumps(result, indent=2, default=decimal_default))]
 
 
-async def get_hrr_trend(days: int = 28, stratum: str = None):
+async def get_hrr_trend():
     """
-    Get HRR trend analysis with EWMA/CUSUM detection.
+    Get HRR trend analysis using Theil-Sen median regression.
     
-    Returns per-stratum baselines, recent trends, and alerts.
-    Uses confidence-weighted HRR60 for robust trend detection.
+    Returns:
+    - Long-term: median HRR60 and slope (bpm/month) over all available data
+    - Short-term: median HRR60 and slope (bpm/week) over last 30 days
     
-    EWMA: λ=0.2, warning=1.0×SDD, action=2.0×SDD
-    CUSUM: k=0.5×SDD, h=4.0×SDD
+    Uses quality_status='pass' intervals only.
+    Theil-Sen is robust to outliers - appropriate for noisy HRR data.
     """
-    import pandas as pd
+    from scipy import stats
     import numpy as np
-    
-    end_date = datetime.now()
-    start_date = end_date - timedelta(days=days)
     
     conn = get_db()
     cur = conn.cursor()
     
-    # Query actionable intervals
-    query = """
+    # Get ALL passing intervals for long-term analysis
+    cur.execute("""
         SELECT 
-            start_time,
-            stratum,
-            hrr60_abs,
-            weighted_hrr60,
-            confidence,
-            tau_fit_r2,
-            peak_minus_local,
-            polar_session_id
+            start_time::date as dt,
+            hrr60_abs
         FROM hr_recovery_intervals
-        WHERE actionable = true
-          AND start_time >= %s
-          AND start_time <= %s
-    """
-    params = [start_date, end_date]
-    
-    if stratum:
-        query += " AND stratum = %s"
-        params.append(stratum)
-    
-    query += " ORDER BY start_time"
-    cur.execute(query, params)
-    rows = cur.fetchall()
-    
-    if not rows:
-        conn.close()
-        return [TextContent(type="text", text=json.dumps({
-            "intervals": 0,
-            "message": "No actionable HRR intervals found in period",
-            "period": {"start": start_date.strftime("%Y-%m-%d"), "end": end_date.strftime("%Y-%m-%d")}
-        }, indent=2))]
-    
-    # Convert to DataFrame
-    df = pd.DataFrame(rows)
-    df['start_time'] = pd.to_datetime(df['start_time'])
-    df = df.set_index('start_time').sort_index()
-    
-    # Per-stratum analysis
-    strata_results = {}
-    all_alerts = []
-    
-    for strat in df['stratum'].unique():
-        sdf = df[df['stratum'] == strat].copy()
-        
-        if len(sdf) < 5:
-            strata_results[strat] = {
-                "intervals": len(sdf),
-                "status": "insufficient_data",
-                "message": f"Need ≥5 intervals for trend detection, have {len(sdf)}"
-            }
-            continue
-        
-        # Compute baseline and SDD from full history
-        # TE (Typical Error) ≈ SD / sqrt(2) for test-retest
-        # SDD = 2.77 × TE (Smallest Detectable Difference at 95% CI)
-        hrr_vals = sdf['hrr60_abs'].dropna().astype(float)
-        if len(hrr_vals) < 5:
-            continue
-            
-        baseline = float(hrr_vals.mean())
-        sd = float(hrr_vals.std())
-        te = sd / np.sqrt(2)  # typical error
-        sdd = 2.77 * te  # smallest detectable difference
-        
-        # Get weighted values for trend detection
-        weighted = sdf['weighted_hrr60'].dropna().astype(float)
-        if len(weighted) < 5:
-            weighted = hrr_vals  # fall back to raw
-        
-        ts = weighted.index
-        x = weighted.values
-        
-        # EWMA detection
-        ewma_alerts = []
-        warning_threshold = baseline - 1.0 * sdd
-        action_threshold = baseline - 2.0 * sdd
-        
-        # Simple EWMA with gap reset
-        lam = 0.2
-        gap_seconds = 3600  # 1 hour
-        z_prev = baseline
-        ewma_vals = []
-        min_events = 5
-        events_since_reset = 0
-        
-        for i, (t, val) in enumerate(zip(ts, x)):
-            if i > 0:
-                gap = (t - ts[i-1]).total_seconds()
-                if gap > gap_seconds:
-                    z_prev = baseline
-                    events_since_reset = 0
-            
-            z_prev = lam * val + (1 - lam) * z_prev
-            ewma_vals.append(z_prev)
-            events_since_reset += 1
-            
-            if events_since_reset >= min_events:
-                if z_prev <= action_threshold:
-                    ewma_alerts.append({
-                        "time": t.isoformat(),
-                        "level": "action",
-                        "ewma": round(z_prev, 1),
-                        "threshold": round(action_threshold, 1)
-                    })
-                elif z_prev <= warning_threshold:
-                    ewma_alerts.append({
-                        "time": t.isoformat(),
-                        "level": "warning",
-                        "ewma": round(z_prev, 1),
-                        "threshold": round(warning_threshold, 1)
-                    })
-        
-        # CUSUM detection (one-sided downward)
-        cusum_alerts = []
-        k = 0.5 * sdd  # allowance
-        h = 4.0 * sdd  # threshold
-        s = 0.0
-        
-        for i, (t, val) in enumerate(zip(ts, x)):
-            if i > 0:
-                gap = (t - ts[i-1]).total_seconds()
-                if gap > gap_seconds:
-                    s = 0.0
-            
-            incr = (baseline - val) - k
-            s = max(0.0, s + incr)
-            
-            if s >= h:
-                cusum_alerts.append({
-                    "time": t.isoformat(),
-                    "level": "action",
-                    "cusum": round(s, 1),
-                    "threshold": round(h, 1)
-                })
-                s = 0.0  # reset after alert
-        
-        # Recent trend (last 7 values vs prior)
-        recent_n = min(7, len(hrr_vals) // 2)
-        if recent_n >= 3:
-            recent_avg = float(hrr_vals.iloc[-recent_n:].mean())
-            prior_avg = float(hrr_vals.iloc[:-recent_n].mean())
-            trend_pct = round((recent_avg / prior_avg - 1) * 100) if prior_avg > 0 else 0
-            trend = "declining" if trend_pct < -10 else "improving" if trend_pct > 10 else "stable"
-        else:
-            recent_avg = float(hrr_vals.mean())
-            trend_pct = 0
-            trend = "insufficient_data"
-        
-        strata_results[strat] = {
-            "intervals": len(sdf),
-            "sessions": int(sdf['polar_session_id'].nunique()),
-            "baseline": {
-                "mean_hrr60": round(baseline, 1),
-                "sd": round(sd, 1),
-                "sdd": round(sdd, 1),
-                "warning_below": round(warning_threshold, 1),
-                "action_below": round(action_threshold, 1)
-            },
-            "current": {
-                "recent_avg": round(recent_avg, 1),
-                "vs_baseline_pct": trend_pct,
-                "trend": trend,
-                "latest_ewma": round(ewma_vals[-1], 1) if ewma_vals else None
-            },
-            "confidence": {
-                "mean": round(float(sdf['confidence'].mean()), 2),
-                "min": round(float(sdf['confidence'].min()), 2)
-            },
-            "alerts": {
-                "ewma": ewma_alerts[-3:] if ewma_alerts else [],  # last 3
-                "cusum": cusum_alerts[-3:] if cusum_alerts else []
-            }
-        }
-        
-        # Collect for summary
-        for a in ewma_alerts:
-            all_alerts.append({"stratum": strat, "detector": "ewma", **a})
-        for a in cusum_alerts:
-            all_alerts.append({"stratum": strat, "detector": "cusum", **a})
-    
+        WHERE quality_status = 'pass'
+          AND hrr60_abs IS NOT NULL
+        ORDER BY start_time
+    """)
+    all_rows = cur.fetchall()
     conn.close()
     
-    # Coaching notes
+    if not all_rows or len(all_rows) < 5:
+        return [TextContent(type="text", text=json.dumps({
+            "status": "insufficient_data",
+            "intervals": len(all_rows) if all_rows else 0,
+            "message": "Need at least 5 passing HRR intervals for trend analysis"
+        }, indent=2))]
+    
+    # Convert to arrays
+    first_date = all_rows[0]['dt']
+    dates_days = np.array([(r['dt'] - first_date).days for r in all_rows])
+    values = np.array([float(r['hrr60_abs']) for r in all_rows])
+    
+    # === LONG-TERM ANALYSIS (all data) ===
+    long_term_median = float(np.median(values))
+    
+    # Theil-Sen slope (bpm per day)
+    if len(values) >= 5:
+        slope_per_day, intercept, low_slope, high_slope = stats.theilslopes(values, dates_days)
+        slope_per_month = slope_per_day * 30
+        slope_per_year = slope_per_day * 365
+    else:
+        slope_per_day = slope_per_month = slope_per_year = None
+        low_slope = high_slope = None
+    
+    # Date range
+    first_dt = all_rows[0]['dt']
+    last_dt = all_rows[-1]['dt']
+    total_days = (last_dt - first_dt).days
+    
+    # === SHORT-TERM ANALYSIS (last 30 days) ===
+    cutoff_date = last_dt - timedelta(days=30)
+    recent_rows = [(r['dt'], r['hrr60_abs']) for r in all_rows if r['dt'] >= cutoff_date]
+    
+    if len(recent_rows) >= 5:
+        recent_first = recent_rows[0][0]
+        recent_days = np.array([(r[0] - recent_first).days for r in recent_rows])
+        recent_vals = np.array([float(r[1]) for r in recent_rows])
+        
+        recent_median = float(np.median(recent_vals))
+        recent_slope_day, _, recent_low, recent_high = stats.theilslopes(recent_vals, recent_days)
+        recent_slope_week = recent_slope_day * 7
+    else:
+        recent_median = None
+        recent_slope_week = None
+        recent_low = recent_high = None
+    
+    # === INTERPRETATION ===
     coaching_notes = []
     
-    # Check for recent alerts (last 7 days)
-    recent_cutoff = (end_date - timedelta(days=7)).isoformat()
-    recent_alerts = [a for a in all_alerts if a.get('time', '') >= recent_cutoff]
-    
-    if recent_alerts:
-        action_alerts = [a for a in recent_alerts if a['level'] == 'action']
-        if action_alerts:
-            coaching_notes.append(f"{len(action_alerts)} action-level HRR alert(s) in past 7 days - recovery may be compromised")
+    # Long-term trend interpretation
+    if slope_per_month is not None:
+        if slope_per_month > 0.5:
+            coaching_notes.append(f"HRR improving: +{slope_per_month:.1f} bpm/month")
+        elif slope_per_month < -0.5:
+            coaching_notes.append(f"HRR declining: {slope_per_month:.1f} bpm/month")
         else:
-            coaching_notes.append(f"{len(recent_alerts)} warning-level HRR alert(s) in past 7 days - monitor recovery")
+            coaching_notes.append("HRR stable over time")
     
-    # Check per-stratum trends
-    for strat, data in strata_results.items():
-        if isinstance(data, dict) and data.get('current', {}).get('trend') == 'declining':
-            coaching_notes.append(f"{strat} HRR declining {abs(data['current']['vs_baseline_pct'])}% vs baseline")
+    # Recent vs baseline comparison
+    if recent_median and long_term_median:
+        diff = recent_median - long_term_median
+        pct = (recent_median / long_term_median - 1) * 100
+        if abs(pct) > 10:
+            direction = "above" if diff > 0 else "below"
+            coaching_notes.append(f"Recent HRR {abs(pct):.0f}% {direction} baseline ({recent_median:.0f} vs {long_term_median:.0f})")
+    
+    # Recent trend
+    if recent_slope_week is not None:
+        if recent_slope_week > 1.0:
+            coaching_notes.append(f"Recent trend improving: +{recent_slope_week:.1f} bpm/week")
+        elif recent_slope_week < -1.0:
+            coaching_notes.append(f"Recent trend declining: {recent_slope_week:.1f} bpm/week")
     
     result = {
-        "period": {
-            "start": start_date.strftime("%Y-%m-%d"),
-            "end": end_date.strftime("%Y-%m-%d"),
-            "days": days
+        "long_term": {
+            "intervals": len(all_rows),
+            "date_range": {
+                "start": str(first_dt),
+                "end": str(last_dt),
+                "days": total_days
+            },
+            "median_hrr60": round(long_term_median, 1),
+            "slope_bpm_per_month": round(slope_per_month, 2) if slope_per_month else None,
+            "slope_bpm_per_year": round(slope_per_year, 1) if slope_per_year else None,
+            "slope_95ci": [round(low_slope * 30, 2), round(high_slope * 30, 2)] if low_slope else None
         },
-        "total_intervals": len(df),
-        "strata": strata_results,
-        "recent_alerts": recent_alerts[-5:] if recent_alerts else [],
+        "last_30_days": {
+            "intervals": len(recent_rows) if recent_rows else 0,
+            "median_hrr60": round(recent_median, 1) if recent_median else None,
+            "slope_bpm_per_week": round(recent_slope_week, 2) if recent_slope_week else None,
+            "slope_95ci": [round(recent_low * 7, 2), round(recent_high * 7, 2)] if recent_low else None
+        },
         "coaching_notes": coaching_notes
     }
     

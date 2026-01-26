@@ -15,11 +15,12 @@ Steps (in order):
     3. fit          - Import FIT files (Suunto/Garmin/Wahoo) from data/raw/
     4. apple_export - Extract Apple Health export.zip from iCloud (if present)
     5. apple        - Import Apple Health exports (XML → parquet → Postgres)
-    6. neo4j        - DEPRECATED (skipped) - workout_summaries is now a VIEW
-    7. annotations  - Sync annotations from Neo4j to Postgres
-    8. relationships - Sync exercise relationships (INVOLVES, TARGETS) from Neo4j
-    9. clean        - Run outlier detection on biometrics
-    10. refresh     - Refresh Postgres materialized views
+    6. hrr          - Extract HRR intervals from imported HR samples
+    7. neo4j        - DEPRECATED (skipped) - workout_summaries is now a VIEW
+    8. annotations  - Sync annotations from Neo4j to Postgres
+    9. relationships - Sync exercise relationships (INVOLVES, TARGETS) from Neo4j
+    10. clean       - Run outlier detection on biometrics
+    11. refresh     - Refresh Postgres materialized views
 
 Run via launchd (macOS):
     See ~/Library/LaunchAgents/com.arnold.sync-daily.plist (daily at 6 AM, skips relationships)
@@ -121,9 +122,9 @@ def step_polar(dry_run: bool = False) -> bool:
     """Sync Polar training sessions via API (preferred) or file imports (fallback)."""
     log("=== Step: Polar Training Sessions ===")
     
-    # Try API sync first if configured
-    refresh_token = os.environ.get("POLAR_REFRESH_TOKEN")
-    if refresh_token:
+    # Try API sync first if configured (access_token is sufficient, refresh_token optional)
+    access_token = os.environ.get("POLAR_ACCESS_TOKEN", "").strip("'")
+    if access_token:
         log("Polar API configured, syncing via API...")
         args = ["--days", "7"]  # Last 7 days
         if dry_run:
@@ -278,6 +279,27 @@ def step_apple(dry_run: bool = False) -> bool:
     return run_script("sync/apple_health_to_postgres.py", args, dry_run=False)  # Script handles dry-run
 
 
+def step_hrr(dry_run: bool = False) -> bool:
+    """Extract HRR intervals from imported HR samples.
+    
+    Runs after HR data import (polar, fit, apple) to detect recovery intervals
+    and compute HRR metrics (HRR30, HRR60, HRR120, tau, etc.).
+    
+    Only processes sessions that don't already have HRR intervals.
+    """
+    log("=== Step: HRR Interval Extraction ===")
+    
+    script_path = SCRIPTS / "hrr_feature_extraction.py"
+    if not script_path.exists():
+        log("hrr_feature_extraction.py not found, skipping", "WARN")
+        return True
+    
+    args = ["--all"]
+    if dry_run:
+        args.append("--dry-run")
+    return run_script("hrr_feature_extraction.py", args, dry_run=False)  # Script handles dry-run
+
+
 def step_neo4j(dry_run: bool = False) -> bool:
     """DEPRECATED: workout_summaries is now a VIEW over workouts/blocks/sets tables.
 
@@ -355,6 +377,7 @@ STEPS = {
     "fit": step_fit,
     "apple_export": step_apple_export,
     "apple": step_apple,
+    "hrr": step_hrr,
     "neo4j": step_neo4j,
     "annotations": step_annotations,
     "relationships": step_relationships,
@@ -362,7 +385,7 @@ STEPS = {
     "refresh": step_refresh,
 }
 
-STEP_ORDER = ["polar", "ultrahuman", "fit", "apple_export", "apple", "neo4j", "annotations", "relationships", "clean", "refresh"]
+STEP_ORDER = ["polar", "ultrahuman", "fit", "apple_export", "apple", "hrr", "neo4j", "annotations", "relationships", "clean", "refresh"]
 
 # Database connection
 PG_URI = os.environ.get("DATABASE_URI", "postgresql://brock@localhost:5432/arnold_analytics")

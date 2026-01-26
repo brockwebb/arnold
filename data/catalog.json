@@ -366,7 +366,7 @@
           "nullable": false
         }
       },
-      "updated_at": "2026-01-23T08:27:07.142378"
+      "updated_at": "2026-01-23T21:20:59.665068"
     },
     "apple_health_hrv": {
       "raw_path": "raw/apple_health_export/",
@@ -399,7 +399,7 @@
           "nullable": false
         }
       },
-      "updated_at": "2026-01-23T08:27:07.142378"
+      "updated_at": "2026-01-23T21:20:59.665068"
     },
     "apple_health_weight": {
       "raw_path": "raw/apple_health_export/",
@@ -469,7 +469,7 @@
           "nullable": false
         }
       },
-      "updated_at": "2026-01-23T08:27:07.142378"
+      "updated_at": "2026-01-23T21:20:59.665068"
     },
     "apple_health_steps": {
       "raw_path": "raw/apple_health_export/",
@@ -494,7 +494,7 @@
           "nullable": false
         }
       },
-      "updated_at": "2026-01-23T08:27:07.142378"
+      "updated_at": "2026-01-23T21:20:59.665068"
     },
     "apple_health_bp": {
       "raw_path": "raw/apple_health_export/",
@@ -527,7 +527,7 @@
           "nullable": false
         }
       },
-      "updated_at": "2026-01-23T08:27:07.142378"
+      "updated_at": "2026-01-23T21:20:59.665068"
     },
     "apple_health_workouts": {
       "raw_path": "raw/apple_health_export/",
@@ -576,7 +576,7 @@
           "nullable": false
         }
       },
-      "updated_at": "2026-01-23T08:27:07.142378"
+      "updated_at": "2026-01-23T21:20:59.665068"
     },
     "apple_health_resting_hr": {
       "raw_path": "raw/apple_health_export/",
@@ -609,7 +609,7 @@
           "nullable": false
         }
       },
-      "updated_at": "2026-01-23T08:27:07.142378"
+      "updated_at": "2026-01-23T21:20:59.665068"
     },
     "clinical_labs": {
       "raw_path": "raw/apple_health_export/",
@@ -666,7 +666,7 @@
           "nullable": false
         }
       },
-      "updated_at": "2026-01-23T08:27:07.142378"
+      "updated_at": "2026-01-23T21:20:59.665068"
     },
     "clinical_conditions": {
       "raw_path": "raw/apple_health_export/",
@@ -707,7 +707,7 @@
           "nullable": false
         }
       },
-      "updated_at": "2026-01-23T08:27:07.142378"
+      "updated_at": "2026-01-23T21:20:59.665068"
     },
     "clinical_medications": {
       "raw_path": "raw/apple_health_export/",
@@ -744,7 +744,7 @@
           "nullable": false
         }
       },
-      "updated_at": "2026-01-23T08:27:07.142378"
+      "updated_at": "2026-01-23T21:20:59.665068"
     },
     "clinical_immunizations": {
       "raw_path": "raw/apple_health_export/",
@@ -781,7 +781,7 @@
           "nullable": false
         }
       },
-      "updated_at": "2026-01-23T08:27:07.142378"
+      "updated_at": "2026-01-23T21:20:59.665068"
     },
     "apple_health_walking_asymmetry": {
       "raw_path": "raw/apple_health_export/",
@@ -822,7 +822,7 @@
           "nullable": false
         }
       },
-      "updated_at": "2026-01-23T08:27:07.142378"
+      "updated_at": "2026-01-23T21:20:59.665068"
     },
     "apple_health_walking_double_support": {
       "raw_path": "raw/apple_health_export/",
@@ -863,7 +863,7 @@
           "nullable": false
         }
       },
-      "updated_at": "2026-01-23T08:27:07.142378"
+      "updated_at": "2026-01-23T21:20:59.665068"
     },
     "apple_health_walking_step_length": {
       "raw_path": "raw/apple_health_export/",
@@ -904,7 +904,7 @@
           "nullable": false
         }
       },
-      "updated_at": "2026-01-23T08:27:07.142378"
+      "updated_at": "2026-01-23T21:20:59.665068"
     },
     "apple_health_walking_speed": {
       "raw_path": "raw/apple_health_export/",
@@ -945,7 +945,7 @@
           "nullable": false
         }
       },
-      "updated_at": "2026-01-23T08:27:07.142378"
+      "updated_at": "2026-01-23T21:20:59.665068"
     },
     "apple_health_walking_steadiness": {
       "raw_path": "raw/apple_health_export/",
@@ -1019,7 +1019,7 @@
           "nullable": false
         }
       },
-      "updated_at": "2026-01-23T08:27:07.142378"
+      "updated_at": "2026-01-23T21:20:59.665068"
     }
   },
   "link_strategies": {

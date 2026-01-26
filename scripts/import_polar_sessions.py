@@ -21,13 +21,9 @@ import psycopg2
 from psycopg2.extras import execute_batch
 
 
-# Database connection
-DB_CONFIG = {
-    "dbname": "arnold_analytics",
-    "user": "postgres",
-    "host": "localhost",
-    "port": 5432,
-}
+# Database connection - use env var or default to local brock user
+import os
+PG_URI = os.environ.get("DATABASE_URI", "postgresql://brock@localhost:5432/arnold_analytics")
 
 
 def parse_iso_duration(duration_str: str) -> int:
@@ -143,13 +139,32 @@ def import_sessions(folder_path: Path):
     session_files = sorted(folder_path.glob('training-session-*.json'))
     print(f"Found {len(session_files)} training session files")
     
-    conn = psycopg2.connect(**DB_CONFIG)
+    conn = psycopg2.connect(PG_URI)
     cur = conn.cursor()
+    
+    # EFFICIENCY FIX: Query all known session IDs upfront to avoid per-file DB queries
+    cur.execute("SELECT polar_session_id FROM polar_sessions")
+    known_sessions = {row[0] for row in cur.fetchall()}
+    print(f"  Already imported: {len(known_sessions)} sessions")
+    
+    # Filter to only new files BEFORE opening them
+    new_files = [
+        f for f in session_files
+        if extract_session_id(f.name) not in known_sessions
+    ]
+    
+    if not new_files:
+        print("  No new sessions to import")
+        cur.close()
+        conn.close()
+        return
+    
+    print(f"  New sessions to import: {len(new_files)}")
     
     sessions_imported = 0
     samples_imported = 0
     
-    for filepath in session_files:
+    for filepath in new_files:
         print(f"Processing {filepath.name}...")
         
         try:
@@ -159,16 +174,6 @@ def import_sessions(folder_path: Path):
             
             session = result['session']
             samples = result['samples']
-            
-            # Check if session already exists
-            cur.execute(
-                "SELECT id FROM polar_sessions WHERE polar_session_id = %s",
-                (session['polar_session_id'],)
-            )
-            existing = cur.fetchone()
-            if existing:
-                print(f"  Session {session['polar_session_id']} already exists, skipping")
-                continue
             
             # Insert session
             cur.execute("""
@@ -196,15 +201,15 @@ def import_sessions(folder_path: Path):
             session_id = cur.fetchone()[0]
             sessions_imported += 1
             
-            # Insert HR samples in batches
+            # Insert HR samples in batches with source provenance
             if samples:
                 sample_data = [
-                    (session_id, s['sample_time'], s['hr_value'])
+                    (session_id, s['sample_time'], s['hr_value'], 'polar_file')
                     for s in samples
                 ]
                 execute_batch(
                     cur,
-                    "INSERT INTO hr_samples (session_id, sample_time, hr_value) VALUES (%s, %s, %s)",
+                    "INSERT INTO hr_samples (session_id, sample_time, hr_value, source) VALUES (%s, %s, %s, %s)",
                     sample_data,
                     page_size=1000
                 )
