@@ -246,7 +246,15 @@ class PostgresAnalyticsClient:
                 result["workouts"] = summary['workouts'] or 0
                 result["total_sets"] = summary['total_sets'] or 0
             
-            # ACWR (TRIMP-based)
+            # ACWR - prefer volume-based (from training_monotony_strain) since TRIMP pipeline is stale
+            cur.execute("""
+                SELECT acwr as volume_acwr
+                FROM training_monotony_strain
+                ORDER BY workout_date DESC
+                LIMIT 1
+            """)
+            volume_acwr_row = cur.fetchone()
+            
             cur.execute("""
                 SELECT trimp_acwr
                 FROM trimp_acwr
@@ -254,20 +262,25 @@ class PostgresAnalyticsClient:
                 ORDER BY session_date DESC
                 LIMIT 1
             """)
-            acwr_row = cur.fetchone()
+            trimp_acwr_row = cur.fetchone()
             
-            if acwr_row and acwr_row['trimp_acwr']:
-                acwr_val = float(acwr_row['trimp_acwr'])
-                zone = "high_risk" if acwr_val > 1.5 else "optimal" if 0.8 <= acwr_val <= 1.3 else "low"
+            # Use volume-based as primary, trimp as fallback
+            volume_acwr_val = float(volume_acwr_row['volume_acwr']) if volume_acwr_row and volume_acwr_row['volume_acwr'] else None
+            trimp_acwr_val = float(trimp_acwr_row['trimp_acwr']) if trimp_acwr_row and trimp_acwr_row['trimp_acwr'] else None
+            
+            primary_acwr = volume_acwr_val or trimp_acwr_val
+            if primary_acwr:
+                zone = "high_risk" if primary_acwr > 1.5 else "optimal" if 0.8 <= primary_acwr <= 1.3 else "low"
                 result["acwr"] = {
-                    "value": round(acwr_val, 2),
-                    "zone": zone
+                    "value": round(primary_acwr, 2),
+                    "zone": zone,
+                    "source": "volume" if volume_acwr_val else "trimp"
                 }
                 
-                if acwr_val > 1.5:
-                    coaching_notes.append(f"ACWR {round(acwr_val, 2)} - elevated injury risk")
-                elif acwr_val < 0.8:
-                    coaching_notes.append(f"ACWR {round(acwr_val, 2)} - can increase load")
+                if primary_acwr > 1.5:
+                    coaching_notes.append(f"ACWR {round(primary_acwr, 2)} (volume) - elevated injury risk")
+                elif primary_acwr < 0.8:
+                    coaching_notes.append(f"ACWR {round(primary_acwr, 2)} (volume) - can increase load")
             
             # Pattern gaps (no work in 10+ days)
             cur.execute("""

@@ -184,19 +184,15 @@ class Neo4jTrainingClient:
             
             return results
 
-    def get_exercise_by_id(self, exercise_id: str) -> dict | None:
-        """Get exercise name by ID. Used to resolve missing names during logging."""
-        if not exercise_id:
-            return None
-        query = """
-        MATCH (e:Exercise {exercise_id: $exercise_id})
-        RETURN e.name as name, e.exercise_id as exercise_id
-        LIMIT 1
-        """
-        with self.driver.session() as session:
-            result = session.run(query, exercise_id=exercise_id)
-            record = result.single()
-            return dict(record) if record else None
+    def get_exercise_by_id(self, exercise_id: str) -> Optional[Dict[str, Any]]:
+        """Get exercise by ID. Returns dict with 'name', 'id', etc. or None if not found."""
+        with self.driver.session(database=self.database) as session:
+            result = session.run("""
+                MATCH (e:Exercise {id: $exercise_id})
+                RETURN e {.id, .name, .description} as exercise
+            """, exercise_id=exercise_id).single()
+
+            return result["exercise"] if result else None
 
     def resolve_exercises(self, names: List[str], confidence_threshold: float = 0.3) -> Dict[str, Any]:
         """

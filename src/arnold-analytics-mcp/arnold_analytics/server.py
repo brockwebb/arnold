@@ -563,13 +563,17 @@ async def get_training_load(days: int):
         if core_gaps:
             coaching_notes.append(f"Pattern gaps (no work in 10d): {', '.join(core_gaps)}")
     
-    # ACWR insights
-    if trimp_acwr and trimp_acwr['trimp_acwr']:
-        acwr_val = float(trimp_acwr['trimp_acwr'])
-        if acwr_val > 1.5:
-            coaching_notes.append(f"ACWR {round(acwr_val, 2)} - elevated load")
-        elif acwr_val < 0.8:
-            coaching_notes.append(f"ACWR {round(acwr_val, 2)} - can increase load")
+    # ACWR insights - prefer volume-based since TRIMP pipeline may be stale
+    volume_acwr_val = float(volume_acwr['volume_acwr']) if volume_acwr and volume_acwr['volume_acwr'] else None
+    trimp_acwr_val = float(trimp_acwr['trimp_acwr']) if trimp_acwr and trimp_acwr['trimp_acwr'] else None
+
+    # Use volume-based as primary, trimp as fallback
+    primary_acwr = volume_acwr_val or trimp_acwr_val
+    if primary_acwr:
+        if primary_acwr > 1.5:
+            coaching_notes.append(f"ACWR {round(primary_acwr, 2)} (volume) - elevated load")
+        elif primary_acwr < 0.8:
+            coaching_notes.append(f"ACWR {round(primary_acwr, 2)} (volume) - can increase load")
     
     # Build response
     result = {

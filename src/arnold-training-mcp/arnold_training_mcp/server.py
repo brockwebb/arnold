@@ -1093,13 +1093,17 @@ Use `confirm_plan` when ready to lock it in."""
             for block in plan.get('blocks', []):
                 block_sets = []
                 for s in block.get('sets', []):
+                    # Strip PLANSET: prefix for Postgres UUID column (Issue #54)
+                    set_id = s.get('id')
+                    if set_id and set_id.startswith('PLANSET:'):
+                        set_id = set_id.replace('PLANSET:', '')
                     block_sets.append({
                         'exercise_id': s.get('exercise_id'),
                         'exercise_name': ensure_exercise_name(s.get('exercise_id'), s.get('exercise_name'), neo4j_client),
                         'reps': s.get('prescribed_reps'),  # As written
                         'load_lbs': s.get('prescribed_load_lbs'),
                         'rpe': s.get('prescribed_rpe'),
-                        'planned_set_id': s.get('id'),  # FK to planned_sets
+                        'planned_set_id': set_id,  # FK to planned_sets (prefix stripped)
                         'notes': s.get('notes')
                     })
                 blocks.append({
@@ -1215,6 +1219,10 @@ Great work! 💪"""
                 block_sets = []
                 for s in block.get('sets', []):
                     set_id = s.get('id')
+                    # Strip PLANSET: prefix for Postgres UUID column (Issue #54)
+                    stripped_set_id = set_id
+                    if stripped_set_id and stripped_set_id.startswith('PLANSET:'):
+                        stripped_set_id = stripped_set_id.replace('PLANSET:', '')
                     dev = deviation_map.get(set_id, {})
 
                     # Use deviation values if provided, else use prescribed (as written)
@@ -1231,7 +1239,7 @@ Great work! 💪"""
                         'reps': dev.get('actual_reps') or s.get('prescribed_reps'),
                         'load_lbs': dev.get('actual_load_lbs') or s.get('prescribed_load_lbs'),
                         'rpe': dev.get('actual_rpe') or s.get('prescribed_rpe'),
-                        'planned_set_id': set_id,
+                        'planned_set_id': stripped_set_id,  # FK to planned_sets (prefix stripped)
                         'notes': dev.get('notes') or s.get('notes')
                     })
                 blocks.append({

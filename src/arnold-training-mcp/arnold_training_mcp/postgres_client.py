@@ -373,6 +373,11 @@ class PostgresTrainingClient:
                         if s.get('duration_seconds'):
                             set_extra['duration_seconds'] = s['duration_seconds']
 
+                        # Strip PLANSET: prefix for Postgres UUID column
+                        planned_set_id = s.get('planned_set_id')
+                        if planned_set_id and isinstance(planned_set_id, str) and planned_set_id.startswith('PLANSET:'):
+                            planned_set_id = planned_set_id.replace('PLANSET:', '')
+
                         set_values.append((
                             block_id,
                             set_seq,
@@ -389,7 +394,7 @@ class PostgresTrainingClient:
                             s.get('tempo_code') or s.get('tempo'),
                             s.get('notes'),
                             psycopg2.extras.Json(set_extra) if set_extra else None,
-                            s.get('planned_set_id')  # FK to planned_sets
+                            planned_set_id  # FK to planned_sets (UUID, prefix stripped)
                         ))
 
                     execute_values(cursor, """

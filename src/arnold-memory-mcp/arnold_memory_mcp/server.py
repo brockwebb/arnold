@@ -592,9 +592,11 @@ async def call_tool_handler(name: str, arguments: dict[str, Any]) -> list[types.
                 hrr_summary = []
                 for strat, data in hrr["strata"].items():
                     if isinstance(data, dict) and data.get("baseline_hrr60"):
+                        # Handle NULL stratum - label as "Overall" or skip if we have named strata
+                        strat_label = strat if strat and strat != "None" else "Overall"
                         trend = data.get("trend", "stable")
-                        alert = "⚠️" if data.get("has_alert") else ""
-                        hrr_summary.append(f"{strat}: {data['current_avg']} bpm ({trend}){alert}")
+                        alert = " ⚠️" if data.get("has_alert") else ""
+                        hrr_summary.append(f"{strat_label}: {data['current_avg']} bpm ({trend}){alert}")
                 if hrr_summary:
                     lines.append(f"- **HRR:** {'; '.join(hrr_summary)}")
             

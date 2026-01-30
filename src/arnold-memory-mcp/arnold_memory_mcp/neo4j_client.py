@@ -49,7 +49,9 @@ class Neo4jMemoryClient:
         """
         with self.driver.session(database=self.database) as session:
             briefing = {}
-            
+            briefing["current_date"] = datetime.now().strftime("%Y-%m-%d")
+            briefing["current_day_of_week"] = datetime.now().strftime("%A")
+
             # =========================================================
             # ATHLETE IDENTITY & BACKGROUND
             # =========================================================
